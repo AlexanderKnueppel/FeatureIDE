@@ -55,6 +55,7 @@ public interface IFeatureProject extends IBuilderMarkerHandler {
 	
 	// TODO revise with enum
 	String META_THEOREM_PROVING = "Theorem Proving";
+	String META_THEOREM_PROVING_NEW = "Theorem Proving(Feature Stubs)";
 	String META_MODEL_CHECKING = "Model Checking (JPF-core)";
 	String META_MODEL_CHECKING_BDD_JAVA_JML = "Model Checking (JPF-BDD Java JML)";
 	String META_VAREXJ = "Variability-Aware Testing";

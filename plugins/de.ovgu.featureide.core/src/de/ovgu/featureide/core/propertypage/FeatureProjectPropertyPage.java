@@ -263,6 +263,7 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 		metaCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
 		metaCombo.setLayoutData(gd);
 		metaCombo.add(IFeatureProject.META_THEOREM_PROVING);
+		metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA_JML);
