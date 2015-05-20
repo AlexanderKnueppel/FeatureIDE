@@ -263,7 +263,9 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 		metaCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
 		metaCombo.setLayoutData(gd);
 		metaCombo.add(IFeatureProject.META_THEOREM_PROVING);
-		metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW);
+		if (contractCombo.getText().equals("Explicit Contract Refinement")) {
+			metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW);
+		}
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA_JML);
@@ -395,7 +397,6 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 		}
 
 		featureProject.setContractComposition(contractCombo.getItem(contractCombo.getSelectionIndex()));
-
 	}
 
 	private boolean contractChanged() {
@@ -608,7 +609,29 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 					metaCombo.select(0);
 				} else {
 					metaCombo.setEnabled(true);
+					int index = -1;
+					for (int i = 0; i < metaCombo.getItemCount(); i++) {
+						if (metaCombo.getItem(i).equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+							index = i;
+							break;
+						}
+					}
+					
+					boolean explicit = !"Explicit Contract Refinement".equals(contractCombo.getText());
+					if (explicit) {
+						if (metaCombo.getText().equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+							metaCombo.select(0);
+						}
+						if (index > 0 && metaCombo.getItem(index).equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+							metaCombo.remove(index);	
+						}
+					} else {
+						if (index < 0) {
+							metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW, 1);
+						}
+					}
 				}
+				
 				updateStatus(null);
 				return;
 			}
