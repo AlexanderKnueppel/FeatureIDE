@@ -24,6 +24,8 @@ import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
 
+import de.ovgu.cide.fstgen.ast.FSTNode;
+import de.ovgu.cide.fstgen.ast.FSTNonTerminal;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 import de.ovgu.featureide.core.fstmodel.FSTField;
 import de.ovgu.featureide.core.fstmodel.FSTMethod;
@@ -92,13 +94,16 @@ public class ClassBuilder {
 		if ("hs".equals(fileExtension)) {
 			return new HaskellClassBuilder(builder);
 		}
+		if ("asm".equals(fileExtension)) {
+			 return new AsmetaLClassBuilder(builder);
+			}
 		return new ClassBuilder(builder);
 	}
 	
 	void addMethod(String name, LinkedList<String> parameterTypes, String returnType, String modifiers, String body, int beginLine, int endLine, boolean isConstructor) {
 		addMethod(name, parameterTypes, returnType, modifiers, body, beginLine, endLine, isConstructor, "", "", -1);
 	}
-	
+
 	/**
 	 * Adds the method with the given parameters to the {@link FSTModel}.
 	 * @param name Name of the method
@@ -143,5 +148,9 @@ public class ClassBuilder {
 	
 	public void caseModifiers(FSTTerminal terminal) {}
 
-	public void caseJMLInvariant(FSTTerminal terminal) {}
+	public void caseInvariant(FSTTerminal terminal) {}
+
+	public void caseInitialization(FSTNode node) {}
+
+	public void caseSignatureDeclaration(FSTNonTerminal node) {}
 }

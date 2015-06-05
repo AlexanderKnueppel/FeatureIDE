@@ -20,16 +20,19 @@
  */
 package de.ovgu.featureide.core.signature.comparator;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-import de.ovgu.featureide.core.signature.abstr.AbstractClassFragment;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractFieldSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractMethodSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractSignature;
+import de.ovgu.featureide.core.signature.base.AbstractClassFragment;
+import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
+import de.ovgu.featureide.core.signature.base.AbstractFieldSignature;
+import de.ovgu.featureide.core.signature.base.AbstractMethodSignature;
+import de.ovgu.featureide.core.signature.base.AbstractSignature;
 
 //TODO MPL: better implementation
-public class SignatureComparator implements Comparator<Object> {
+public class SignatureComparator implements Comparator<Object>, Serializable {
+	
+	private static final long serialVersionUID = 7263887114849068283L;
 
 	@Override
 	public int compare(Object sig0, Object sig1) {

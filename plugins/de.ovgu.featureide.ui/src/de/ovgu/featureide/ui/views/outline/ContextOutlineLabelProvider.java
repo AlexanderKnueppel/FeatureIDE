@@ -46,11 +46,12 @@ import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.signature.ProjectSignatures;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassFragment;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractFieldSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractMethodSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractSignature;
+import de.ovgu.featureide.core.signature.base.AFeatureData;
+import de.ovgu.featureide.core.signature.base.AbstractClassFragment;
+import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
+import de.ovgu.featureide.core.signature.base.AbstractFieldSignature;
+import de.ovgu.featureide.core.signature.base.AbstractMethodSignature;
+import de.ovgu.featureide.core.signature.base.AbstractSignature;
 import de.ovgu.featureide.fm.core.Feature;
 import de.ovgu.featureide.ui.UIPlugin;
 import de.ovgu.featureide.ui.views.collaboration.GUIDefaults;
@@ -212,10 +213,12 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 				final IFeatureProject featureProject = CorePlugin.getFeatureProject((IResource) viewer.getInput());
 				if (selection instanceof AbstractClassFragment) {
 					final AbstractSignature sig = ((AbstractClassFragment) selection).getSignature();
-					openEditor(sig, featureProject, sig.getFeatureData()[0].getId());
+					final AFeatureData[] featureDataArray = sig.getFeatureData();
+					openEditor(sig, featureProject, featureDataArray[0].getID());
 				} else if (selection instanceof AbstractSignature) {
 					final AbstractSignature sig = (AbstractSignature) selection;
-					openEditor(sig, featureProject, sig.getFeatureData()[0].getId());
+					final AFeatureData[] featureDataArray = sig.getFeatureData();
+					openEditor(sig, featureProject, featureDataArray[0].getID());
 				} else if (selection instanceof Feature) {
 					final ProjectSignatures signatures = featureProject.getProjectSignatures();
 					if (signatures != null) {
@@ -252,7 +255,7 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 							editorPart = activePage.openEditor(new FileEditorInput(iFile), (desc != null) ? desc.getId() : "org.eclipse.ui.DefaultTextEditor");
 						}
 						final int dataIndex = sig.hasFeature(featureID);
-						scrollToLine(editorPart, (dataIndex > -1) ? sig.getFeatureData()[dataIndex].getLineNumber() : 1);
+						scrollToLine(editorPart, (dataIndex > -1) ? sig.getFeatureData()[dataIndex].getStartLineNumber() : 1);
 					} catch (CoreException e) {
 						UIPlugin.getDefault().logError(e);
 					}

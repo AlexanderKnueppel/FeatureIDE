@@ -42,11 +42,13 @@ public interface StatisticsIds {
 	public static final String PRODUCT_LINE_IMPLEMENTATION = "Statistics of product-line implementation";
 	public static final String CONTRACT_COMPLEXITY = "Statistics of product-line specification";
 	public static final String VALID_CONFIGURATIONS = "Valid configurations of the feature model";
+	public static final String ATOMIC_SETS = "Atomic sets of the feature model";
 	public static final String NUMBER_OF_FEATURE = "Feature statistics";
 	public static final String STATISTICS_OF_THE_FEATURE_MODEL = "Statistics of the feature model";
 	public static final String PROJECT_NAME = "Project Name";
 
 	public static final String SEPARATOR = ": ";
+	public static final String CLASS_SEPARATOR = "$";
 	public static final String NUMBER_FEATURES = "Number of features";
 	public static final String NUMBER_CONCRETE = "Number of concrete features";
 	public static final String NUMBER_ABSTRACT = "Number of abstract features";
@@ -54,6 +56,8 @@ public interface StatisticsIds {
 	public static final String NUMBER_COMPOUND = "Number of compound features";
 	public static final String NUMBER_HIDDEN = "Number of hidden features";
 	public static final String NUMBER_CONSTRAINTS = "Number of constraints";
+	public static final String NUMBER_CONSTRAINT_FEATURES = "Number of features in constraints";
+	public static final String CONSTRAINT_RATIO = "Relative number of features in constraints";
 	public static final String MODEL_VOID = "Feature model is valid (not void)";
 	public static final String MODEL_TIMEOUT = MODEL_VOID + "timeout";
 	public static final String DESC_COMPOSER_NAME = "Generation Tool";
@@ -62,10 +66,12 @@ public interface StatisticsIds {
 	public static final String DESC_FEATURE_COMPLEXITY = "Feature - Details";
 	public static final String NUMBER_ROLE = "Number of roles";
 	public static final String NUMBER_CLASS = "Number of classes";
+	public static final String NUMBER_CLASS_NESTED = "Number of nested classes";
 	public static final String NUMBER_METHOD = "Number of methods";
 	public static final String NUMBER_FIELD = "Number of fields";
 	public static final String NUMBER_METHOD_U = "Number of unique methods";
 	public static final String NUMBER_FIELD_U = "Number of unique fields";
+	public static final String NUMBER_OF_CODELINES = "Lines of code";
 	
 	public static final String NUMBER_PROJECT_METHOD_CONTRACT = "Number of method contracts in project";
 	public static final String NUMBER_PROJECT_INVARIANT = "Number of class invariants in project";

@@ -20,6 +20,14 @@
  */
 package de.ovgu.featureide.munge;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -46,10 +54,13 @@ import org.sonatype.plugins.munge.Munge;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.builder.IComposerExtensionClass;
+import de.ovgu.featureide.core.builder.IComposerObject;
 import de.ovgu.featureide.core.builder.preprocessor.PPComposerExtensionClass;
 import de.ovgu.featureide.core.fstmodel.preprocessor.FSTDirective;
+import de.ovgu.featureide.core.signature.documentation.base.ADocumentationCommentParser;
 import de.ovgu.featureide.fm.core.Feature;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
+import de.ovgu.featureide.munge.documentation.DocumentationCommentParser;
 import de.ovgu.featureide.munge.model.MungeModelBuilder;
 
 /**
@@ -73,8 +84,7 @@ public class MungePreprocessor extends PPComposerExtensionClass {
 	public static final Pattern OP_COM_PATTERN = Pattern.compile("(" + OPERATORS + ")|/\\*|\\*/");
 
 	/**
-	 * is true if actual line is in comment section (between <code>&#47;*</code>
-	 * and <code>*&#47;</code>)
+	 * is true if actual line is in comment section (between <code>&#47;*</code> and <code>*&#47;</code>)
 	 */
 	private boolean commentSection;
 
@@ -120,7 +130,7 @@ public class MungePreprocessor extends PPComposerExtensionClass {
 		if (mungeModelBuilder != null)
 			mungeModelBuilder.buildModel();
 	}
-	
+
 	@Override
 	public void postModelChanged() {
 		prepareFullBuild(null);
@@ -247,8 +257,7 @@ public class MungePreprocessor extends PPComposerExtensionClass {
 	}
 
 	/**
-	 * Checks given line if it contains expressions which are always
-	 * <code>true</code> or <code>false</code>.<br />
+	 * Checks given line if it contains expressions which are always <code>true</code> or <code>false</code>.<br />
 	 * <br />
 	 * 
 	 * Check in three steps:
@@ -474,13 +483,81 @@ public class MungePreprocessor extends PPComposerExtensionClass {
 		return IComposerExtensionClass.Mechanism.PREPROCESSOR;
 	}
 
-	/* (non-Javadoc)
-	 * @see de.ovgu.featureide.core.builder.IComposerExtensionBase#supportsMigration()
-	 */
 	@Override
-	public boolean supportsMigration()
-	{
+	public boolean supportsMigration() {
 		return false;
 	}
+
+	@Override
+	public <T extends IComposerObject> T getComposerObjectInstance(Class<T> c) {
+		if (c == ADocumentationCommentParser.class) {
+			return c.cast(new DocumentationCommentParser());
+		}
+		return super.getComposerObjectInstance(c);
+	}
+	
+	/**
+	 * Removes duplicate empty lines.
+	 */
+	@Override
+	public void postProcess(IFolder folder) {
+		// TODO remove ALL lines that correspond to annotations 
+		try {
+			folder.refreshLocal(IResource.DEPTH_INFINITE, null);
+			for (final IResource res : folder.members()) {
+				if (res instanceof IFolder) {
+					postProcess((IFolder) res);
+				} else if (res instanceof IFile) {
+					if (res.getFileExtension().equals(getConfigurationExtension())) {
+						continue;
+					}
+					try (final FileInputStream inputStream = new FileInputStream(new File(res.getLocationURI()));
+							final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.availableCharsets().get("UTF-8")))) {
+						String line = null;
+						final StringBuilder content = new StringBuilder();
+						boolean hasAnnotations = false;
+						boolean lastLineEmpty = false;
+						while ((line = reader.readLine()) != null) {
+							if (line.trim().isEmpty()) {
+								if (!lastLineEmpty) {
+									content.append(line);
+									content.append("\r\n");
+								} else {
+									lastLineEmpty = true;
+									hasAnnotations = true;
+								}
+							} else {
+								content.append(line);
+								content.append("\r\n");
+								lastLineEmpty = false;
+							}
+						}
+						if (hasAnnotations) {
+							setFileContent((IFile) res, content);
+						}
+					} catch (IOException e) {
+						MungeCorePlugin.getDefault().logError(e);
+					}
+				}
+			}
+		} catch (CoreException e) {
+			MungeCorePlugin.getDefault().logError(e);
+		}
+	}
+
+	/**
+	 * Sets the files new content.
+	 * @param file The file
+	 * @param content The new content to set
+	 */
+	private void setFileContent(IFile file, StringBuilder content) {
+		InputStream source = new ByteArrayInputStream(content.toString().getBytes(Charset.availableCharsets().get("UTF-8")));
+		try {
+			file.setContents(source, false, true, null);
+		} catch (CoreException e) {
+			MungeCorePlugin.getDefault().logError(e);
+		}
+	}
+
 
 }

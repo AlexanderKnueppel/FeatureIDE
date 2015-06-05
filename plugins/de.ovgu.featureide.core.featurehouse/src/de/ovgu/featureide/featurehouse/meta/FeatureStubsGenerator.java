@@ -42,9 +42,10 @@ import de.ovgu.featureide.core.fstmodel.FSTMethod;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
 import de.ovgu.featureide.core.signature.ProjectSignatures;
 import de.ovgu.featureide.core.signature.ProjectSignatures.SignatureIterator;
-import de.ovgu.featureide.core.signature.abstr.AbstractFieldSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractMethodSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractSignature;
+import de.ovgu.featureide.core.signature.base.AbstractFieldSignature;
+import de.ovgu.featureide.core.signature.base.AbstractMethodSignature;
+import de.ovgu.featureide.core.signature.base.AbstractSignature;
+import de.ovgu.featureide.core.signature.base.FOPFeatureData;
 import de.ovgu.featureide.core.signature.filter.MethodFilter;
 import de.ovgu.featureide.featurehouse.ExtendedFujiSignaturesJob;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
@@ -141,15 +142,15 @@ public class FeatureStubsGenerator {
 							while (sigIterator.hasNext()) {
 								AbstractSignature curSig = sigIterator.next();
 								for (int i = 0; i < curSig.getFeatureData().length; i++) {
-									if (curSig.getFeatureData()[i].getId() == featureID && curSig.getName().equals(meth.getName())
-											&& curSig.getFeatureData()[i].getLineNumber() == meth.getLine()) {
-										if (curSig.getFeatureData()[i].usesExternMethods()) {
+									if ((curSig.getFeatureData())[i].getID() == featureID && curSig.getName().equals(meth.getName())
+											&& curSig.getFeatureData()[i].getStartLineNumber() == meth.getLine()) {
+										if (((FOPFeatureData[])curSig.getFeatureData())[i].usesExternMethods()) {
 											FeatureHouseCorePlugin.getDefault().logError("The method\n"	+ curSig.getFullName() + "\nis not defined within the currently checked SPL. Therefore the process will be aborted." , null);
 											return;
 										}
 										
-										if (curSig.getFeatureData()[i].usesOriginal()) {
-											fileTextSB = checkForOriginal(fileTextSB, meth, curSig, signatures.getFeatureName(curSig.getFeatureData()[i].getId()));
+										if (((FOPFeatureData[])curSig.getFeatureData())[i].usesOriginal()) {
+											fileTextSB = checkForOriginal(fileTextSB, meth, curSig, signatures.getFeatureName(((FOPFeatureData[])curSig.getFeatureData())[i].getID()));
 										}
 
 										if (meth.hasContract() && meth.getContract().contains("\\original")) {
@@ -157,11 +158,11 @@ public class FeatureStubsGenerator {
 											//fileTextSB = checkForOriginalInContract(fileTextSB, curSig);
 										}
 										
-										for (String typeName : curSig.getFeatureData()[i].getUsedNonPrimitveTypes()) {
+										for (String typeName : ((FOPFeatureData[])curSig.getFeatureData())[i].getUsedNonPrimitveTypes()) {
 											checkForMissingTypes(feat, role, typeName);
 										}
 										
-										Set<AbstractSignature> calledSignatures = new HashSet<AbstractSignature>(curSig.getFeatureData()[i].getCalledSignatures());
+										Set<AbstractSignature> calledSignatures = new HashSet<AbstractSignature>(((FOPFeatureData[])curSig.getFeatureData())[i].getCalledSignatures());
 										for (AbstractSignature innerAbs : calledSignatures) {
 											if (!isInCurrentFeature(featureID, innerAbs) && alreadyUsedSigs.add(innerAbs.toString())) {
 												if (innerAbs.getParent().getName().equals(role.getClassFragment().getName().substring(0, role.getClassFragment().getName().indexOf(".")))) {
@@ -171,7 +172,7 @@ public class FeatureStubsGenerator {
 													StringBuilder newClassFileTextSB = createClassForPrototype(innerAbs, newClassFile);
 													createPrototypes(newClassFileTextSB, innerAbs);
 													newClassFileTextSB.append("\n}");
-													writeToFile(newClassFile, newClassFileTextSB);
+													writeToFile(newClassFile, newClassFileTextSB.toString());
 												}
 											}
 										}
@@ -184,7 +185,7 @@ public class FeatureStubsGenerator {
 						}
 						
 						fileTextSB.append(fileText.substring(lastIndexOf));
-						writeToFile(file, fileTextSB);
+						writeToFile(file, fileTextSB.toString());
 					}
 					if (keyWrapper != null) {
 						keyWrapper.runKeY(file);
@@ -233,14 +234,13 @@ public class FeatureStubsGenerator {
 	private StringBuilder createClassForPrototype(AbstractSignature absStig, File classFile) {
 		StringBuilder newClassFileTextSB = null;
 		try {
-			classFile.createNewFile();
-			String newClassFileText = new String(Files.readAllBytes(classFile.toPath()));
-			final int lastIndexInNewClassFile = newClassFileText.lastIndexOf("}");
-			newClassFileTextSB = new StringBuilder(newClassFileText.substring(0,
-					lastIndexInNewClassFile > -1 ? lastIndexInNewClassFile : newClassFileText.length()));
-
-			if ((newClassFileTextSB.length() == 0)) {
-				newClassFileTextSB.append("public class " + absStig.getParent().getName() + "{\n");
+			if (classFile.createNewFile()) {
+				newClassFileTextSB = new StringBuilder("public class " + absStig.getParent().getName() + "{\n");
+			} else {
+				String newClassFileText = new String(Files.readAllBytes(classFile.toPath()));
+				final int lastIndexInNewClassFile = newClassFileText.lastIndexOf("}");
+				newClassFileTextSB = new StringBuilder(newClassFileText.substring(0,
+						lastIndexInNewClassFile > -1 ? lastIndexInNewClassFile : newClassFileText.length()));
 			}
 		} catch (IOException e1) {
 			FeatureHouseCorePlugin.getDefault().logError(e1);
@@ -262,7 +262,7 @@ public class FeatureStubsGenerator {
 
 	private boolean isInCurrentFeature(int featureID, AbstractSignature innerAbs) {
 		for (int j = 0; j < innerAbs.getFeatureData().length; j++) {
-			if (innerAbs.getFeatureData()[j].getId() == featureID) {
+			if ((innerAbs.getFeatureData())[j].getID() == featureID) {
 				return true;
 			}
 		}
@@ -273,28 +273,26 @@ public class FeatureStubsGenerator {
 		if (featureStubFolder.getFolder(role.getFeature().getName()).getFile(className + ".java").exists())
 			return;
 		File missingTypeFile = new File(PATH + feature.getName() + "\\" + className + ".java");
-		StringBuilder missingTypeFileTextSB = null;
 		try {
-			missingTypeFile.createNewFile();
-			String missingTypeFileText = new String(Files.readAllBytes(missingTypeFile.toPath()));
-			final int lastIndexInNewClassFile = missingTypeFileText.lastIndexOf("}");
-			missingTypeFileTextSB = new StringBuilder(missingTypeFileText.substring(0,
-					lastIndexInNewClassFile > -1 ? lastIndexInNewClassFile : missingTypeFileText.length()));
-
-			if ((missingTypeFileTextSB.length() == 0)) {
-				missingTypeFileTextSB.append("public class " + className + "{}");
-				writeToFile(missingTypeFile, missingTypeFileTextSB);
+			if (missingTypeFile.createNewFile()) {
+				writeToFile(missingTypeFile, "public class " + className + "{}");
+			} else {
+				String missingTypeFileText = new String(Files.readAllBytes(missingTypeFile.toPath()));
+				final int lastIndexInNewClassFile = missingTypeFileText.lastIndexOf("}");
+				StringBuilder missingTypeFileTextSB = new StringBuilder(missingTypeFileText.substring(0,
+						lastIndexInNewClassFile > -1 ? lastIndexInNewClassFile : missingTypeFileText.length()));
+				writeToFile(missingTypeFile, missingTypeFileTextSB.toString());
 			}
 		} catch (IOException e1) {
 			FeatureHouseCorePlugin.getDefault().logError(e1);
 		}
 	}
 
-	private void writeToFile(File File, StringBuilder Text) {
+	private void writeToFile(File file, String text) {
 		FileWriter newClassWriter = null;
 		try {
-			newClassWriter = new FileWriter(File);
-			newClassWriter.write(Text.toString());
+			newClassWriter = new FileWriter(file);
+			newClassWriter.write(text);
 		} catch (IOException e) {
 			FeatureHouseCorePlugin.getDefault().logError(e);
 		} finally {

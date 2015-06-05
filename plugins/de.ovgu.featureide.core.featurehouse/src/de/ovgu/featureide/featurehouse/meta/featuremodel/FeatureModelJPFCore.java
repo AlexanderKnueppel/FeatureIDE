@@ -22,7 +22,9 @@ package de.ovgu.featureide.featurehouse.meta.featuremodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import org.prop4j.And;
@@ -50,8 +52,8 @@ public class FeatureModelJPFCore implements IFeatureModelClass {
 	
 	private final static String FIELD_MODIFIER = "\tpublic static Boolean ";
 	private StringBuilder stringBuilder;
-	private Collection<Feature> deadFeatures;
-	private Collection<Feature> coreFeatures;
+	private Collection<Feature> deadFeatures = Collections.emptyList();
+	private Collection<Feature> coreFeatures = Collections.emptyList();
 	private FeatureModel featureModel;
 
 	public FeatureModelJPFCore(FeatureModel featureModel) {
@@ -78,10 +80,10 @@ public class FeatureModelJPFCore implements IFeatureModelClass {
 			fields.append("_;" + NEWLINE);
 		}
 
-		ArrayList<Feature> features = new ArrayList<Feature>(
-				featureModel.getFeatures());
-		deadFeatures = featureModel.getAnalyser().getDeadFeatures();
-		coreFeatures = featureModel.getAnalyser().getCoreFeatures();
+		final ArrayList<Feature> features = new ArrayList<Feature>(featureModel.getFeatures());
+		final List<List<Feature>> deadCoreList = featureModel.getAnalyser().analyzeFeatures();
+		coreFeatures = deadCoreList.get(0);
+		deadFeatures = deadCoreList.get(1);
 		fields.append(NEWLINE + "\t/**" + NEWLINE 
 				+ "\t * Core features are set 'selected' and dead features 'unselected'." + NEWLINE 
 				+ "\t * All other features have unknown selection states." + NEWLINE 
@@ -285,18 +287,16 @@ public class FeatureModelJPFCore implements IFeatureModelClass {
 
 	@Override
 	public String getGetter() {
-		StringBuilder stringBuilder = new StringBuilder();
-		ArrayList<Feature> features = new ArrayList<Feature>(featureModel.getConcreteFeatures());
-		for (Feature f : features) {
-			String featureName = f.toString().toLowerCase(Locale.ENGLISH);
-			String getter = "\tpublic static boolean " + featureName + "() {\r\n";
-			getter += "\t\tif (" + featureName + "_ == null) {\r\n";
-			getter += "\t\t\t" + featureName + "_ = random();\r\n";
-			getter += "\t\t\tvalid();\r\n";
-			getter += "\t\t}\r\n";
-			getter += "\t\treturn " + featureName + "_;\r\n";
-			getter += "\t}\r\n\r\n";
-			stringBuilder.append(getter);
+		final StringBuilder stringBuilder = new StringBuilder();
+		for (Feature f : featureModel.getConcreteFeatures()) {
+			final String featureName = f.toString().toLowerCase(Locale.ENGLISH);
+			stringBuilder.append("\tpublic static boolean " + featureName + "() {\r\n");
+			stringBuilder.append("\t\tif (" + featureName + "_ == null) {\r\n");
+			stringBuilder.append("\t\t\t" + featureName + "_ = random();\r\n");
+			stringBuilder.append("\t\t\tvalid();\r\n");
+			stringBuilder.append("\t\t}\r\n");
+			stringBuilder.append("\t\treturn " + featureName + "_;\r\n");
+			stringBuilder.append("\t}\r\n\r\n");
 		}
 		return stringBuilder.toString();
 	}

@@ -22,11 +22,21 @@ package de.ovgu.featureide.fm.core;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.prop4j.Equals;
 import org.prop4j.Implies;
 import org.prop4j.Literal;
 import org.prop4j.NodeWriter;
 
 public class ConstraintToStringTest {
+	
+	@Test
+	public void testIffQuoteToString() {
+		FeatureModel fm = new FeatureModel();
+		Constraint c = new Constraint(fm, new Equals(new Literal("A"), new Literal("implies")));
+		final String s = Constraints.autoQuote(c);
+		
+		Assert.assertEquals("A iff \"implies\"", s);
+	}
 	
 	@Test
 	public void testStandardToString() {
@@ -69,5 +79,19 @@ public class ConstraintToStringTest {
 		Assert.assertEquals("a implies b", Constraints.autoQuote(c));
 	}
 	
-
+	@Test
+	public void testSplit1() {
+		final String constraint = "- (A  =>  \" A\"  |  - - (\"A \"  &  and  =>  \" and\"  &  \" and\"  |  \" and \"  &  \" and\"  &  - \" and\"))";
+		final String exptected = "not ( A implies \" A\" or not not ( \"A \" and \"and\" implies \" and\" and \" and\" or \" and \" and \" and\" and not \" and\" ))";
+		Assert.assertEquals(exptected, Constraints.autoQuote(constraint));
+	}
+	
+	@Test
+	public void testSplit2() {
+		final String constraint = "- \"Permission Control\"  &  (\"Person Prio\"  |  Service)";
+		final String exptected = "not \"Permission Control\" and ( \"Person Prio\" or Service )";
+		Assert.assertEquals(exptected, Constraints.autoQuote(constraint));
+	}
+	
+	
 }

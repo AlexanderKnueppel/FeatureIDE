@@ -27,8 +27,8 @@ import AST.Access;
 import AST.List;
 import AST.ParameterDeclaration;
 import AST.TypeDecl;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractMethodSignature;
+import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
+import de.ovgu.featureide.core.signature.base.AbstractMethodSignature;
 
 /**
  * Holds the java signature of a method.
@@ -92,7 +92,20 @@ public class FujiMethodSignature extends AbstractMethodSignature {
 			methodString.append(parameter.name());
 		}
 		methodString.append(')');
-
+		
+		if (exceptionList.getNumChild() > 0) {
+			notfirst = false;
+			methodString.append(" throws ");
+			for (Access exception : exceptionList) {
+				if (notfirst) {
+					methodString.append(", ");
+				} else {
+					notfirst = true;
+				}
+				methodString.append(exception.type().name());
+			}
+		}
+	
 		return methodString.toString();
 	}
 

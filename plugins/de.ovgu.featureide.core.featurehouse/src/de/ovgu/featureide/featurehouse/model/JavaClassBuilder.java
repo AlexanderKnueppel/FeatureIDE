@@ -223,7 +223,7 @@ public class JavaClassBuilder extends ClassBuilder {
 
 		// get modifiers
 		String modifiers = "";
-		if (terminal.getBody().indexOf(name) > 0) {
+		if (terminal.getBody().indexOf(name) >= 1) {
 			modifiers = terminal.getBody().substring(0, terminal.getBody().indexOf(name) - 1);
 		}
 
@@ -320,7 +320,7 @@ public class JavaClassBuilder extends ClassBuilder {
 	}
 
 	@Override
-	public void caseJMLInvariant(FSTTerminal terminal) {
+	public void caseInvariant(FSTTerminal terminal) {
 		FSTInvariant invariant = new FSTInvariant(terminal.getName(), terminal.getBody(), terminal.beginLine, terminal.endLine);
 		if (!modelBuilder.getCurrentClassFragment().add(invariant)) {
 			FeatureHouseCorePlugin.getDefault().logError("Invariant " + invariant.getBody() + "was not added to FSTModel.", null);
