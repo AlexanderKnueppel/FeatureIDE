@@ -31,6 +31,9 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StreamTokenizer;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.EmptyStackException;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
@@ -610,6 +613,22 @@ public class Munge {
             try {
                 munge.process();
                 munge.close();
+                final File f = new File(outFiles[i]);
+                if (f.length() == 0) {
+                	f.delete();
+                } else {
+                	boolean notEmpty = false;
+                	for (String line : Files.readAllLines(Paths.get(outFiles[i]), Charset.defaultCharset())) {
+                		if (!line.trim().isEmpty()) { 
+                			notEmpty = true;
+                			break;
+                		}
+                	}
+                	if (!notEmpty) {
+                		f.delete();
+                	}
+                }
+                
             } catch (IOException e) {
                 MungeCorePlugin.getDefault().logError(e);
             }
