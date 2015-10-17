@@ -41,14 +41,18 @@ import de.ovgu.featureide.ui.statistics.core.composite.Parent;
  * @author Patrick Haese
  */
 public class FeatureNode extends LazyParent implements IToolTip {
+	
 	private static final String TOOLTIP_SEPARATOR = " | ";
-	protected String tooltip;
-	private boolean hasConstraints;
-	private Feature feat;
+	
+	protected final String tooltip;
+	
+	private final boolean hasConstraints, expand;
+	private final Feature feat;
 
-	public FeatureNode(final Feature feat) {
+	public FeatureNode(final Feature feat, boolean expand) {
 		super(feat.toString());
 		this.feat = feat;
+		this.expand = expand;
 		this.tooltip = buildToolTip();
 		hasConstraints = !feat.getRelevantConstraints().isEmpty();
 		if (!(feat.hasChildren() || hasConstraints)) {
@@ -56,6 +60,11 @@ public class FeatureNode extends LazyParent implements IToolTip {
 		}
 	}
 	
+	@Override
+	public Boolean hasChildren() {
+		return expand && super.hasChildren();
+	}
+
 	/**
 	 * Creates child nodes for constraints affecting this feature and child
 	 * features of this feature. If both are present each category is stored in
@@ -63,7 +72,6 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	 */
 	@Override
 	protected void initChildren() {
-		
 		if (feat.hasChildren() && hasConstraints) {
 			addChild(findChildFeatures(new Parent("Child features: ", null)));
 			addChild(findConstraints(new Parent("Constraints: ", null)));
@@ -162,7 +170,7 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	private Parent findChildFeatures(Parent childFeat) {
 		if (feat.hasChildren()) {
 			for (Feature temp : feat.getChildren()) {
-				childFeat.addChild(new FeatureNode(temp));
+				childFeat.addChild(new FeatureNode(temp, expand));
 			}
 		}
 		return childFeat;

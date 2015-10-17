@@ -26,10 +26,10 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import de.ovgu.featureide.core.signature.ProjectSignatures.SignatureIterator;
-import de.ovgu.featureide.core.signature.abstr.AClassCreator;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassFragment;
-import de.ovgu.featureide.core.signature.abstr.AbstractClassSignature;
-import de.ovgu.featureide.core.signature.abstr.AbstractSignature;
+import de.ovgu.featureide.core.signature.base.AClassCreator;
+import de.ovgu.featureide.core.signature.base.AbstractClassFragment;
+import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
+import de.ovgu.featureide.core.signature.base.AbstractSignature;
 import de.ovgu.featureide.core.signature.java.JavaClassCreator;
 
 /** 
@@ -110,13 +110,17 @@ public class ProjectStructure {
 	}
 
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
+		}
+		
+		if (!(obj instanceof ProjectStructure)) {
+			return false;
+		}
 		
 		ProjectStructure otherSig = (ProjectStructure) obj;
 		
-		if (otherSig == null 
-				|| classList.size() != otherSig.classList.size()) {
+		if (classList.size() != otherSig.classList.size()) {
 			return false;
 		}
 		for (Entry<String, AbstractClassFragment> entrySet : classList.entrySet()) {

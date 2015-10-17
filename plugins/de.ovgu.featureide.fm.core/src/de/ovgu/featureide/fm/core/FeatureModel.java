@@ -46,7 +46,7 @@ import org.prop4j.Node;
  * @author Stefan Krueger
  * 
  */
-public class FeatureModel extends DeprecatedFeatureModel implements PropertyConstants {
+public class FeatureModel extends DeprecatedFeatureModel implements PropertyConstants, IGraphicItem {
 	
 	private Feature rootFeature;
 	
@@ -121,7 +121,7 @@ public class FeatureModel extends DeprecatedFeatureModel implements PropertyCons
 		} else {
 			this.annotations = null;
 			this.comments = null;
-			this.colorschemeTable = null;
+			this.colorschemeTable = new EmptyColorschemeTable();
 			this.layout = null;
 		}
 		
@@ -195,9 +195,7 @@ public class FeatureModel extends DeprecatedFeatureModel implements PropertyCons
 		if (annotations != null) {
 			annotations.clear();
 		}
-		if (colorschemeTable != null) {
-			colorschemeTable.reset();
-		}
+		colorschemeTable.reset();
 		featureOrderList.clear();
 	}
 	
@@ -881,6 +879,11 @@ public class FeatureModel extends DeprecatedFeatureModel implements PropertyCons
 			hash = hash * 7 + c.toString().hashCode();
 		}
 		return hash;
+	}
+
+	@Override
+	public GraphicItem getItemType() {
+		return GraphicItem.Model;
 	}
 
 }

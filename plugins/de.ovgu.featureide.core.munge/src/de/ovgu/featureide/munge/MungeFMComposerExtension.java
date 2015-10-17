@@ -55,9 +55,6 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 		return s.matches(FEATURE_NAME_PATTERN);
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.ovgu.featureide.fm.core.IFMComposerExtension#getComposer()
-	 */
 	@Override
 	public String getOrderPageMessage() {
 		return ORDER_PAGE_MESSAGE;
@@ -66,6 +63,10 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 	@Override
 	public boolean performRenaming(String oldName, String newName, IProject project) {
 		IFeatureProject featureProject = CorePlugin.getFeatureProject(project);
+		if (featureProject == null) {
+			return false;
+		}
+		
 		IFolder sourceFolder = featureProject.getSourceFolder();
 		if (!sourceFolder.exists())
 			return true;
@@ -94,13 +95,7 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 	private void performRenamings(String oldName, String newName, IFile iFile) {
 		setFilecontent(performRenamings(oldName, newName, getFileContent(iFile)), iFile);
 	}
-
-	/**
-	 * @param oldName
-	 * @param newName
-	 * @param fileContent
-	 * @return
-	 */
+	
 	public String performRenamings(String oldName, String newName,
 			String fileContent) {
 		if (!fileContent.contains(oldName)) {
@@ -108,11 +103,7 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 		}
 		return fileContent.replaceAll("\\["+oldName+"\\]\\*\\/","[" + newName + "]*/");
 	}
-
-	/**
-	 * @param filecontent
-	 * @param iFile
-	 */
+	
 	private void setFilecontent(String filecontent, IFile iFile) {
 		if (filecontent == null) {
 			return;
@@ -136,11 +127,7 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 			}
 		}
 	}
-
-	/**
-	 * @param iFile
-	 * @return
-	 */
+	
 	private String getFileContent(IFile iFile) {
 		Scanner scanner = null;
 		StringBuilder fileText = new StringBuilder();
@@ -159,10 +146,7 @@ public class MungeFMComposerExtension extends FMComposerExtension {
 		}
 		return fileText.toString();
 	}
-
-	/* (non-Javadoc)
-	 * @see de.ovgu.featureide.fm.core.IFMComposerExtension#hasFeaureOrder()
-	 */
+	
 	@Override
 	public boolean hasFeaureOrder() {
 		return false;

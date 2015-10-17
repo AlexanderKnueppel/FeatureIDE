@@ -336,7 +336,7 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 	 * Before loading, all error markers will be deleted and afterwards new ones
 	 * might be created if some errors occur.
 	 */
-	synchronized private void loadModel() {
+	synchronized private boolean loadModel() {
 		guidslToXML();
 
 		try {
@@ -347,6 +347,7 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 				setAllFeatureModuleMarkers();
 			}
 			readFeatureOrder();
+			return true;
 		} catch (FileNotFoundException e) {
 			modelFile.createModelMarker(e.getMessage(), IMarker.SEVERITY_ERROR, 0);
 		} catch (UnsupportedModelException e) {
@@ -354,6 +355,7 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 		} catch (CoreException e) {
 			LOGGER.logError("Error while loading feature model from " + modelFile.getResource(), e);
 		}
+		return false;
 	}
 
 	/**
@@ -916,19 +918,19 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 	private boolean checkModelChange(IResourceDelta delta) {
 		if (delta == null || (delta.getFlags() & IResourceDelta.CONTENT) == 0)
 			return false;
-
+		
 		Job job = new Job("Load Model") {
 			protected IStatus run(IProgressMonitor monitor) {
-				loadModel();
-				final IComposerExtensionClass composerExtension = getComposer();
-				if (composerExtension.isInitialized()) {
-					composerExtension.postModelChanged();
-					checkConfigurations(getAllConfigurations());
-					checkFeatureCoverage();
-					return Status.OK_STATUS;
-				} else {
-					return Status.CANCEL_STATUS;
+				if (loadModel()) {
+					final IComposerExtensionClass composerExtension = getComposer();
+					if (composerExtension.isInitialized()) {
+						composerExtension.postModelChanged();
+						checkConfigurations(getAllConfigurations());
+						checkFeatureCoverage();
+						return Status.OK_STATUS;
+					}
 				}
+				return Status.CANCEL_STATUS;
 			}
 		};
 		job.setPriority(Job.INTERACTIVE);
@@ -937,26 +939,31 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 	}
 
 	private void checkConfigurations(final List<IFile> files) {
-		if (files == null || files.isEmpty())
+		if (files == null || files.isEmpty()) {
 			return;
+		}
 
-		Job job = new Job("Checking configurations") {
-			protected IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("", files.size());
-				Configuration config = new Configuration(featureModel, false, false);
-				// Configuration autoConfig = new Configuration(featureModel,
-				// true);
-				ConfigurationReader reader = new ConfigurationReader(config);
-				// ConfigurationReader autoReader = new ConfigurationReader(
-				// autoConfig);
+		Job job = new AStoppableJob("Checking configurations", Job.LONG) {	
+			@Override
+			protected boolean work() throws Exception {
+				workMonitor.setMaxAbsoluteWork(2 * files.size());
+				final Configuration config = new Configuration(featureModel, false, false);
+				final ConfigurationReader reader = new ConfigurationReader(config);
 				try {
-					monitor.subTask("Delete Configuration Markers");
+					workMonitor.getMonitor().subTask("Delete Configuration Markers");
 					for (IFile file : files) {
+						if (workMonitor.checkCancel()) {
+							return false;
+						}
 						deleteConfigurationMarkers(file, IResource.DEPTH_ZERO);
+						workMonitor.worked();
 					}
 					// check validity
 					for (IFile file : files) {
-						monitor.subTask("Check validity of " + file.getName());
+						if (workMonitor.checkCancel()) {
+							return false;
+						}
+						workMonitor.getMonitor().subTask("Check validity of " + file.getName());
 						reader.readFromFile(file);
 						if (!config.isValid()) {
 							String name = file.getName();
@@ -965,23 +972,19 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 							createConfigurationMarker(file, message, 0, IMarker.SEVERITY_ERROR);
 
 						}
-						// create warnings (e.g., for features that are not
-						// available anymore)
+						// create warnings (e.g., for features that are not available anymore)
 						for (ConfigurationReader.Warning warning : reader.getWarnings()) {
 							createConfigurationMarker(file, warning.getMessage(), warning.getPosition(), IMarker.SEVERITY_WARNING);
 						}
-						monitor.worked(1);
+						workMonitor.worked();
 					}
 				} catch (OutOfMemoryError e) {
 					LOGGER.logError(e);
-				} catch (Exception e) {
-					LOGGER.logError(e);
+					return false;
 				}
-				monitor.done();
-				return Status.OK_STATUS;
+				return true;
 			}
 		};
-		job.setPriority(Job.DECORATE);
 		job.schedule();
 	}
 
@@ -1015,18 +1018,16 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 		}
 		final List<String> concreteFeatures = getFalseOptionalFeatures();
 		final List<String> falseOptionalFeatures = new LinkedList<String>();
-		if (selections.length != 0) {
-			for (int column = 0; column < concreteFeatures.size(); column++) {
-				boolean invalid = true;
-				for (int conf = 0; conf < selections.length; conf++) {
-					if (selections[conf][column] == selectionState) {
-						invalid = false;
-						break;
-					}
+		for (int column = 0; column < concreteFeatures.size(); column++) {
+			boolean invalid = true;
+			for (int conf = 0; conf < selections.length; conf++) {
+				if (selections[conf][column] == selectionState) {
+					invalid = false;
+					break;
 				}
-				if (invalid) {
-					falseOptionalFeatures.add(concreteFeatures.get(column));
-				}
+			}
+			if (invalid) {
+				falseOptionalFeatures.add(concreteFeatures.get(column));
 			}
 		}
 		return falseOptionalFeatures;
@@ -1059,10 +1060,11 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 
 	private Collection<String> getOptionalConcreteFeatures() {
 		final List<String> concreteFeatures = featureModel.getConcreteFeatureNames();
-		for (final Feature feature : featureModel.getAnalyser().getCoreFeatures()) {
+		List<List<Feature>> deadCoreList = featureModel.getAnalyser().analyzeFeatures();
+		for (final Feature feature : deadCoreList.get(0)) {
 			concreteFeatures.remove(feature.getName());
 		}
-		for (final Feature feature : featureModel.getAnalyser().getDeadFeatures()) {
+		for (final Feature feature : deadCoreList.get(1)) {
 			concreteFeatures.remove(feature.getName());
 		}
 		return concreteFeatures;
@@ -1071,13 +1073,11 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 	private List<String> getFalseOptionalFeatures() {
 		final List<String> concreteFeatureNames = new LinkedList<String>();
 		final Collection<Feature> coreFeatures = featureModel.getAnalyser().getCoreFeatures();
-
-		for (final Feature feature : featureModel.getConcreteFeatures()) {
-			if (!feature.isMandatory() && !feature.isAlternative() && coreFeatures.contains(feature))
+		
+		for (Feature feature : coreFeatures) {
+			if (feature.isConcrete() && !feature.isMandatory() && !feature.isAlternative()) {
 				concreteFeatureNames.add(feature.getName());
-		}
-		for (final Feature feature : featureModel.getAnalyser().getDeadFeatures()) {
-			concreteFeatureNames.remove(feature.getName());
+			}
 		}
 		return concreteFeatureNames;
 	}

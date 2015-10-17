@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
 /** 
  * Abstract signature for a class member.
  * 
@@ -138,7 +140,7 @@ public abstract class AbstractSignature {
 		this.parent = parent;
 		this.name = name;
 		if (parent != null) {
-			this.fullName = parent.fullName + '.' + name;
+			this.fullName = parent.getFullName() + '.' + name;
 		} else {
 			this.fullName = '.' + name;
 		}
