@@ -800,7 +800,7 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 				checkConfigurations(changedConfigs);
 			}
 
-			if (!buildRelevantChanges && sourceFolder != null && sourceFolder.isAccessible()) {
+			if (sourceFolder != null && sourceFolder.isAccessible()) {
 				if (currentConfig != null && composerExtension != null && composerExtension.hasFeatureFolder()) {
 					// ignore changes in unselected feature folders
 					List<String> selectedFeatures = readFeaturesfromConfigurationFile(currentConfig.getRawLocation().toFile());
@@ -816,7 +816,7 @@ public class FeatureProject extends BuilderMarkerHandler implements IFeatureProj
 				}
 			}
 
-			if (composerExtension != null && buildFolder != null && buildFolder.isAccessible()) {
+			if (!buildRelevantChanges && composerExtension != null && buildFolder != null && buildFolder.isAccessible()) {
 				checkBuildFolder(buildFolder, event);
 			}
 

@@ -81,6 +81,9 @@ public class NodeWriter {
 		return nodeToString(node, symbols, optionalBrackets, null);
 	}
 
+	public static String nodeToString(Node node, String[] symbols, String prefix) {
+		return nodeToString(node, symbols, false, false, null, prefix);
+	}
 
 	/**
 	 * Converts the given node into a specified textual representation.
@@ -93,12 +96,12 @@ public class NodeWriter {
 	 */
 	protected static String nodeToString(Node node, String[] symbols, boolean optionalBrackets, Class<? extends Node> parent)
 	{
-		return nodeToString(node, symbols, optionalBrackets, false, parent);
+		return nodeToString(node, symbols, optionalBrackets, false, parent, "");
 	}
 	
 	protected static String nodeToString(Node node, String[] symbols, boolean optionalBrackets, boolean addQuotationMarks)
 	{
-		return nodeToString(node, symbols, optionalBrackets, addQuotationMarks, null);
+		return nodeToString(node, symbols, optionalBrackets, addQuotationMarks, null, "");
 	}
 	
 	
@@ -107,32 +110,30 @@ public class NodeWriter {
 	 * 
 	 * @param node a propositional node to convert
 	 * @param symbols array containing strings for: not, and, or, implies, iff, seperator, choose, atleast and atmost
-	 * @param optionalBrackets a flag identifying if not necessary brackets will be added
-	 * @param parent the class of the node's parent or null if not available
-	 * @param Surrounds feature name sincluding whitespaces with quotation marks
+	 * @param optionalBrackets a flag specifying if not necessary brackets will be added
+	 * @param addQuotationMarks Surrounds feature names that include whitespaces with quotation marks
+	 * @param parent class of the node's parent or null if not available
 	 * @return the textual representation
 	 */
 	protected static String nodeToString(Node node, String[] symbols, boolean optionalBrackets, boolean addQuotationMarks, Class<? extends Node> parent) {
-		if (node instanceof Literal)
-		{
-			if (addQuotationMarks)
-			{
-				String returnnode = (((Literal) node).positive ? "" : symbols[0] );
-				if (((Literal) node).var.toString().contains(" "))
-					returnnode += "\""  + ((Literal) node).var + "\"";
-				else 
-					returnnode += ((Literal) node).var;
-				return returnnode;
-			}else
-			{
-				return (((Literal) node).positive ? "" : symbols[0] ) + ((Literal) node).var;
-			}
+		return nodeToString(node, symbols, optionalBrackets, addQuotationMarks, parent, "");
+	}
+	
+	protected static String nodeToString(Node node, String[] symbols, boolean optionalBrackets, boolean addQuotationMarks, Class<? extends Node> parent, String prefix) {
+		if (node instanceof Literal) {
+			final Literal literal = (Literal) node;
+			final String literalName = literal.var.toString();
+			return (literal.positive ? "" : symbols[0]) + 
+					prefix +
+					(addQuotationMarks && literalName.contains(" ") ? "\""  + literalName + "\"": literalName);
+			
 		}
 		if (node instanceof Not)
-			return symbols[0] + " " + nodeToString(node.getChildren()[0], symbols, optionalBrackets, addQuotationMarks, node.getClass());
-		return multipleNodeToString(node, symbols, optionalBrackets, parent, addQuotationMarks);
+			return symbols[0] + " " + nodeToString(node.getChildren()[0], symbols, optionalBrackets, addQuotationMarks, node.getClass(), prefix);
+		return multipleNodeToString(node, symbols, optionalBrackets, parent, addQuotationMarks, prefix);
 	}
 
+	
 	/**
 	 * Converts a node having multiple children into a specified textual representation.
 	 * 
@@ -142,18 +143,18 @@ public class NodeWriter {
 	 * @param parent the class of the node's parent or null if not available
 	 * @return the textual representation
 	 */
-	protected static String multipleNodeToString(Node node, String[] symbols, boolean optionalBrackets, Class<? extends Node> parent, boolean addQuotationMarks) {
+	protected static String multipleNodeToString(Node node, String[] symbols, boolean optionalBrackets, Class<? extends Node> parent, boolean addQuotationMarks, String literalPrefix) {
 		Node[] children = node.getChildren();
 		if (children.length < 1)
 			return "???";
 		if (children.length == 1)
-			return nodeToString(children[0], symbols, optionalBrackets,addQuotationMarks, parent);
+			return nodeToString(children[0], symbols, optionalBrackets,addQuotationMarks, parent, literalPrefix);
 
 		StringBuilder s = new StringBuilder();
 		String separator = getSeparator(node, symbols);
 		for (Node child : children) {
 			s.append(separator);
-			s.append(nodeToString(child, symbols, optionalBrackets,addQuotationMarks, node.getClass()));
+			s.append(nodeToString(child, symbols, optionalBrackets,addQuotationMarks, node.getClass(), literalPrefix));
 		}
 		
 		String prefix = "";
