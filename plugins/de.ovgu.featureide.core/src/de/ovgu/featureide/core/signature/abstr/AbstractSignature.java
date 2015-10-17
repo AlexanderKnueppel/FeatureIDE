@@ -60,7 +60,7 @@ public abstract class AbstractSignature {
 			return lineNumber;
 		}
 		
-		public boolean usesExternMethods() {
+		public boolean usesExternalMethods() {
 			return usesExternalMethods;
 		}
 		

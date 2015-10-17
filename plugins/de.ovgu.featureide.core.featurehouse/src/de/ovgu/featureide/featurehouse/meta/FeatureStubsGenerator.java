@@ -143,7 +143,7 @@ public class FeatureStubsGenerator {
 								for (int i = 0; i < curSig.getFeatureData().length; i++) {
 									if (curSig.getFeatureData()[i].getId() == featureID && curSig.getName().equals(meth.getName())
 											&& curSig.getFeatureData()[i].getLineNumber() == meth.getLine()) {
-										if (curSig.getFeatureData()[i].usesExternMethods()) {
+										if (curSig.getFeatureData()[i].usesExternalMethods()) {
 											FeatureHouseCorePlugin.getDefault().logError("The method\n"	+ curSig.getFullName() + "\nis not defined within the currently checked SPL. Therefore the process will be aborted." , null);
 											return;
 										}
@@ -154,7 +154,7 @@ public class FeatureStubsGenerator {
 
 										if (meth.hasContract() && meth.getContract().contains("\\original")) {
 											contractChanged = true;
-											//fileTextSB = checkForOriginalInContract(fileTextSB, curSig);
+											fileTextSB = checkForOriginalInContract(fileTextSB, curSig);
 										}
 										
 										for (String typeName : curSig.getFeatureData()[i].getUsedNonPrimitveTypes()) {
@@ -183,8 +183,11 @@ public class FeatureStubsGenerator {
 							}
 						}
 						
-						fileTextSB.append(fileText.substring(lastIndexOf));
-						writeToFile(file, fileTextSB);
+						if (fileTextSB != null) {
+							fileTextSB.append(fileText.substring(lastIndexOf));
+							writeToFile(file, fileTextSB);
+						}
+						
 					}
 					if (keyWrapper != null) {
 						keyWrapper.runKeY(file);
@@ -216,7 +219,9 @@ public class FeatureStubsGenerator {
 				nextElement(signatures, features);
 			}
 		} else {
-			nextElement(signatures, features);
+			while (!features.isEmpty()) {
+				nextElement(signatures, features);
+			}
 		}
 	}
 
@@ -255,7 +260,7 @@ public class FeatureStubsGenerator {
 					+ "E;\n\t@ assignable_abs " + innerAbs.getName() + "A;\n\t@*/\n"
 					+ innerAbs.toString() + "{" + "}\n");
 		} else if (innerAbs instanceof AbstractFieldSignature) {
-			fileTextSB.append("/*field prototype*/\n"
+			fileTextSB.append("\t/*field prototype*/\n\t"
 					+ innerAbs.toString() + ";\n");
 		}
 	}
@@ -308,34 +313,39 @@ public class FeatureStubsGenerator {
 		}
 	}
 
-//	private StringBuilder checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig) {
-//		final int indexOfBody = fileTextSB.indexOf(curSig.toString().trim());
-//		String tmpText = fileTextSB.substring(0, indexOfBody);
-//		final int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
-//		final String contractBody = fileTextSB.substring(tmpText.length() - 1);
-//		String tmpFileText = fileTextSB.substring(0, indexOfStartOfContract)
-//				+ "\n\n\t/*@\n\t@ requires_abs   " + curSig.getName() + "R;\n\t@ ensures_abs    "
-//				+ curSig.getName() + "E;\n\t@ assignable_abs " + curSig.getName() + "A;\n\t@*/\n"
-//				+ contractBody;
-//		return new StringBuilder(tmpFileText);
-//	}
+	private StringBuilder checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig) {
+		final int indexOfBody = fileTextSB.indexOf(curSig.toString().trim());
+		String tmpText = fileTextSB.substring(0, indexOfBody);
+		final int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
+		final String contractBody = fileTextSB.substring(tmpText.length() - 1);
+		String tmpFileText = fileTextSB.substring(0, indexOfStartOfContract)
+				+ "\n\n\t/*@\n\t@ requires_abs   " + curSig.getName() + "R;\n\t@ ensures_abs    "
+				+ curSig.getName() + "E;\n\t@ assignable_abs " + curSig.getName() + "A;\n\t@*/\n"
+				+ contractBody;
+		return new StringBuilder(tmpFileText);
+	}
 
 	private StringBuilder transformIntoAbstractContract(StringBuilder fileTextSB, AbstractSignature curSig) { 
-		int indexOfBody = fileTextSB.toString().lastIndexOf(curSig.toString().trim());
+		final String fileText = fileTextSB.toString();
+		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
 		if (indexOfBody < 1) {
-			indexOfBody = fileTextSB.toString().lastIndexOf(" " + curSig.getName()+"(");
+			indexOfBody = fileText.lastIndexOf(" " + curSig.getName()+"(");
 		}
 		String tmpText = fileTextSB.substring(0, indexOfBody);
 		int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
 		String contractBody = "";
-		while (!(contractBody.contains("ensures") || contractBody.contains("requires") || contractBody.contains("assignable"))) {
+		
+		int brace = contractBody.indexOf("(");
+		while (!((checkPosition(contractBody, "requires", brace) || checkPosition(contractBody, "ensures", brace) || 
+				checkPosition(contractBody, "assignable", brace)))) {
 			if (!contractBody.isEmpty()) {
 				indexOfStartOfContract = fileTextSB.substring(0, fileTextSB.indexOf(contractBody) - 2).lastIndexOf("/*@");
 			}
 			if (indexOfStartOfContract < 0) {
-				return null;
+				return fileTextSB;
 			}
 			contractBody = fileTextSB.substring(indexOfStartOfContract);
+			brace = contractBody.indexOf("(");
 		}
 		contractBody = contractBody.substring(0, contractBody.indexOf("*/"));
 		StringBuilder ensures = new StringBuilder(), requires = new StringBuilder(), assignable = new StringBuilder();
@@ -357,6 +367,11 @@ public class FeatureStubsGenerator {
 				"\t@" +
 				fileTextSB.substring(indexOfStartOfContract + contractBody.length());
 		return new StringBuilder(tmpFileText);
+	}
+	
+	private boolean checkPosition(String text, String search, int comp) {
+		int index = text.indexOf(search);
+		return index > -1 && index < comp;
 	}
 
 	private int aggregateClauses(StringBuilder clause, String[] contracts, int i, String line) {
