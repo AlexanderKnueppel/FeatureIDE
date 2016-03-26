@@ -22,6 +22,7 @@ package de.ovgu.featureide.featurehouse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -299,10 +300,14 @@ public class ExtendedFujiSignaturesJob extends AStoppableJob {
 	@SuppressWarnings("unchecked")
 	private void createSignatures(IFeatureProject fp, Program ast) {
 		int count = 0;
+		HashSet<String> packagesSet = new HashSet<>();
+		
 		Iterator<CompilationUnit> unitIter = ast.compilationUnitIterator();
 		while (unitIter.hasNext()) {
-			if (unitIter.next().featureID() >= 0) {
+			CompilationUnit el = unitIter.next();
+			if (el.featureID() >= 0) {
 				++count;
+				packagesSet.add(el.getPackageDecl());
 			}
 		}
 		workMonitor.setMaxAbsoluteWork(2 * count);
@@ -524,12 +529,13 @@ public class ExtendedFujiSignaturesJob extends AStoppableJob {
 			}
 			 
 		}
-		 
+
 		for (Entry<ExtendedSignature, ClassDecl> extSig : nonPrimitveTypesTable.entrySet()) {
 			final FOPFeatureData[] featureData = (FOPFeatureData[]) extSig.getKey().sig.getFeatureData();
 			for (int j = 0; j < featureData.length; j++) {
-				if (featureData[j].getID() == extSig.getKey().featureID) {
-					featureData[j].addUsedNonPrimitveType(extSig.getValue().name());
+				if (featureData[j].getID() == extSig.getKey().featureID && packagesSet.contains(extSig.getValue().compilationUnit().getPackageDecl())) {
+					ClassDecl value = extSig.getValue();				
+					featureData[j].addUsedNonPrimitveType(value.compilationUnit().getPackageDecl() + "." + value.name());
 					break;
 				}
 			}

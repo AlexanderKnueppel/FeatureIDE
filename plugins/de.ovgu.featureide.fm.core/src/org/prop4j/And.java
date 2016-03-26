@@ -78,4 +78,13 @@ public class And extends Node {
 		return new And(clone(children));
 	}
 
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append("AND");
+				
+		return super.toString(nodeStringBuilder, level);
+	}
+	
 }

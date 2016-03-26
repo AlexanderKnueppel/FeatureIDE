@@ -41,8 +41,14 @@ public class NodeWriter {
 	 * short textual representation
 	 */
 	public final static String[] shortSymbols = new String[] {"-", " & ", " | ", " => ", " <=> ", ", ", "choose", "atleast", "atmost"};
-	
+
 	public final static String noSymbol = " no symbol ";
+
+	/**
+	 * JML contract representation
+	 */
+	public final static String[] jmlSymbols = new String[] {"!", " && ", " || ", " ==> ", " <==> ", noSymbol, noSymbol, noSymbol, noSymbol};
+	
 	/**
 	 * java textual representation
 	 */

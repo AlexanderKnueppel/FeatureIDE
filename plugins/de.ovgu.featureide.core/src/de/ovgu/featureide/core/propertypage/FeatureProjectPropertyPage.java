@@ -264,7 +264,7 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 		metaCombo.setLayoutData(gd);
 		metaCombo.add(IFeatureProject.META_THEOREM_PROVING);
 		if (contractCombo.getText().equals("Explicit Contract Refinement")) {
-			metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW);
+			metaCombo.add(IFeatureProject.META_THEOREM_PROVING_DISP);
 		}
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING);
 		metaCombo.add(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA);
@@ -611,7 +611,7 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 					metaCombo.setEnabled(true);
 					int index = -1;
 					for (int i = 0; i < metaCombo.getItemCount(); i++) {
-						if (metaCombo.getItem(i).equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+						if (metaCombo.getItem(i).equals(IFeatureProject.META_THEOREM_PROVING_DISP)) {
 							index = i;
 							break;
 						}
@@ -619,15 +619,15 @@ public class FeatureProjectPropertyPage extends PropertyPage {
 					
 					boolean explicit = !"Explicit Contract Refinement".equals(contractCombo.getText());
 					if (explicit) {
-						if (metaCombo.getText().equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+						if (metaCombo.getText().equals(IFeatureProject.META_THEOREM_PROVING_DISP)) {
 							metaCombo.select(0);
 						}
-						if (index > 0 && metaCombo.getItem(index).equals(IFeatureProject.META_THEOREM_PROVING_NEW)) {
+						if (index > 0 && metaCombo.getItem(index).equals(IFeatureProject.META_THEOREM_PROVING_DISP)) {
 							metaCombo.remove(index);	
 						}
 					} else {
 						if (index < 0) {
-							metaCombo.add(IFeatureProject.META_THEOREM_PROVING_NEW, 1);
+							metaCombo.add(IFeatureProject.META_THEOREM_PROVING_DISP, 1);
 						}
 					}
 				}

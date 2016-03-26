@@ -47,4 +47,13 @@ public class Equals extends Node {
 		return new Equals(children[0].clone(), children[1].clone());
 	}
 	
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append("IFF");
+				
+		return super.toString(nodeStringBuilder, level);
+	}
+	
 }

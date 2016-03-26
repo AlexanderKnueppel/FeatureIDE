@@ -76,4 +76,12 @@ public class Literal extends Node {
 		return (var.equals(((Literal) node).var)) && (positive == ((Literal) node).positive);
 	}
 	
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append(var);
+				
+		return super.toString(nodeStringBuilder, level);
+	}
 }

@@ -179,5 +179,14 @@ public class Or extends Node {
 	public Node clone() {
 		return new Or(clone(children));
 	}
+	
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append("OR");
+				
+		return super.toString(nodeStringBuilder, level);
+	}
 
 }

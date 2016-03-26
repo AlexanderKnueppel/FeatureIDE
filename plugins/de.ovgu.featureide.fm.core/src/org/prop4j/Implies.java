@@ -55,4 +55,13 @@ public class Implies extends Node {
 		return new Implies(children[0].clone(), children[1].clone());
 	}
 
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append("IMPLIES");
+				
+		return super.toString(nodeStringBuilder, level);
+	}
+
 }

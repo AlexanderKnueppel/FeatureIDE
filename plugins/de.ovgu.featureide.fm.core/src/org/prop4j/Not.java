@@ -80,4 +80,12 @@ public class Not extends Node {
 		return new Not(children[0].clone());
 	}
 
+	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+		for (int i = 0; i < level; i++) {
+			nodeStringBuilder.append("\t");
+		}
+		nodeStringBuilder.append("NOT");
+				
+		return super.toString(nodeStringBuilder, level);
+	}
 }

@@ -26,7 +26,7 @@ import org.prop4j.Node;
 import de.ovgu.featureide.core.signature.ProjectSignatures;
 
 /**
- * TODO description
+ * Feature Data
  * 
  * @author Sebastian Krieter
  */
