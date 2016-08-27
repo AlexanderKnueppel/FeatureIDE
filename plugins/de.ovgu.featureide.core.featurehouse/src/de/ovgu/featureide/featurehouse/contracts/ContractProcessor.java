@@ -379,7 +379,7 @@ public class ContractProcessor {
 				
 				final String nodeToString = NodeWriter.nodeToString(node, NodeWriter.javaSymbols, "FM.FeatureModel.");
 				final String featuremodel = "\n\t/*@ public invariant " + nodeToString + "; @*/\n";
-				final ASTParser astp = ASTParser.newParser(AST.JLS4);
+				final ASTParser astp = ASTParser.newParser(AST.JLS8);
 				
 				astp.setSource(fileContent.toCharArray());
 				astp.setKind(ASTParser.K_COMPILATION_UNIT);

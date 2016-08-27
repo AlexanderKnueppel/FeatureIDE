@@ -63,7 +63,6 @@ import AST.Problem;
 import AST.Program;
 import cide.gparser.ParseException;
 import cide.gparser.TokenMgrError;
-
 import composer.CmdLineInterpreter;
 import composer.CompositionException;
 import composer.FSTGenComposer;
@@ -71,7 +70,6 @@ import composer.FSTGenComposerExtension;
 import composer.ICompositionErrorListener;
 import composer.IParseErrorListener;
 import composer.rules.meta.FeatureModelInfo;
-
 import de.ovgu.cide.fstgen.ast.FSTNode;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 import de.ovgu.featureide.core.IFeatureProject;
@@ -378,7 +376,7 @@ public class FeatureHouseComposer extends ComposerExtensionClass {
 			} else if (IFeatureProject.META_MODEL_CHECKING_BDD_C.equals(metaProductGeneration)) {
 				buildBDDMetaProduct(configPath, basePath, outputPath, "c");
 			} else if (IFeatureProject.META_THEOREM_PROVING_DISP.equals(metaProductGeneration)) {
-				buildDefaultMetaProduct(configPath, basePath, outputPath, true);
+				buildDefaultMetaProduct(configPath, basePath, outputPath, true, false);
 				ContractProcessor.clearFiles();
 			} else {
 				buildDefaultMetaProduct(configPath, basePath, outputPath);
@@ -577,6 +575,10 @@ public class FeatureHouseComposer extends ComposerExtensionClass {
 	}
 
 	private void buildDefaultMetaProduct(final String configPath, final String basePath, final String outputPath, boolean metaProductHasDispatcherMethods) {
+		buildDefaultMetaProduct(configPath, basePath, outputPath, metaProductHasDispatcherMethods, false);
+	}
+
+	private void buildDefaultMetaProduct(final String configPath, final String basePath, final String outputPath, boolean metaProductHasDispatcherMethods, boolean metaWithDisp) {
 		new FeatureModelClassGenerator(featureProject);
 		final String metaProductGeneration = featureProject.getMetaProductGeneration();
 		FSTGenComposerExtension.key = IFeatureProject.META_THEOREM_PROVING.equals(metaProductGeneration)
@@ -604,9 +606,9 @@ public class FeatureHouseComposer extends ComposerExtensionClass {
 			String[] args = getArguments(configPath, basePath, outputPath, getContractParameter());
 			FeatureModelInfo modelInfo = new FeatureIDEModelInfo(featureModel, !IFeatureProject.META_THEOREM_PROVING.equals(metaProductGeneration));
 			((FSTGenComposerExtension) composer).setModelInfo(modelInfo);
-			((FSTGenComposerExtension) composer).buildMetaProduct(args, features, metaProductHasDispatcherMethods);
+			((FSTGenComposerExtension) composer).buildMetaProduct(args, features, metaProductHasDispatcherMethods, true);
 
-			if (false) {
+			if (metaProductHasDispatcherMethods) {
 				ContractProcessor.performContractOptimizations(featureModel, outputPath);
 			}
 
