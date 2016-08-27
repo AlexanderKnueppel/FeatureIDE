@@ -63,7 +63,7 @@ public class ModifiableSolver extends BasicSolver {
 		return addCNF(constraint.getChildren());
 	}
 
-	protected List<IConstr> addCNF(final Node[] cnfChildren) throws ContradictionException {
+	public List<IConstr> addCNF(final Node[] cnfChildren) throws ContradictionException {
 		final List<IConstr> result = new LinkedList<>();
 		try {
 			for (Node node : cnfChildren) {

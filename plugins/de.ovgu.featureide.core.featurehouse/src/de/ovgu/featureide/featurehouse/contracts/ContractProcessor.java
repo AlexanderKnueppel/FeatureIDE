@@ -54,9 +54,14 @@ import org.prop4j.Literal;
 import org.prop4j.Node;
 import org.prop4j.NodeWriter;
 import org.prop4j.Or;
+import org.prop4j.solver.ModifiableSolver;
+import org.prop4j.solver.SatInstance;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.IConstr;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
+import de.ovgu.featureide.fm.core.Logger;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
@@ -73,11 +78,11 @@ public class ContractProcessor {
 	private static final FeatureHouseCorePlugin LOGGER = FeatureHouseCorePlugin.getDefault();
 	private static final String FMPLACEHOLDER = "%FM.%";
 	private final static Set<String> postCompiledFiles = new HashSet<String>();
-	
+
 	public static void clearFiles() {
 		postCompiledFiles.clear();
 	}
-	
+
 	/**
 	 * @param featureModel
 	 * @param outputPath
@@ -93,10 +98,10 @@ public class ContractProcessor {
 			coreFeatures.add(coreFeature.getName().toLowerCase());
 		}
 		coreFeatures.add(NodeCreator.varTrue);
-		
+
 		Path path = Paths.get(outputPath);
-		FileVisitor<Path> fileVisit = new FileVisitor<Path>(){
-		
+		FileVisitor<Path> fileVisit = new FileVisitor<Path>() {
+
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 				return FileVisitResult.CONTINUE;
@@ -107,7 +112,7 @@ public class ContractProcessor {
 				if (attrs.isRegularFile()) {
 					final String fileName = file.getFileName().toString();
 					final int indexOfDot = fileName.lastIndexOf('.');
-					if (indexOfDot > 0 && "java".equals(fileName.substring(indexOfDot+ 1))) {
+					if (indexOfDot > 0 && "java".equals(fileName.substring(indexOfDot + 1))) {
 						final String content = new String(Files.readAllBytes(file), "UTF-8");
 						final StringBuilder newContent = new StringBuilder(content.length());
 						/*
@@ -147,42 +152,58 @@ public class ContractProcessor {
 							final int clauseLength = abstractClause.length();
 							int indexOfClause = abstractClause.indexOf(fileHasAbstractContracts ? '=' : ' ');
 							String clauseContent = abstractClause.substring(indexOfClause + 1, clauseLength - 1).trim();
-							
+
 							ContractNodeReader conNodeReader = new ContractNodeReader();
 							Node oldClauseNode = conNodeReader.parseStringToNode(clauseContent);
-							Node clauseNode = oldClauseNode.toCNF();
-//							List<String> nodeNames = iterateOverClauseNode(clauseNode);
+							Node clauseNode = oldClauseNode.toRegularCNF();
+							//							List<String> nodeNames = iterateOverClauseNode(clauseNode);
 							final List<Node> collectNodes;
-							if (clauseNode instanceof And) {
-								final Node[] andChildren = clauseNode.getChildren();
-								collectNodes = new ArrayList<Node>(andChildren.length);
-								for (int j = 0; j < andChildren.length; j++) {
-									Node childOfAnd = andChildren[j];
-									handleLiteralsAndOrClauses(deadFeaturesLower, coreFeatures, clauseNode, collectNodes, childOfAnd);
-								}
-							} else {
-								collectNodes = new ArrayList<Node>(1);
-								handleLiteralsAndOrClauses(deadFeaturesLower, coreFeatures, clauseNode, collectNodes, clauseNode);
+							final Node[] andChildren = clauseNode.getChildren();
+							collectNodes = new ArrayList<Node>(andChildren.length);
+							for (int j = 0; j < andChildren.length; j++) {
+								Node childOfAnd = andChildren[j];
+								handleLiteralsAndOrClauses(deadFeaturesLower, coreFeatures, clauseNode, collectNodes, childOfAnd);
 							}
-							
+
 							if (collectNodes.isEmpty()) {
 								clauseNode = new Literal("true");
 							} else {
 								clauseNode = new And(collectNodes.toArray(new Node[0]));
+								try {
+									final SatInstance si = new SatInstance(null, SatInstance.getDistinctVariableObjects(clauseNode));
+									final ModifiableSolver redundantSat = new ModifiableSolver(si);
+									final List<Node> newNodeChildren = new ArrayList<>();
+									final List<IConstr> constraintMarkers = redundantSat.addCNF(clauseNode.getChildren());
+
+									int i = -1;
+									for (IConstr constraint : constraintMarkers) {
+										i++;
+										if (constraint != null) {
+											redundantSat.removeConstraint(constraint);
+											Node constraintNode = clauseNode.getChildren()[i];
+											if (!redundantSat.isImplied(constraintNode.getChildren())) {
+												redundantSat.addCNF(new Node[] {constraintNode});
+												newNodeChildren.add(constraintNode);
+											}
+										}
+									}
+									clauseNode = new And(newNodeChildren.toArray(new Node[0]));
+								} catch (ContradictionException e) {
+									Logger.logError(e);
+								}
 							}
 							String optimizedNode = NodeWriter.nodeToString(clauseNode, NodeWriter.jmlSymbols);
-							
-							System.out.println();  
-							System.out.println(" Before: " + clauseContent);
-							System.out.println("After : " + optimizedNode);
-							 // 31 nextDay_Interest, true entfernen; 32 siehe 31
+
+							System.err.println(" Before: " + clauseContent);
+							System.err.println("After : " + optimizedNode);
+							// 31 nextDay_Interest, true entfernen; 32 siehe 31
 							int offset = start + indexOfClause + 1;
-							
+
 							newContent.append(content.substring(pos, offset));
 							newContent.append(" ");
 							newContent.append(optimizedNode);
 							newContent.append(";");
-							pos = start + clauseLength; 
+							pos = start + clauseLength;
 						}
 						if (pos > 0) {
 							newContent.append(content.substring(pos, content.length()));
@@ -191,7 +212,7 @@ public class ContractProcessor {
 					}
 				}
 				return FileVisitResult.CONTINUE;
-				
+
 			}
 
 			private List<String> iterateOverClauseNode(Node clauseNode) {
@@ -214,25 +235,19 @@ public class ContractProcessor {
 				Collections.reverse(nodeNames);
 				return nodeNames;
 			}
-			
-			private void handleLiteralsAndOrClauses(final Set<String> deadFeatures, final Set<Object> coreFeatures, Node clauseNode, final List<Node> newAndNodes, Node childOfAnd) {
+
+			private void handleLiteralsAndOrClauses(final Set<String> deadFeatures, final Set<Object> coreFeatures, Node clauseNode,
+					final List<Node> newAndNodes, Node childOfAnd) {
 				boolean expTrue = false;
 				final List<Node> nodes;
-				if (childOfAnd instanceof Or) {
-					final Node[] orChildren = childOfAnd.getChildren();
-					nodes = new ArrayList<Node>(orChildren.length);
-					for (int k = 0; k < orChildren.length; k++) {
-						Literal childOfOr = (Literal) orChildren[k];
-						if (handleLiteral(deadFeatures, coreFeatures, nodes, childOfOr)) {
-							expTrue = true;
-						}
-					}
-				} else {
-					nodes = new ArrayList<Node>(1);
-					if (handleLiteral(deadFeatures, coreFeatures, nodes, (Literal)childOfAnd)) {
+				final Node[] orChildren = childOfAnd.getChildren();
+				nodes = new ArrayList<Node>(orChildren.length);
+				for (int k = 0; k < orChildren.length; k++) {
+					Literal childOfOr = (Literal) orChildren[k];
+					if (handleLiteral(deadFeatures, coreFeatures, nodes, childOfOr)) {
 						expTrue = true;
 					}
-				} 
+				}
 				if (nodes.size() > 0) {
 					newAndNodes.add(new Or(nodes.toArray(new Node[0])));
 				} else if (!expTrue) {
@@ -245,13 +260,9 @@ public class ContractProcessor {
 			private boolean handleLiteral(final Set<String> deadFeatures, final Set<Object> coreFeatures, final List<Node> nodes, Literal childOfOr) {
 				if (childOfOr instanceof ExpressionLiteral) {
 					if (childOfOr.positive) {
-						nodes.add(new Literal(((ExpressionLiteral)childOfOr).getExpression(), childOfOr.positive));
+						nodes.add(new Literal(((ExpressionLiteral) childOfOr).getExpression(), childOfOr.positive));
 					} else {
-//						if (!expression.contains(" ")) {
-//							nodes.add(new Literal(expression, childOfOr.positive));
-//						} else {
-							nodes.add(new Literal("(" + ((ExpressionLiteral)childOfOr).getExpression() + ")", childOfOr.positive));
-//						}
+						nodes.add(new Literal("(" + ((ExpressionLiteral) childOfOr).getExpression() + ")", childOfOr.positive));
 					}
 				} else {
 					if (childOfOr.positive && FeatureUtils.getFeatureNames(featureModel).contains(childOfOr)) {
@@ -288,84 +299,70 @@ public class ContractProcessor {
 		};
 		Files.walkFileTree(path, fileVisit);
 	}
-	
-	
+
 	public static void postComposeForMetaProductsWithDispatcherMethods(IFile file) throws CoreException, IOException {
 		final String fileLocation = file.getLocation().toOSString();
 		if (postCompiledFiles.add(fileLocation)) {
 			final String fileContent = new String(Files.readAllBytes(Paths.get(fileLocation)), file.getCharset());
-			Pattern p = Pattern.compile("([/][*][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*[*][/])|([/][/][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*$)", Pattern.DOTALL); 
+			Pattern p = Pattern.compile(
+					"([/][*][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*[*][/])|([/][/][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*$)",
+					Pattern.DOTALL);
 			if (p.matcher(fileContent).find()) {
 				final StringBuilder contentEditor = new StringBuilder(fileContent);
-				
-				Node node = NodeCreator.createNodes(CorePlugin.getFeatureProject(file).getFeatureModel(), false).toCNF();
-				if (node instanceof Or) {
-					node = new And(node);
-				} else if (node instanceof Literal) {
-					node = new And(new Or(node));
-				}
-				
+
+				Node node = NodeCreator.createNodes(CorePlugin.getFeatureProject(file).getFeatureModel(), false).toRegularCNF();
+
 				Node[] andChildren = node.getChildren();
 				int removalCount = 0;
 				for (int i = 0; i < andChildren.length; i++) {
 					Node andChild = andChildren[i];
-					
-					if (andChild instanceof Or) {
-						int absoluteValueCount = 0;
-						boolean valid = true;
 
-						final Literal[] children = Arrays.copyOf(andChild.getChildren(), andChild.getChildren().length, Literal[].class);
-						for (int j = 0; j < children.length; j++) {
-							final Literal literal = children[j];
-							
-							if ("True".equals(literal.var.toString())) {
-								if (literal.positive) {
-									valid = false;
-								} else {
-									absoluteValueCount++;
-									children[j] = null;
-								}
-							} else if ("False".equals(literal.var.toString())) {
-								if (literal.positive) {
-									absoluteValueCount++;
-									children[j] = null;
-								} else {
-									valid = false;
-								}
+					int absoluteValueCount = 0;
+					boolean valid = true;
+
+					final Literal[] children = Arrays.copyOf(andChild.getChildren(), andChild.getChildren().length, Literal[].class);
+					for (int j = 0; j < children.length; j++) {
+						final Literal literal = children[j];
+
+						if ("True".equals(literal.var.toString())) {
+							if (literal.positive) {
+								valid = false;
 							} else {
-								//remember when you/we merge fork and master that this was not part of Sebastian's extension
-								literal.var = ((String)literal.var).toLowerCase();
+								absoluteValueCount++;
+								children[j] = null;
 							}
-						}
-
-						if (valid) {
-							if (absoluteValueCount > 0) {
-								Literal[] newChildren = new Literal[children.length - absoluteValueCount];
-								int k = 0;
-								for (int j = 0; j < children.length; j++) {
-									final Literal literal = children[j];
-									if (literal != null) {
-										newChildren[k++] = literal;
-									}
-								}
-								andChild.setChildren(newChildren);
+						} else if ("False".equals(literal.var.toString())) {
+							if (literal.positive) {
+								absoluteValueCount++;
+								children[j] = null;
+							} else {
+								valid = false;
 							}
-						} else {
-							andChildren[i] = null;
-							removalCount++;
-						}
-					} else {
-						final Literal literal = (Literal) andChild;
-						if ("True".equals(literal.var.toString()) || "False".equals(literal.var.toString())) {
-							andChildren[i] = null;
-							removalCount++;
 						} else {
 							//remember when you/we merge fork and master that this was not part of Sebastian's extension
-							literal.var = ((String)literal.var).toLowerCase();
+							literal.var = ((String) literal.var).toLowerCase();
 						}
 					}
-				}	
-				
+
+					if (valid) {
+						if (absoluteValueCount > 0) {
+							Literal[] newChildren = new Literal[children.length - absoluteValueCount];
+							int k = 0;
+							for (int j = 0; j < children.length; j++) {
+								final Literal literal = children[j];
+								if (literal != null) {
+									newChildren[k++] = literal;
+								}
+							}
+							andChild.setChildren(newChildren);
+						}
+					} else {
+						andChildren[i] = null;
+						removalCount++;
+					}
+
+				}
+
 				if (removalCount > 0) {
 					Node[] newChildren = new Node[andChildren.length - removalCount];
 					int k = 0;
@@ -377,52 +374,56 @@ public class ContractProcessor {
 					}
 					node.setChildren(newChildren);
 				}
-				
+
+				//				try {
+				//					ModifiableSolver modsol = new ModifiableSolver(null);
+				//				} catch (ContradictionException ex) {
+				//					LOGGER.logError(ex);
+				//				}
+
 				final String nodeToString = NodeWriter.nodeToString(node, NodeWriter.javaSymbols, "FM.FeatureModel.");
 				final String featuremodel = "\n\t/*@ public invariant " + nodeToString + "; @*/\n";
 				final ASTParser astp = ASTParser.newParser(AST.JLS8);
-				
+
 				astp.setSource(fileContent.toCharArray());
 				astp.setKind(ASTParser.K_COMPILATION_UNIT);
-		 
-				final CompilationUnit cu = (CompilationUnit) astp.createAST(null);				
+
+				final CompilationUnit cu = (CompilationUnit) astp.createAST(null);
 				final PostCompiledFileVisitor postCompiledVisitor = new PostCompiledFileVisitor(contentEditor, featuremodel);
 				cu.accept(postCompiledVisitor);
-				String newContent = postCompiledVisitor.hasConstructor ? contentEditor.toString().replace(FMPLACEHOLDER, nodeToString) : contentEditor.toString(); 
+				String newContent = postCompiledVisitor.hasConstructor ? contentEditor.toString().replace(FMPLACEHOLDER, nodeToString)
+						: contentEditor.toString();
 				file.setContents(new ByteArrayInputStream(newContent.getBytes(file.getCharset())), false, true, null);
 			}
 		}
 	}
-	
+
 	private static final class PostCompiledFileVisitor extends ASTVisitor {
-			
-			private boolean hasConstructor = false;
-			private StringBuilder contentEditor;
-			private String featuremodel;
-	
-			public PostCompiledFileVisitor(StringBuilder contentEditor, String featuremodel) {
-				super();
-				this.contentEditor = contentEditor;
-				this.featuremodel = featuremodel;
+
+		private boolean hasConstructor = false;
+		private StringBuilder contentEditor;
+		private String featuremodel;
+
+		public PostCompiledFileVisitor(StringBuilder contentEditor, String featuremodel) {
+			super();
+			this.contentEditor = contentEditor;
+			this.featuremodel = featuremodel;
+		}
+
+		@Override
+		public boolean visit(MethodDeclaration node) {
+			if (!hasConstructor && node.isConstructor()) {
+				hasConstructor = true;
 			}
-	
-	
-			@Override
-			public boolean visit(MethodDeclaration node) {
-				if (!hasConstructor && node.isConstructor()) {	
-					hasConstructor = true;
-				}
-				return super.visit(node);
-			}
-	
-			@Override
-			public boolean visit(TypeDeclaration node) {
-				contentEditor.insert(node.getStartPosition() + node.getLength() - 1, featuremodel);
-				return super.visit(node);
-			}
-	
+			return super.visit(node);
+		}
+
+		@Override
+		public boolean visit(TypeDeclaration node) {
+			contentEditor.insert(node.getStartPosition() + node.getLength() - 1, featuremodel);
+			return super.visit(node);
+		}
+
 	}
 
-	
-	
 }

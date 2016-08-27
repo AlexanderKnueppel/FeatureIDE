@@ -85,8 +85,10 @@ public class BasicSolver implements ISatSolver {
 
 	private void addVariables() throws ContradictionException {
 		solver.newVar(satInstance.getNumberOfVariables());
-		solver.setExpectedNumberOfClauses(satInstance.getCnf().getChildren().length);
-		addCNF(satInstance.getCnf().getChildren());
+		if (satInstance.getCnf() != null) { 
+			solver.setExpectedNumberOfClauses(satInstance.getCnf().getChildren().length);
+			addCNF(satInstance.getCnf().getChildren());
+		}
 		fixOrder();
 		solver.getOrder().init();
 	}

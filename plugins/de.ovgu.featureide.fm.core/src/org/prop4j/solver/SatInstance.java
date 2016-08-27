@@ -87,8 +87,8 @@ public class SatInstance {
 			if (name == null) {
 				throw new RuntimeException();
 			}
-			varToInt.put(name, ++index);
-			intToVar[index] = name;
+			varToInt.put(feature, ++index);
+			intToVar[index] = feature;
 		}
 	}
 
