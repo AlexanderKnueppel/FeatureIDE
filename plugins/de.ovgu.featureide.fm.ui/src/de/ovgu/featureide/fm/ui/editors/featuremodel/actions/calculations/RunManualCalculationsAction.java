@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,22 +20,26 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions.calculations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.RUN_MANUAL_CALCULATIONS;
+
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.jface.action.Action;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
 /**
- * TODO description
+ * Action to specify feature model analysis.<br>
+ * A manual call of the feature model analysis.
  * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke
  */
 public class RunManualCalculationsAction extends Action {
 
-	private final FeatureModel featureModel;
+	private final IFeatureModel featureModel;
 
-	public RunManualCalculationsAction(GraphicalViewerImpl viewer, FeatureModel featureModel) {
-		super("Run Manual Calculations");
+	public RunManualCalculationsAction(GraphicalViewerImpl viewer, IFeatureModel featureModel) {
+		super(RUN_MANUAL_CALCULATIONS);
 		this.featureModel = featureModel;
 	}
 

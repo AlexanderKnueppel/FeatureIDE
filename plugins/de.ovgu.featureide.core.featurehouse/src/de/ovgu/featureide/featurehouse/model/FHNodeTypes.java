@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,7 @@
  */
 package de.ovgu.featureide.featurehouse.model;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.INVARIANT;
 
 /**
  * Contains node types of the <code>FeatureHouse</code> internal FSTModel.
@@ -50,14 +51,14 @@ public interface FHNodeTypes {
 	
 	//JML specific node types
 	static final String JML_SPEC_CASE_SEQ = "SpecCaseSeq";
-	static final String JML_INVARIANT = "Invariant";
+	static final String JML_INVARIANT = INVARIANT;
 	
 	//AsmetaL specific node types
 	static final String ASMETAL_DOMAIN = "Domain";
 	static final String ASMETAL_MODULE_DECLARATION = "ModuleDeclaration";
 	static final String ASMETAL_RULE = "RuleDeclaration";
 	static final String ASMETAL_FUNCTION = "Function";
-	static final String ASMETAL_INVARIANT = "Invariant";
+	static final String ASMETAL_INVARIANT = INVARIANT;
 	static final String ASMETAL_SIGNATURE = "Signature";
 	static final String ASMETAL_UNNAMED_INVARIANT = "UnnamedInvariant";
 	static final String ASMETAL_NAMED_INVARIANT = "NamedInvariant";

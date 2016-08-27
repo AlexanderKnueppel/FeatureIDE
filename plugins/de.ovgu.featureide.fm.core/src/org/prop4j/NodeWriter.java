@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,7 @@
  */
 package org.prop4j;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_SYMBOL;
 /**
  * Converts a propositional node to a String object.
  * 
@@ -42,7 +43,7 @@ public class NodeWriter {
 	 */
 	public final static String[] shortSymbols = new String[] {"-", " & ", " | ", " => ", " <=> ", ", ", "choose", "atleast", "atmost"};
 
-	public final static String noSymbol = " no symbol ";
+	public final static String noSymbol = NO_SYMBOL;
 
 	/**
 	 * JML contract representation

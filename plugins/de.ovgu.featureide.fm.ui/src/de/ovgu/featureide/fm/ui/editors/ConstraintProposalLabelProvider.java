@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.ui.editors;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.NOT;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -40,7 +42,7 @@ public class ConstraintProposalLabelProvider extends LabelProvider implements GU
 	public Image getImage(Object element) {
 		if (element instanceof ContentProposal) {
 			String content = ((ContentProposal) element).getContent();
-			if ("not".equals(content) || "or".equals(content) || "and".equals(content) || "iff".equals(content) || "implies".equals(content)
+			if (NOT.equals(content) || "or".equals(content) || "and".equals(content) || "iff".equals(content) || "implies".equals(content)
 					|| "(".equals(content) || ")".equals(content)) {
 				return OPERATOR_SYMBOL;
 			}

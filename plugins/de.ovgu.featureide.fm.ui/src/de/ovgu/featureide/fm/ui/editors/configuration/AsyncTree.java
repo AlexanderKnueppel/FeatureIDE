@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2013  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -25,12 +25,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import de.ovgu.featureide.fm.core.FunctionalInterfaces;
-import de.ovgu.featureide.fm.core.FunctionalInterfaces.IBinaryFunction;
 import de.ovgu.featureide.fm.core.configuration.SelectableFeature;
 import de.ovgu.featureide.fm.core.configuration.TreeElement;
+import de.ovgu.featureide.fm.core.functional.Functional;
+import de.ovgu.featureide.fm.core.functional.Functional.IBinaryFunction;
 
 /**
  * Builds and traverses a {@link Tree} recursively with single asynchronous UI calls for each item.
@@ -56,7 +57,7 @@ public class AsyncTree extends Thread {
 				final TreeElement child = children[i];
 				if (child instanceof SelectableFeature) {
 					final SelectableFeature currentFeature = (SelectableFeature) child;
-					if (!currentFeature.getFeature().isHidden()) {
+					if (!currentFeature.getFeature().getStructure().isHidden()) {
 						TreeItem childNode = null;
 						// This try for the case that the parent item is already disposed.
 						try {
@@ -65,8 +66,12 @@ public class AsyncTree extends Thread {
 							AsyncTree.this.interrupt();
 							return;
 						}
-						childNode.setText(currentFeature.getFeature().getDisplayName());
+						childNode.setText(currentFeature.getFeature().getProperty().getDisplayName());
 						childNode.setData(currentFeature);
+
+						childNode.setFont(ConfigurationTreeEditorPage.treeItemStandardFont);
+						childNode.setForeground(null);
+
 						itemMap.put(currentFeature, childNode);
 						if (currentFeature.hasChildren()) {
 							runnableList.add(new Builder(childNode, currentFeature.getChildren()));
@@ -97,13 +102,10 @@ public class AsyncTree extends Thread {
 
 		@Override
 		public void run() {
+			perNodeFunction.invoke(item, (SelectableFeature) item.getData());
 			final TreeItem[] children = item.getItems();
 			for (int i = 0; i < children.length; i++) {
 				final TreeItem childNode = children[i];
-				final Object data = childNode.getData();
-				final SelectableFeature feature = (SelectableFeature) data;
-				perNodeFunction.invoke(childNode, feature);
-
 				if (childNode.getItemCount() > 0) {
 					runnableList.add(new Traverser(childNode, perNodeFunction));
 				}
@@ -118,18 +120,19 @@ public class AsyncTree extends Thread {
 
 	private final HashMap<SelectableFeature, TreeItem> itemMap;
 
-	private final FunctionalInterfaces.IFunction<Void, Void> callbackIfDone;
+	private final Functional.IFunction<Void, Void> callbackIfDone;
+	private final Object countLock = new Object();
 	private Integer count = 0;
 
 	public void inc() {
-		synchronized (count) {
+		synchronized (countLock) {
 			++count;
 		}
 	}
 
 	public void dec() {
 		boolean done;
-		synchronized (count) {
+		synchronized (countLock) {
 			done = --count == 0;
 		}
 		if (done) {
@@ -148,14 +151,14 @@ public class AsyncTree extends Thread {
 		}
 	}
 
-	private AsyncTree(HashMap<SelectableFeature, TreeItem> itemMap, final FunctionalInterfaces.IFunction<Void, Void> callbackIfDone) {
+	private AsyncTree(HashMap<SelectableFeature, TreeItem> itemMap, final Functional.IFunction<Void, Void> callbackIfDone) {
 		this.itemMap = itemMap;
 		this.currentDisplay = Display.getCurrent();
 		this.callbackIfDone = callbackIfDone;
 	}
 
 	public static void build(HashMap<SelectableFeature, TreeItem> itemMap, final TreeItem node, final TreeElement[] children,
-			final FunctionalInterfaces.IFunction<Void, Void> callbackIfDone) {
+			final Functional.IFunction<Void, Void> callbackIfDone) {
 		final AsyncTree curInstance = new AsyncTree(itemMap, callbackIfDone);
 		if (curInstance.currentDisplay != null && !node.isDisposed()) {
 			curInstance.runnableList.add(curInstance.new Builder(node, children));
@@ -164,8 +167,8 @@ public class AsyncTree extends Thread {
 	}
 
 	public static void traverse(HashMap<SelectableFeature, TreeItem> itemMap, final TreeItem node,
-			final FunctionalInterfaces.IBinaryFunction<TreeItem, SelectableFeature, Void> perNodeFunction,
-			final FunctionalInterfaces.IFunction<Void, Void> callbackIfDone) {
+			final Functional.IBinaryFunction<TreeItem, SelectableFeature, Void> perNodeFunction,
+			final Functional.IFunction<Void, Void> callbackIfDone) {
 		final AsyncTree curInstance = new AsyncTree(itemMap, callbackIfDone);
 		if (curInstance.currentDisplay != null && !node.isDisposed()) {
 			curInstance.runnableList.add(curInstance.new Traverser(node, perNodeFunction));

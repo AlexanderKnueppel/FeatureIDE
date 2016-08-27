@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,10 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CREATING;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEW_FEATUREIDE_SOURCE_FILE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.OPENING_FILE_FOR_EDITING___;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -71,7 +75,7 @@ public class NewFeatureIDEFileWizard extends Wizard implements INewWizard {
 	public NewFeatureIDEFileWizard() {
 		super();
 		setNeedsProgressMonitor(true);
-		setWindowTitle("New FeatureIDE Source File");
+		setWindowTitle(NEW_FEATUREIDE_SOURCE_FILE);
 	}
 	
 	/**
@@ -155,7 +159,7 @@ public class NewFeatureIDEFileWizard extends Wizard implements INewWizard {
 	private void doFinish(String featureName, IContainer container, String fileName, String classname, String extension, String template, 
 			IComposerExtensionClass composer, boolean refines, String packageName, IProgressMonitor monitor) throws CoreException {
 		// create a sample file
-		monitor.beginTask("Creating " + fileName, 2);
+		monitor.beginTask(CREATING + fileName, 2);
 		final IFile file = container.getFile(new Path(fileName + "." + extension));
 	
 		try {
@@ -169,7 +173,7 @@ public class NewFeatureIDEFileWizard extends Wizard implements INewWizard {
 		} catch (IOException e) {
 		}
 		monitor.worked(1);
-		monitor.setTaskName("Opening file for editing...");
+		monitor.setTaskName(OPENING_FILE_FOR_EDITING___);
 		getShell().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				IWorkbenchPage page =

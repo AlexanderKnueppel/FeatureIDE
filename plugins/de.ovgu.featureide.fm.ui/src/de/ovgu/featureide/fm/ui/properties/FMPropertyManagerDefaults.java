@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,11 +20,13 @@
  */
 package de.ovgu.featureide.fm.ui.properties;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.ABSTRACT;
+
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.QualifiedName;
 
-import de.ovgu.featureide.fm.core.FMCorePlugin;
+import de.ovgu.featureide.fm.core.PluginID;
 
 /**
  * Provides all {@link QualifiedName}s for the {@link FMPropertyManager}.
@@ -42,7 +44,7 @@ public class FMPropertyManagerDefaults {
 	static final QualifiedName QN_DIAGRAM_BACKGROUND = createName("diagrambackground");
 	static final QualifiedName QN_FEATURE_FORGROUND = createName("feature");
 	static final QualifiedName QN_FEATURE_CONCRETE = createName("concrete");
-	static final QualifiedName QN_FEATURE_ABSTRACT = createName("abstract");
+	static final QualifiedName QN_FEATURE_ABSTRACT = createName(ABSTRACT);
 	static final QualifiedName QN_FEATURE_HIDEEN_FORGROUND = createName("hiddenforground");
 	static final QualifiedName QN_FEATURE_HIDEEN_BACKGROUND = createName("hiddenbackground");
 	static final QualifiedName QN_FEATURE_DEAD = createName("dead");
@@ -74,6 +76,6 @@ public class FMPropertyManagerDefaults {
 	 * @return The new QualifiedName
 	 */
 	static QualifiedName createName(String name) {
-		return new QualifiedName(FMCorePlugin.PLUGIN_ID + "." + name, FMCorePlugin.PLUGIN_ID + "." + name);
+		return new QualifiedName(PluginID.PLUGIN_ID + "." + name, PluginID.PLUGIN_ID + "." + name);
 	}
 }

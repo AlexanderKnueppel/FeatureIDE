@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,9 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.LOC_BY_EXTENSION;
+import static de.ovgu.featureide.fm.core.localization.StringTable.LOC_BY_FEATURE;
 
 import java.util.HashMap;
 
@@ -41,9 +44,8 @@ public class LOCNode extends LazyParent {
 
 	@Override
 	protected void initChildren() {
-
-		addChild(new HashMapNodeTwoStrings("LOC by extension", 1, featureExtensionLOCList));
-		addChild(new HashMapNodeTwoStrings("LOC by feature", 2, featureExtensionLOCList));
+		addChild(new HashMapNodeTwoStrings(LOC_BY_EXTENSION, 1, featureExtensionLOCList));
+		addChild(new HashMapNodeTwoStrings(LOC_BY_FEATURE, 2, featureExtensionLOCList));
 
 	}
 

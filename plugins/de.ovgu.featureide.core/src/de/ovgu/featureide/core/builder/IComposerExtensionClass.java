@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -118,7 +118,7 @@ public interface IComposerExtensionClass extends IComposerExtensionBase {
 
 	/**
 	 * Returns the list of templates for the current composer. <br>
-	 * Format: {"File format name", "extension", "template"}
+	 * Format: {FILE_FORMAT_NAME, EXTENSION, TEMPLATE}
 	 * 
 	 * @return list of templates for the current composer
 	 */

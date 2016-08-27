@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,14 +20,25 @@
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.ABSTRACT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CONSTRAINT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.HAS_CHILD_FEATURES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.HIDDEN;
+import static de.ovgu.featureide.fm.core.localization.StringTable.HIDDEN_BY_ANCESTOR;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IS_AFFECTED_BY_CONSTRAINTS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IS_TERMINAL;
+import static de.ovgu.featureide.fm.core.localization.StringTable.MANDATORY;
+import static de.ovgu.featureide.fm.core.localization.StringTable.OPTIONAL;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
-import de.ovgu.featureide.fm.core.Constraint;
-import de.ovgu.featureide.fm.core.Feature;
 import de.ovgu.featureide.fm.core.FeatureStatus;
+import de.ovgu.featureide.fm.core.base.IConstraint;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureStructure;
 import de.ovgu.featureide.ui.statistics.core.composite.IToolTip;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
@@ -47,15 +58,15 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	protected final String tooltip;
 	
 	private final boolean hasConstraints, expand;
-	private final Feature feat;
+	private final IFeature feat;
 
-	public FeatureNode(final Feature feat, boolean expand) {
-		super(feat.toString());
+	public FeatureNode(final IFeature feat, boolean expand) {
+		super(feat.getName());
 		this.feat = feat;
 		this.expand = expand;
 		this.tooltip = buildToolTip();
-		hasConstraints = !feat.getRelevantConstraints().isEmpty();
-		if (!(feat.hasChildren() || hasConstraints)) {
+		hasConstraints = !feat.getStructure().getRelevantConstraints().isEmpty();
+		if (!(feat.getStructure().hasChildren() || hasConstraints)) {
 			lazy = false;
 		}
 	}
@@ -72,7 +83,7 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	 */
 	@Override
 	protected void initChildren() {
-		if (feat.hasChildren() && hasConstraints) {
+		if (feat.getStructure().hasChildren() && hasConstraints) {
 			addChild(findChildFeatures(new Parent("Child features: ", null)));
 			addChild(findConstraints(new Parent("Constraints: ", null)));
 		} else {
@@ -90,48 +101,48 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	 */
 	private String buildToolTip() {
 		List<String> attribute = new ArrayList<String>();
-		FeatureStatus status = feat.getFeatureStatus();
+		FeatureStatus status = feat.getProperty().getFeatureStatus();
 		
 		if (status != FeatureStatus.NORMAL && status != FeatureStatus.INDETERMINATE_HIDDEN) {
 			attribute.add("STATUS: " + status);
 		}
 		
-		if (feat.isAbstract()) {
-			attribute.add("abstract");
+		if (feat.getStructure().isAbstract()) {
+			attribute.add(ABSTRACT);
 		} else {
 			attribute.add("concrete");
 		}
 		
-		if (feat.isMandatory()) {
-			attribute.add("mandatory");
+		if (feat.getStructure().isMandatory()) {
+			attribute.add(MANDATORY);
 		} else {
-			attribute.add("optional");
+			attribute.add(OPTIONAL);
 		}
 		
 		String connectionType = null;
-		if (feat.isAlternative()) {
+		if (feat.getStructure().isAlternative()) {
 			connectionType = "alternative";
-		} else if (feat.isOr()) {
+		} else if (feat.getStructure().isOr()) {
 			connectionType = "or";
-		} else if (feat.isAnd()) {
+		} else if (feat.getStructure().isAnd()) {
 			connectionType = "and";
 		}
 		attribute.add(connectionType + " - connection");
 		
 		if (status == FeatureStatus.INDETERMINATE_HIDDEN) {
-			attribute.add("hidden by ancestor");
-		} else if (feat.isHidden()) {
-			attribute.add("hidden");
+			attribute.add(HIDDEN_BY_ANCESTOR);
+		} else if (feat.getStructure().isHidden()) {
+			attribute.add(HIDDEN);
 		}
 		
-		if (feat.hasChildren()) {
-			attribute.add("has child-features");
+		if (feat.getStructure().hasChildren()) {
+			attribute.add(HAS_CHILD_FEATURES);
 		} else {
-			attribute.add("is terminal");
+			attribute.add(IS_TERMINAL);
 		}
 		
 		if (hasConstraints) {
-			attribute.add("is affected by constraints");
+			attribute.add(IS_AFFECTED_BY_CONSTRAINTS);
 		}
 		
 		StringBuilder buffer = new StringBuilder();
@@ -150,7 +161,7 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	 * Adds the description to the features tooltip, if it has one.
 	 */
 	private void printDescription(StringBuilder buffer) {
-		String featDesc = feat.getDescription();
+		String featDesc = feat.getProperty().getDescription();
 		if (featDesc != null && !featDesc.equals("")) {
 			buffer.append("\n");
 			buffer.append("Description: ");
@@ -160,16 +171,17 @@ public class FeatureNode extends LazyParent implements IToolTip {
 	
 	private Parent findConstraints(Parent constraints) {
 		if (hasConstraints) {
-			for (Constraint constr : feat.getRelevantConstraints()) {
-				constraints.addChild(new Parent("Constraint", constr.toString()));
+			for (IConstraint constr : feat.getStructure().getRelevantConstraints()) {
+				constraints.addChild(new Parent(CONSTRAINT, constr.toString()));
 			}
 		}
 		return constraints;
 	}
 	
 	private Parent findChildFeatures(Parent childFeat) {
-		if (feat.hasChildren()) {
-			for (Feature temp : feat.getChildren()) {
+		if (feat.getStructure().hasChildren()) {
+			for (IFeatureStructure tempStructure : feat.getStructure().getChildren()) {
+				IFeature temp = tempStructure.getFeature();
 				childFeat.addChild(new FeatureNode(temp, expand));
 			}
 		}

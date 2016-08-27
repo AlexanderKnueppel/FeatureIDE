@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,20 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CLASS_NAME_MUST_BE_VALID;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CREATES_A_NEW_LANGUAGE_SPECIFIC_FEATUREIDE_SOURCE_FILE_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURE_NAME_MUST_CORRESPOND_TO_AN_EXISTING_FOLDER;
+import static de.ovgu.featureide.fm.core.localization.StringTable.FILE_WITH_THIS_CLASS_NAME_ALREADY_EXISTS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.MODULE_NAME_IS_INVALID;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEW_FEATUREIDE_SOURCE_FILE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_FEATURE_SELECTED;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_PROJECT_SELECTED;
+import static de.ovgu.featureide.fm.core.localization.StringTable.PACKAGE_NAME_MUST_BE_VALID;
+import static de.ovgu.featureide.fm.core.localization.StringTable.RESTRICTION;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SELECTED_FILE_FORMAT_IS_NOT_SUPPORTED;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SELECTED_PROJECT_IS_NOT_A_FEATUREIDE_PROJECT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.THE_CLASS_NAME_MUST_BE_SPECIFIED;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +70,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.builder.IComposerExtensionClass;
+import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.ui.UIPlugin;
 
 /**
@@ -63,29 +78,30 @@ import de.ovgu.featureide.ui.UIPlugin;
  * 
  * @author Dariusz Krolikowski
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings(RESTRICTION)
 public class NewFeatureIDEFilePage extends WizardPage {
-	private static final String PAGE_DESCRIPTION = "Creates a new language specific FeatureIDE Source File.";
-	private static final String PAGE_TITLE = "New FeatureIDE Source File";
+	private static final String PAGE_DESCRIPTION = CREATES_A_NEW_LANGUAGE_SPECIFIC_FEATUREIDE_SOURCE_FILE_;
+	private static final String PAGE_TITLE = NEW_FEATUREIDE_SOURCE_FILE;
 
-	private static final String MESSAGE_PACKAGE_VALID = "Package name must be valid";
+	private static final String MESSAGE_PACKAGE_VALID = PACKAGE_NAME_MUST_BE_VALID;
 	private static final String MESSAGE_PACKAGE_START = "Package name must not start with \".\"";
 	private static final String MESSAGE_PACKAGE_END = "Package name must not end with \".\"";
 
-	private static final String MESSAGE_CLASS_SPECIFIED = "The class name must be specified";
-	private static final String MESSAGE_CLASS_VALID = "Class name must be valid";
+	private static final String MESSAGE_CLASS_SPECIFIED = THE_CLASS_NAME_MUST_BE_SPECIFIED;
+	private static final String MESSAGE_CLASS_VALID = CLASS_NAME_MUST_BE_VALID;
 	private static final String MESSAGE_CLASS_DOT = "Class name must not contain \".\"";
-	private static final String MESSAGE_CLASS_EXISTS = "File with this class name already exists";
+	private static final String MESSAGE_CLASS_EXISTS = FILE_WITH_THIS_CLASS_NAME_ALREADY_EXISTS;
 
-	private static final String MESSAGE_PROJECT_SELECTED = "No Project selected";
-	private static final String MESSAGE_PROJECT_FEATUREPROJECT = "Selected project is not a FeatureIDE Project";
+	private static final String MESSAGE_PROJECT_SELECTED = NO_PROJECT_SELECTED;
+	private static final String MESSAGE_PROJECT_FEATUREPROJECT = SELECTED_PROJECT_IS_NOT_A_FEATUREIDE_PROJECT;
+	private static final String MESSAGE_PROJECT_COMPOSER = "Source files not allowed with this composer";
 
-	private static final String MESSAGE_FEATURE_SELECTED = "No Feature selected";
-	private static final String MESSAGE_FEATURE_FOLDER = "Feature name must correspond to an existing Folder";
+	private static final String MESSAGE_FEATURE_SELECTED = NO_FEATURE_SELECTED;
+	private static final String MESSAGE_FEATURE_FOLDER = FEATURE_NAME_MUST_CORRESPOND_TO_AN_EXISTING_FOLDER;
 
-	private static final String MESSAGE_LANGUAGE_SUPPORT = "Selected file format is not supported";
+	private static final String MESSAGE_LANGUAGE_SUPPORT = SELECTED_FILE_FORMAT_IS_NOT_SUPPORTED;
 
-	private static final String MESSAGE_MODULE_VALID = "Module name is invalid";
+	private static final String MESSAGE_MODULE_VALID = MODULE_NAME_IS_INVALID;
 	
 	private static int lastSelection = -1;
 	private static String lastComposerID = null;
@@ -567,7 +583,7 @@ public class NewFeatureIDEFilePage extends WizardPage {
 		if (!formats.isEmpty()) {
 			for (String[] format : formats)
 				comboLanguage.add(format[0]);
-			if (comboLanguage.getItemCount() == 1) {
+			if (comboLanguage.getItemCount() <= 1) {
 				comboLanguage.setEnabled(false);
 			} else {
 				comboLanguage.setEnabled(true);
@@ -608,7 +624,7 @@ public class NewFeatureIDEFilePage extends WizardPage {
 			return;
 		}
 		comboFeature.removeAll();
-		for (String s : featureProject.getFeatureModel().getConcreteFeatureNames())
+		for (String s : FeatureUtils.extractConcreteFeaturesAsStringList(featureProject.getFeatureModel()))
 			comboFeature.add(s);
 		if (feature != null) {
 			comboFeature.setText(feature);
@@ -841,6 +857,11 @@ public class NewFeatureIDEFilePage extends WizardPage {
 			errorMessage = MESSAGE_LANGUAGE_SUPPORT;
 			valid = false;
 		}
+		if (comboLanguage.getItemCount() == 0) {
+			errorMessage = MESSAGE_PROJECT_COMPOSER;
+			valid = false;
+			languageDirty = true;
+		} 
 		if (languageDirty)
 			setErrorMessage(errorMessage);
 		return valid;

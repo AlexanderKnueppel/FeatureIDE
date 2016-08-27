@@ -57,8 +57,9 @@ import org.prop4j.Or;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
-import de.ovgu.featureide.fm.core.Feature;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.FeatureUtils;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.editing.NodeCreator;
 
 /**
@@ -82,13 +83,13 @@ public class ContractProcessor {
 	 * @param outputPath
 	 * @throws IOException
 	 */
-	public static void performContractOptimizations(final FeatureModel featureModel, final String outputPath) throws IOException {
+	public static void performContractOptimizations(final IFeatureModel featureModel, final String outputPath) throws IOException {
 		final Set<String> deadFeaturesLower = new HashSet<String>();
-		for (Feature deadFeature : featureModel.getAnalyser().getDeadFeatures()) {
+		for (IFeature deadFeature : featureModel.getAnalyser().getDeadFeatures()) {
 			deadFeaturesLower.add(deadFeature.getName().toLowerCase());
 		}
 		final Set<Object> coreFeatures = new HashSet<Object>();
-		for (Feature coreFeature : featureModel.getAnalyser().getCoreFeatures()) {
+		for (IFeature coreFeature : featureModel.getAnalyser().getCoreFeatures()) {
 			coreFeatures.add(coreFeature.getName().toLowerCase());
 		}
 		coreFeatures.add(NodeCreator.varTrue);
@@ -253,7 +254,7 @@ public class ContractProcessor {
 //						}
 					}
 				} else {
-					if (childOfOr.positive && featureModel.getFeatureNames().contains(childOfOr)) {
+					if (childOfOr.positive && FeatureUtils.getFeatureNames(featureModel).contains(childOfOr)) {
 						if (coreFeatures.contains(childOfOr.var)) {
 							nodes.clear();
 							return true;

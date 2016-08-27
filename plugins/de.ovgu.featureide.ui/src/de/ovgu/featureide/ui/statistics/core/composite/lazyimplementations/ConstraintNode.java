@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,7 +20,8 @@
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
 
-import de.ovgu.featureide.fm.core.Constraint;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CONSTRAINT;
+import de.ovgu.featureide.fm.core.base.IConstraint;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 
 /**
@@ -32,10 +33,10 @@ import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
  */
 public class ConstraintNode extends LazyParent {
 
-	protected final Constraint constr;
+	protected final IConstraint constr;
 
-	public ConstraintNode(Constraint constr) {
-		super("Constraint", constr.toString());
+	public ConstraintNode(IConstraint constr) {
+		super(CONSTRAINT, constr.toString());
 		this.constr = constr;
 		lazy = false;
 	}

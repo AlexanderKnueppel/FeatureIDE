@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,11 +20,14 @@
  */
 package de.ovgu.featureide.ui.wizards;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEW_COLORSCHEME;
+
 import org.eclipse.jface.wizard.Wizard;
 
-import de.ovgu.featureide.fm.core.ColorschemeTable;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.color.FeatureColorManager;
 import de.ovgu.featureide.ui.UIPlugin;
+import de.ovgu.featureide.ui.views.collaboration.CollaborationView;
 
 /**
  * A wizard for adding a new color scheme.
@@ -38,11 +41,11 @@ public class NewColorSchemeWizard extends Wizard {
 
 	public NewColorSchemePage page;
 	
-	private FeatureModel featureModel;
-
-	public NewColorSchemeWizard(FeatureModel featureModel) {
+	private IFeatureModel featureModel;
+	
+	public NewColorSchemeWizard(IFeatureModel featureModel, CollaborationView collaborationView) {
 		super();
-		setWindowTitle("New Colorscheme");
+		setWindowTitle(NEW_COLORSCHEME);
 		this.featureModel = featureModel;
 	}
 
@@ -53,11 +56,10 @@ public class NewColorSchemeWizard extends Wizard {
 
 	public boolean performFinish() {
 		final String csName = page.getColorSchemeName();
-		if (csName != null && !csName.isEmpty()) {
-			ColorschemeTable colorschemeTable = featureModel.getColorschemeTable();
-			colorschemeTable.addColorscheme(csName);
+		if (csName != null && !csName.isEmpty() && !FeatureColorManager.hasColorScheme(featureModel, csName)) {
+			FeatureColorManager.newColorScheme(featureModel, csName);
 			if (page.isCurColorScheme()) {
-				colorschemeTable.setSelectedColorscheme(colorschemeTable.size());
+				FeatureColorManager.setActive(featureModel, csName);
 			}
 			return true;
 		} else {

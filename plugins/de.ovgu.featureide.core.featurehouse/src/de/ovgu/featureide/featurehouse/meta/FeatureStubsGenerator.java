@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2013  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,12 +20,19 @@
  */
 package de.ovgu.featureide.featurehouse.meta;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.ASSIGNABLE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CLASS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.ENSURES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURE_STUBS_GENERATED_AND_PROVEN_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURE_STUB_GENERATOR_FOR;
+import static de.ovgu.featureide.fm.core.localization.StringTable.PLEASE_INSTALL_KEY_FOR_AN_AUTO_START_OF_THE_THEOREM_PROVER_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.REQUIRES;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +54,10 @@ import de.ovgu.featureide.core.signature.base.FOPFeatureData;
 import de.ovgu.featureide.core.signature.filter.MethodFilter;
 import de.ovgu.featureide.featurehouse.ExtendedFujiSignaturesJob;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.job.IJob;
+import de.ovgu.featureide.fm.core.job.IRunner;
+import de.ovgu.featureide.fm.core.job.LongRunningWrapper;
 import de.ovgu.featureide.fm.core.job.util.JobFinishListener;
 
 /**
@@ -74,7 +83,7 @@ public class FeatureStubsGenerator {
 //		String fhc = FeatureHouseComposer.getClassPaths(featureProject);
 //		String[] fujiOptions = new String[] { "-" + fuji.Main.OptionName.CLASSPATH, fhc, "-" + fuji.Main.OptionName.PROG_MODE, "-" + fuji.Main.OptionName.COMPOSTION_STRATEGY,
 //				fuji.Main.OptionName.COMPOSTION_STRATEGY_ARG_FAMILY, "-typechecker", "-basedir", featureProject.getSourcePath() };
-		FeatureModel fm = featureProject.getFeatureModel();
+		IFeatureModel fm = featureProject.getFeatureModel();
 		fm.getAnalyser().setDependencies();
 
 //		try {
@@ -92,10 +101,10 @@ public class FeatureStubsGenerator {
 //			FeatureHouseCorePlugin.getDefault().logError(e1);
 //		}
 		
-		ExtendedFujiSignaturesJob efsj = new ExtendedFujiSignaturesJob(featureProject);
-		efsj.addJobFinishedListener(new JobFinishListener() {
+		IRunner<ProjectSignatures> efsj = LongRunningWrapper.getRunner(new ExtendedFujiSignaturesJob(featureProject));
+		efsj.addJobFinishedListener(new JobFinishListener<ProjectSignatures>() {
 			@Override
-			public void jobFinished(IJob finishedJob, boolean success) {
+			public void jobFinished(IJob<ProjectSignatures> finishedJob) {
 				getFeatures(featureProject.getFSTModel().getProjectSignatures());
 			}
 			
@@ -119,7 +128,7 @@ public class FeatureStubsGenerator {
 						Path file = Paths.get(PATH + File.separator + feat.getName() + File.separator + role.getClassFragment().getFullIdentifier().replace("(default package)", "").replace(".", File.separator) + ".java");
 						final String readALLTHEBytes = new String(Files.readAllBytes(file));
 						if (readALLTHEBytes.lastIndexOf("}") < 0) {
-							FeatureHouseCorePlugin.getDefault().logError("Class " + role.getFile().getLocation().toOSString() + " is not complete.", null);
+							FeatureHouseCorePlugin.getDefault().logError(CLASS + role.getFile().getLocation().toOSString() + " is not complete.", null);
 							return;
 						}
 						typeSBMap.put(role.getClassFragment().getFullIdentifier().replace("(default package)", ""), new StringBuilder(readALLTHEBytes.substring(0, readALLTHEBytes.lastIndexOf("}"))));
@@ -212,7 +221,7 @@ public class FeatureStubsGenerator {
 		keyWrapper = KeYWrapper.createGUIListener(this, signatures, features);
 
 		if (keyWrapper == null) {
-			FeatureHouseCorePlugin.getDefault().logInfo("Please install KeY for an auto-start of the theorem prover.");
+			FeatureHouseCorePlugin.getDefault().logInfo(PLEASE_INSTALL_KEY_FOR_AN_AUTO_START_OF_THE_THEOREM_PROVER_);
 			while (!features.isEmpty()) {
 				nextElement(signatures, features);
 			}
@@ -230,7 +239,7 @@ public class FeatureStubsGenerator {
 			while (!(fstFeat = features.removeFirst()).hasMethodContracts()) {};
 			createFeatureStub(fstFeat, signatures); 
 		} else {
-			FeatureHouseCorePlugin.getDefault().logInfo("Feature Stubs generated and proven.");
+			FeatureHouseCorePlugin.getDefault().logInfo(FEATURE_STUBS_GENERATED_AND_PROVEN_);
 		}
 	}
 
@@ -299,8 +308,8 @@ public class FeatureStubsGenerator {
 		String contractBody = "";
 		
 		int brace = contractBody.indexOf("(");
-		while (!((checkPosition(contractBody, "requires", brace) || checkPosition(contractBody, "ensures", brace) || 
-				checkPosition(contractBody, "assignable", brace)))) {
+		while (!((checkPosition(contractBody, REQUIRES, brace) || checkPosition(contractBody, ENSURES, brace) || 
+				checkPosition(contractBody, ASSIGNABLE, brace)))) {
 			if (!contractBody.isEmpty()) {
 				indexOfStartOfContract = fileTextSB.substring(0, fileTextSB.indexOf(contractBody) - 2).lastIndexOf("/*@");
 			}
@@ -315,12 +324,12 @@ public class FeatureStubsGenerator {
 		String [] contracts = contractBody.split("\n");
 		for (int i = 0; i < contracts.length; i++) {
 			String line = contracts[i].replace("@", "").trim();
-			if (line.startsWith("requires")) {
+			if (line.startsWith(REQUIRES)) {
 				i = aggregateClauses(requires, contracts, i, line);
-			} else if (line.startsWith("ensures")) {
+			} else if (line.startsWith(ENSURES)) {
 				i = aggregateClauses(ensures, contracts, i, line);
-			} else if (line.startsWith("assignable")) {
-				assignable.append(line.replace("assignable", ""));
+			} else if (line.startsWith(ASSIGNABLE)) {
+				assignable.append(line.replace(ASSIGNABLE, ""));
 			}
 		}
 		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour\n"
@@ -370,7 +379,7 @@ public class FeatureStubsGenerator {
 
 	@Override
 	public String toString() {
-		return "Feature Stub Generator for " + this.featureProject.getProjectName() + "."; 
+		return FEATURE_STUB_GENERATOR_FOR + this.featureProject.getProjectName() + "."; 
 	}
 	
 	private StringBuilder get(HashMap<String, StringBuilder> map, String key) {

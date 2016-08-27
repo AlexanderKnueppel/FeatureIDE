@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.views.collaboration.action;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.TYPE;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -133,7 +135,7 @@ public class ExportAsXmlImpl extends AbstractExportAsAction {
 	private void writeElement(XMLStreamWriter writer, FSTMethod method) {
 		try {
 			writer.writeStartElement("method");
-			writer.writeAttribute("type", method.getType());
+			writer.writeAttribute(TYPE, method.getType());
 			writer.writeAttribute("visibility", method.getModifiers());
 			writer.writeCharacters(method.getName());
 			writer.writeEndElement();
@@ -145,7 +147,7 @@ public class ExportAsXmlImpl extends AbstractExportAsAction {
 	private void writeElement(XMLStreamWriter writer, FSTField field) {
 		try {
 			writer.writeStartElement("attribute");
-			writer.writeAttribute("type", field.getType());
+			writer.writeAttribute(TYPE, field.getType());
 			writer.writeAttribute("visibility", field.getModifiers());
 			writer.writeCharacters(field.getName());
 			writer.writeEndElement();

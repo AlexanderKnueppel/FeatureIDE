@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.ui;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.REFRESH_EXPORT_DIALOG;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -111,7 +113,7 @@ public class CheckBoxListener implements ICheckStateListener {
 	}
 
 	private void refreshViewer() {
-		UIJob job = new UIJob("Refresh export dialog") {
+		UIJob job = new UIJob(REFRESH_EXPORT_DIALOG) {
 
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {

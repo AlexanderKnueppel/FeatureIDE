@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2013  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -38,35 +38,14 @@ public abstract class Preferences {
 		COMPLETION_OPEN_CLAUSES = 2,
 		SCHEME_LONG = 0,
 		SCHEME_SHORT = 1;
-	
-	public static String getNameTypeLabel(int layoutType){		
-		switch(layoutType){
-			case 1: 
-				return "Short Names";
-			case 0:
-			default:
-				return "Long Names";
-		}	
-	}
-	
+
 	private static final IEclipsePreferences preferences = InstanceScope.INSTANCE.getNode("de.ovgu.featureide.fm.core");
 	
 	public static int defaultCompletion;
-	public static int defaultFeatureNameScheme;
 	
 	static {
 		String pref = preferences.get("configCompletion", Integer.toString(COMPLETION_ONE_CLICK));
 		defaultCompletion = castToInt(pref, COMPLETION_ONE_CLICK);
-		
-		pref = preferences.get("configFeatureNameScheme", Integer.toString(SCHEME_LONG));
-		defaultFeatureNameScheme = castToInt(pref, SCHEME_LONG);
-	}
-
-	/**
-	 * @return the defaultFeatureNameScheme
-	 */
-	public static int getDefaultFeatureNameScheme() {
-		return defaultFeatureNameScheme;
 	}
 
 	/**
@@ -79,11 +58,6 @@ public abstract class Preferences {
 	public static void setDefaultCompletion(int defaultCompletion) {
 		Preferences.defaultCompletion = defaultCompletion;
 		store("configCompletion", defaultCompletion);
-	}
-	
-	public static void setDefaultFeatureNameFormat(int defaultFeatureNameScheme) {
-		Preferences.defaultFeatureNameScheme = defaultFeatureNameScheme;
-		store("configFeatureNameScheme", defaultFeatureNameScheme);
 	}
 	
 	private static int castToInt(String pref, int defaultValue) {
@@ -103,7 +77,7 @@ public abstract class Preferences {
 		try {
 			preferences.flush();
 		} catch (BackingStoreException e) {
-			FMCorePlugin.getDefault().logError(e);
+			Logger.logError(e);
 		}
 	}
 }

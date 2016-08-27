@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,15 +20,18 @@
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
 
-import org.eclipse.core.runtime.jobs.Job;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CALCULATING;
+import static de.ovgu.featureide.fm.core.localization.StringTable.MORE_THAN;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
+import de.ovgu.featureide.fm.core.job.LongRunningJob;
+import de.ovgu.featureide.fm.core.job.LongRunningMethod;
+import de.ovgu.featureide.fm.core.job.monitor.IMonitor;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
 import de.ovgu.featureide.ui.statistics.ui.helper.JobDoneListener;
 import de.ovgu.featureide.ui.statistics.ui.helper.TreeClickListener;
-import de.ovgu.featureide.ui.statistics.ui.helper.jobs.StoppableTreeJob;
 
 /**
  * Parent for the actual {@link ConfigNode}s.
@@ -38,12 +41,12 @@ import de.ovgu.featureide.ui.statistics.ui.helper.jobs.StoppableTreeJob;
  */
 public class ConfigParentNode extends LazyParent {
 	
-	private final FeatureModel model;
+	private final IFeatureModel model;
 
 	public static class ConfigNode extends Parent {
-		private FeatureModel innerModel;
+		private IFeatureModel innerModel;
 
-		public ConfigNode(String description, FeatureModel innerModel) {
+		public ConfigNode(String description, IFeatureModel innerModel) {
 			super(description, "(double-click to calculate)");
 			this.innerModel = innerModel;
 		}
@@ -60,7 +63,7 @@ public class ConfigParentNode extends LazyParent {
 		 *            for the job.
 		 */
 		public void calculate(final long timeout, final int priority) {
-			Job job = new StoppableTreeJob("Calculating " + this.description, this) {
+			LongRunningMethod<Boolean> job = new LongRunningMethod<Boolean>() {
 				private String calculateConfigs() {
 					boolean ignoreAbstract = description.equals(DESC_CONFIGS);
 					if (!ignoreAbstract && innerModel.getAnalyser().countConcreteFeatures() == 0) {
@@ -71,25 +74,26 @@ public class ConfigParentNode extends LazyParent {
 
 					final long number = new Configuration(innerModel, false, ignoreAbstract).number(timeout);
 					
-					return ((number < 0) ? "more than " + (-number - 1) : String.valueOf(number));
+					return ((number < 0) ? MORE_THAN + (-number - 1) : String.valueOf(number));
 				}
 
 				@Override
-				protected boolean work() throws Exception {
+				public Boolean execute(IMonitor workMonitor) throws Exception {
 					setValue(calculateConfigs());
 					return true;
 				}
 			};
-			job.setPriority(priority);
+			LongRunningJob<Boolean> runner = new LongRunningJob<>(CALCULATING + this.description, job);
+			runner.setPriority(priority);
 			JobDoneListener listener = JobDoneListener.getInstance();
 			if (listener != null) {
-				job.addJobChangeListener(listener);
+				runner.addJobChangeListener(listener);
 			}
-			job.schedule();
+			runner.schedule();
 		}
 	}
 
-	public ConfigParentNode(String description, FeatureModel model) {
+	public ConfigParentNode(String description, IFeatureModel model) {
 		super(description);
 		this.model = model;
 	}

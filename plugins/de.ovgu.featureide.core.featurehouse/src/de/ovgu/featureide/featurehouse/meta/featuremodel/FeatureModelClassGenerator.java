@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,8 @@
  */
 package de.ovgu.featureide.featurehouse.meta.featuremodel;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.DEPRECATION;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -30,12 +32,13 @@ import org.eclipse.core.runtime.CoreException;
 
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
 /**
  * Generates a class representing the variability encoding of the feature model.
  * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke (Feature Interface)
  */
 public class FeatureModelClassGenerator {
 	
@@ -54,7 +57,7 @@ public class FeatureModelClassGenerator {
 	 * @param model
 	 * @param method
 	 */
-	public FeatureModelClassGenerator(FeatureModel featureModel, String method) {
+	public FeatureModelClassGenerator(IFeatureModel featureModel, String method) {
 		if (method.equals(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA_JML)) {
 			featureModelClass = new FeatureModelJPFBDD(featureModel);
 		} else if (method.equals(IFeatureProject.META_THEOREM_PROVING)) {
@@ -87,7 +90,7 @@ public class FeatureModelClassGenerator {
 			return;
 		}	
 		printModel();
-		IFolder FMFolder = featureProject.getBuildFolder().getFolder(featureProject.getCurrentConfiguration().getName().split("[.]")[0]).getFolder("FM");
+		IFolder FMFolder = featureProject.getBuildFolder().getFolder("FM");
 		try {
 			FMFolder.create(true, true, null);
 			saveToFile(FMFolder.getFile("FeatureModel.java"));
@@ -100,7 +103,7 @@ public class FeatureModelClassGenerator {
 	 * Saves the content of the {@link StringBuilder} to the given file.
 	 * @param file
 	 */
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings(DEPRECATION)
 	public void saveToFile(IFile file) {
 		InputStream source = new ByteArrayInputStream(stringBuilder.toString()
 				.getBytes(Charset.availableCharsets().get("UTF-8")));

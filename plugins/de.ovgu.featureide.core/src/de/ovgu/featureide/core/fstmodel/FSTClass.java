@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -39,6 +39,7 @@ public class FSTClass {
 	private final HashMap<String, FSTRole> roles = new HashMap<String, FSTRole>();
 	private final String name;
 	private LinkedList<String> invariants;
+	public boolean hasComposedLines = false;
 
 	public FSTClass(String name) {
 		this.name = name;

@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,8 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.SELECTION;
+
 import org.eclipse.gef.Request;
 import org.eclipse.gef.RequestConstants;
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
@@ -28,9 +30,9 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
-import de.ovgu.featureide.fm.core.Constraint;
-import de.ovgu.featureide.fm.core.Feature;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalConstraint;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalFeature;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.ConstraintEditPart;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.FeatureEditPart;
 
@@ -39,6 +41,7 @@ import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.FeatureEditPart;
  * 
  * @author Cyrill Meyer
  * @author Eric Schubert
+ * @author Marcus Pinnecke
  */
 public class SelectionAction extends Action {
 
@@ -47,13 +50,13 @@ public class SelectionAction extends Action {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 
 			if (isSelectionValid(selection)) {
-				for (Feature feature : model.getFeatures()) {
+				for (IGraphicalFeature feature : model.getFeatures()) {
 					if (feature.isConstraintSelected()) {
 						feature.setConstraintSelected(false);
 					}
 				}
 
-				for (Constraint constraint : model.getConstraints()) {
+				for (IGraphicalConstraint constraint : model.getConstraints()) {
 					if (constraint.isFeatureSelected()) {
 						constraint.setFeatureSelected(false);
 					}
@@ -68,11 +71,11 @@ public class SelectionAction extends Action {
 		}
 	};
 
-	private FeatureModel model;
+	private IGraphicalFeatureModel model;
 
-	public SelectionAction(GraphicalViewerImpl viewer, FeatureModel featureModel) {
-		super("Selection");
-		this.model = featureModel;
+	public SelectionAction(GraphicalViewerImpl viewer, IGraphicalFeatureModel graphicalFeatureModel) {
+		super(SELECTION);
+		this.model = graphicalFeatureModel;
 
 		viewer.addSelectionChangedListener(listener);
 	}

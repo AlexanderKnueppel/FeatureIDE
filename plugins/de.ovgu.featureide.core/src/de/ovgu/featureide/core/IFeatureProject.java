@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,8 +20,13 @@
  */
 package de.ovgu.featureide.core;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.THEOREM_PROVING;
+import static de.ovgu.featureide.fm.core.localization.StringTable.VARIABILITY_AWARE_TESTING;
+
 import java.util.Collection;
 import java.util.List;
+
+import javax.annotation.CheckForNull;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -32,7 +37,8 @@ import org.eclipse.core.runtime.QualifiedName;
 import de.ovgu.featureide.core.builder.IComposerExtensionClass;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.signature.ProjectSignatures;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.io.manager.FeatureModelManager;
 
 
 public interface IFeatureProject extends IBuilderMarkerHandler {
@@ -54,11 +60,11 @@ public interface IFeatureProject extends IBuilderMarkerHandler {
 	String DEFAULT_CONTRACT_COMPOSITION= "None";
 	
 	// TODO revise with enum
-	String META_THEOREM_PROVING = "Theorem Proving";
 	String META_THEOREM_PROVING_DISP = "Theorem Proving (Dispatcher Methods)";
+	String META_THEOREM_PROVING = THEOREM_PROVING;
 	String META_MODEL_CHECKING = "Model Checking (JPF-core)";
 	String META_MODEL_CHECKING_BDD_JAVA_JML = "Model Checking (JPF-BDD Java JML)";
-	String META_VAREXJ = "Variability-Aware Testing";
+	String META_VAREXJ = VARIABILITY_AWARE_TESTING;
 	String META_MODEL_CHECKING_BDD_JAVA = "Model Checking (JPF-BDD Java)";
 	String META_MODEL_CHECKING_BDD_C = "Model Checking (JPF-BDD C)";
 	
@@ -73,15 +79,6 @@ public interface IFeatureProject extends IBuilderMarkerHandler {
 	String MARKER_FALSE_OPTIONAL = "False optional: ";
 
 	void dispose();
-
-	/**
-	 * Renames the feature folder or creates a new one if the old folder
-	 * doesn't exists.
-	 * 
-	 * @param oldName the current name of the feature folder
-	 * @param newName the future name of the feature folder
-	 */
-	void renameFeature(String oldName, String newName);
 
 	String getProjectName();
 
@@ -144,7 +141,10 @@ public interface IFeatureProject extends IBuilderMarkerHandler {
 
 	FSTModel getFSTModel();
 
-	FeatureModel getFeatureModel();
+	// TODO _Refactor: remove
+	IFeatureModel getFeatureModel();
+
+	FeatureModelManager getFeatureModelManager();
 
 	IFile getModelFile();
 	
@@ -174,7 +174,7 @@ public interface IFeatureProject extends IBuilderMarkerHandler {
 	 *   specified by the nature or builder (every project has the same nature
 	 *   and builder, which can be extended by other eclipse plug-ins)
 	 */
-	IComposerExtensionClass getComposer();
+	@CheckForNull IComposerExtensionClass getComposer();
 	
 	/**
 	 * Sets the JAVA class path that is in order to build the project

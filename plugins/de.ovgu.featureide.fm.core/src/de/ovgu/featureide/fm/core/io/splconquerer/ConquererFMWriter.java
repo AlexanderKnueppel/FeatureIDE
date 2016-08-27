@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,19 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.core.io.splconquerer;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CHILD;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CLASSES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.CLAUSE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.COMMULATIVE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DYNAMIC;
+import static de.ovgu.featureide.fm.core.localization.StringTable.ELEMENT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.EXCLUDES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.OPTIONAL;
+import static de.ovgu.featureide.fm.core.localization.StringTable.ORDER;
+import static de.ovgu.featureide.fm.core.localization.StringTable.REQUIRES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.TYPE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.YES;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,10 +63,15 @@ import org.prop4j.Or;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import de.ovgu.featureide.fm.core.FMCorePlugin;
-import de.ovgu.featureide.fm.core.Feature;
-import de.ovgu.featureide.fm.core.FeatureModel;
-import de.ovgu.featureide.fm.core.io.AbstractFeatureModelWriter;
+import de.ovgu.featureide.fm.core.Logger;
+import de.ovgu.featureide.fm.core.PluginID;
+import de.ovgu.featureide.fm.core.base.FeatureUtils;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.functional.Functional;
+import de.ovgu.featureide.fm.core.io.IFeatureModelFormat;
+import de.ovgu.featureide.fm.core.io.IPersistentFormat;
+import de.ovgu.featureide.fm.core.io.ProblemList;
 
 /**
  * Prints a feature model in SPLConqueror format.
@@ -61,17 +79,13 @@ import de.ovgu.featureide.fm.core.io.AbstractFeatureModelWriter;
  * @author Dariusz Krolikowski
  * @author Maik Lampe
  * @author Thomas Thuem
+ * @author Marcus Pinnecke (Feature Interface)
  */
-public class ConquererFMWriter extends AbstractFeatureModelWriter {
+public class ConquererFMWriter implements IFeatureModelFormat {
+
+	public static final String ID = PluginID.PLUGIN_ID + ".format.fm." + ConquererFMWriter.class.getSimpleName();
 	
-	/**
-	 * Creates a new writer and sets the feature model to write out.
-	 * 
-	 * @param featureModel the structure to write
-	 */
-	public ConquererFMWriter(FeatureModel featureModel) {
-		setFeatureModel(featureModel);
-	}
+	private IFeatureModel featureModel;
 	
 	private Map<String,Set<String>> require, exclude;
 	
@@ -79,16 +93,18 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 	 * Creates XML-Document
 	 * @param doc document to write
 	 */
-    private void createXmlDoc(Document doc) {
+	private void createXmlDoc(Document doc) {
         Element plm = doc.createElement("plm");
     	doc.appendChild(plm);
-		plm.setAttribute("name", featureModel.getRoot().getName());
+		plm.setAttribute("name", featureModel.getStructure().getRoot().getFeature().getName());
 		plm.setAttribute("canReuseInstance", "true");
 		
 		require = new HashMap<String, Set<String>>();
 		exclude = new HashMap<String, Set<String>>();
-    	List<Node> furtherNodes = new LinkedList<Node>();
-    	Node node = new And(featureModel.getPropositionalNodes());
+    	final List<Node> furtherNodes = new LinkedList<Node>();
+		final List<Node> nodes = Functional.toList(FeatureUtils.getPropositionalNodes(featureModel.getConstraints()));
+    	Node[] nodeArray = nodes.toArray(new Node[nodes.size()]);
+    	Node node = new And(nodeArray);
     	if (node.getChildren().length > 0) {
         	node = node.toCNF();
         	if (!(node instanceof And))
@@ -129,45 +145,45 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
     	}
 
     	initializeIDs();
-       	generateSubtree(doc, plm, featureModel.getRoot());
+       	generateSubtree(doc, plm, featureModel.getStructure().getRoot().getFeature());
     	
     	plm.appendChild(doc.createElement("properties"));
 
     	Element furtherConstraints = doc.createElement("furtherConstraints");
     	plm.appendChild(furtherConstraints);
     	for (Node child : furtherNodes) {
-			Element clause = doc.createElement("clause");
+			Element clause = doc.createElement(CLAUSE);
 			furtherConstraints.appendChild(clause);
 			clause.appendChild(doc.createTextNode(child.toString()));
 		}
     }
     
-    private void generateSubtree(Document doc, Element node, Feature feature) {
-    	if (!feature.isRoot())
+    private void generateSubtree(Document doc, Element node, IFeature feature) {
+    	if (!feature.getStructure().isRoot())
     		generateElement(doc, node, feature);
     	
-    	for (Feature child : feature.getChildren())
+    	for (IFeature child : FeatureUtils.convertToFeatureList(feature.getStructure().getChildren()))
     		generateSubtree(doc, node, child);
     }
   
-	private void generateElement(Document doc, Element node, Feature feature) {
-    	Element element = doc.createElement("element");
+	private void generateElement(Document doc, Element node, IFeature feature) {
+    	Element element = doc.createElement(ELEMENT);
     	node.appendChild(element);
 		element.setAttribute("id", getID(feature.getName()));
 		element.setAttribute("name", feature.getName());
-		element.setAttribute("type", "feature");
-		element.setAttribute("optional", feature.isMandatory() ? "false" : "true");
-		element.setAttribute("dynamic", "false");
+		element.setAttribute(TYPE, "feature");
+		element.setAttribute(OPTIONAL, feature.getStructure().isMandatory() ? "false" : "true");
+		element.setAttribute(DYNAMIC, "false");
     	
     	element.appendChild(doc.createElement("path_absolut"));
     	element.appendChild(doc.createElement("path_relativ"));
 
-    	if (!feature.getParent().isRoot()) {
+    	if (!feature.getStructure().getParent().isRoot()) {
         	Element parentElement = doc.createElement("parentElement");
         	element.appendChild(parentElement);
         	Element id = doc.createElement("id");
         	parentElement.appendChild(id);
-        	id.appendChild(doc.createTextNode(getID(feature.getParent().getName())));
+        	id.appendChild(doc.createTextNode(getID(FeatureUtils.getParent(feature).getName())));
     	}
     	
     	Element constraints = doc.createElement("constraints");
@@ -175,9 +191,9 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
     	
     	Element alternative = doc.createElement("constraint");
     	constraints.appendChild(alternative);
-		alternative.setAttribute("type", "alternative");
-    	if (!feature.isRoot() && feature.getParent().isAlternative()) {
-        	for (Feature childFeature : feature.getParent().getChildren())
+		alternative.setAttribute(TYPE, "alternative");
+    	if (!feature.getStructure().isRoot() && feature.getStructure().getParent().isAlternative()) {
+        	for (IFeature childFeature : FeatureUtils.convertToFeatureList(feature.getStructure().getParent().getChildren()))
         		if (childFeature != feature) {
 	            	Element constraint_element = doc.createElement("constraint_element");
 	            	alternative.appendChild(constraint_element);
@@ -192,9 +208,9 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 
     	Element commulative = doc.createElement("constraint");
     	constraints.appendChild(commulative);
-    	commulative.setAttribute("type", "commulative");
-    	if (!feature.isRoot() && feature.getParent().isOr()) {
-        	for (Feature childFeature : feature.getParent().getChildren())
+    	commulative.setAttribute(TYPE, COMMULATIVE);
+    	if (!feature.getStructure().isRoot() && feature.getStructure().getParent().isOr()) {
+        	for (IFeature childFeature : FeatureUtils.convertToFeatureList(feature.getStructure().getParent().getChildren()))
         		if (childFeature != feature) {
 	            	Element constraint_element = doc.createElement("constraint_element");
 	            	commulative.appendChild(constraint_element);
@@ -209,7 +225,7 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 
     	Element requires = doc.createElement("constraint");
     	constraints.appendChild(requires);
-    	requires.setAttribute("type", "requires");
+    	requires.setAttribute(TYPE, REQUIRES);
     	Set<String> requireFeature = require.get(feature.getName());
     	if (requireFeature != null)
 	    	for (String childFeature : requireFeature) {
@@ -225,7 +241,7 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 
     	Element excludes = doc.createElement("constraint");
     	constraints.appendChild(excludes);
-    	excludes.setAttribute("type", "excludes");
+    	excludes.setAttribute(TYPE, EXCLUDES);
     	Set<String> excludeFeature = exclude.get(feature.getName());
     	if (excludeFeature != null)
 	    	for (String childFeature : excludeFeature) {
@@ -241,17 +257,17 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
     	
     	Element childElements = doc.createElement("childElements");
     	element.appendChild(childElements);
-    	for (Feature childFeature : feature.getChildren()) {
-        	Element child = doc.createElement("child");
+    	for (IFeature childFeature : FeatureUtils.convertToFeatureList(feature.getStructure().getChildren())) {
+        	Element child = doc.createElement(CHILD);
         	childElements.appendChild(child);
-    		child.setAttribute("optional", childFeature.isMandatory() ? "false" : "true");
+    		child.setAttribute(OPTIONAL, childFeature.getStructure().isMandatory() ? "false" : "true");
         	Element id = doc.createElement("id");
         	child.appendChild(id);
         	id.appendChild(doc.createTextNode(getID(childFeature.getName())));
 		}
     	
-    	element.appendChild(doc.createElement("order"));
-    	element.appendChild(doc.createElement("classes"));
+    	element.appendChild(doc.createElement(ORDER));
+    	element.appendChild(doc.createElement(CLASSES));
 	}
 
 	/**
@@ -294,12 +310,13 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 				line = reader.readLine();
 			}
     	} catch (IOException e) {
-    		FMCorePlugin.getDefault().logError(e);
+    		Logger.logError(e);
 		}
     	return result.toString();
     }
     
-    public String writeToString() {
+    public String writeToString(IFeatureModel featureModel) {
+    	this.featureModel = featureModel;
     	//Create Empty DOM Document
     	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
@@ -311,7 +328,7 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 		try {
 		    db = dbf.newDocumentBuilder();
 		} catch (ParserConfigurationException pce) {
-			FMCorePlugin.getDefault().logError(pce);
+			Logger.logError(pce);
 		}
 		Document doc = db.newDocument();
 		//Create the Xml Representation
@@ -322,19 +339,19 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
 		try {
 			transfo = TransformerFactory.newInstance().newTransformer();
 		} catch (TransformerConfigurationException e) {
-			FMCorePlugin.getDefault().logError(e);
+			Logger.logError(e);
 		} catch (TransformerFactoryConfigurationError e) {
-			FMCorePlugin.getDefault().logError(e);
+			Logger.logError(e);
 		}
 		
 		transfo.setOutputProperty(OutputKeys.METHOD, "xml");
-		transfo.setOutputProperty(OutputKeys.INDENT, "yes");
+		transfo.setOutputProperty(OutputKeys.INDENT, YES);
 		StreamResult result = new StreamResult(new StringWriter());
 		DOMSource source = new DOMSource(doc);
 		try {
 			transfo.transform(source, result);
 		} catch (TransformerException e) {
-			FMCorePlugin.getDefault().logError(e);
+			Logger.logError(e);
 		}
 		
 		return prettyPrint(result.getWriter().toString()); 
@@ -344,12 +361,12 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
     
     private void initializeIDs() {
     	ids = new HashMap<String, Integer>();
-    	initializeIDs(featureModel.getRoot());
+    	initializeIDs(featureModel.getStructure().getRoot().getFeature());
     }
     
-    private void initializeIDs(Feature feature) {
+    private void initializeIDs(IFeature feature) {
     	getID(feature.getName());
-    	for (Feature child : feature.getChildren())
+    	for (IFeature child : FeatureUtils.convertToFeatureList(feature.getStructure().getChildren()))
     		initializeIDs(child);
     }
     
@@ -361,5 +378,40 @@ public class ConquererFMWriter extends AbstractFeatureModelWriter {
     	ids.put(feature, id);
     	return id.toString();
     }
+
+	@Override
+	public ProblemList read(IFeatureModel object, CharSequence source) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String write(IFeatureModel object) {
+		return writeToString(object);
+	}
+
+	@Override
+	public String getSuffix() {
+		return "xml";
+	}
+
+	@Override
+	public IPersistentFormat<IFeatureModel> getInstance() {
+		return new ConquererFMWriter();
+	}
+
+	@Override
+	public boolean supportsRead() {
+		return false;
+	}
+
+	@Override
+	public boolean supportsWrite() {
+		return true;
+	}
+
+	@Override
+	public String getId() {
+		return ID;
+	}
     
 }

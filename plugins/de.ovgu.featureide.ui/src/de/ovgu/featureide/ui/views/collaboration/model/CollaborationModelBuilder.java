@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.views.collaboration.model;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_CONFIGURATION;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -271,7 +273,7 @@ public class CollaborationModelBuilder {
 		IFile config = project.getCurrentConfiguration(); 
 		final FSTConfiguration c;
 		if (config == null) {
-			c = new FSTConfiguration("No configuration ", configuration, false);
+			c = new FSTConfiguration(NO_CONFIGURATION, configuration, false);
 		} else if (configuration == null || configuration.equals(config)) {
 			c = new FSTConfiguration(config.getName().split("[.]")[0] + " ", configuration, true);
 		} else {

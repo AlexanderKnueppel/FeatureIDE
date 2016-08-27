@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,16 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.ui.views.featuremodeleditview;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.ADDED_PRODUCTS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.MINUS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEXT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NONE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.PLUS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.PRODUCT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.REMOVED_PRODUCTS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.TIMEOUT_STRING;
+import static de.ovgu.featureide.fm.core.localization.StringTable.ZERO;
 
 import org.sat4j.specs.TimeoutException;
 
@@ -44,21 +54,21 @@ public class ExampleParent extends TreeParent implements GUIDefaults {
 	private Configuration example;
 
 	public ExampleParent(boolean added, ModelComparator c, int number, Configuration example) {
-		super("next");
+		super(NEXT);
 		this.added = added;
 		this.c = c;
 		this.number = number;
 		this.example = example;
 
 		if (number == 1)
-			name = added ? "Added products" : "Removed products";
+			name = added ? ADDED_PRODUCTS : REMOVED_PRODUCTS;
 		if (c.getResult() == Comparison.ERROR) {
 			image = IMAGE_UNDEFINED;
 		} else {
-			String imageName = added && !c.isImplied() ? "plus" : !added && !c.isImplies() ? "minus" : "zero";
-			lazy = !"zero".equals(imageName);
+			String imageName = added && !c.isImplied() ? PLUS : !added && !c.isImplies() ? MINUS : ZERO;
+			lazy = !ZERO.equals(imageName);
 
-			image = "plus".equals(imageName) ? PLUS_IMAGE : "minus".equals(imageName) ? MINUS_IMAGE : ZERO_IMAGE;
+			image = PLUS.equals(imageName) ? PLUS_IMAGE : MINUS.equals(imageName) ? MINUS_IMAGE : ZERO_IMAGE;
 		}
 	}
 
@@ -69,10 +79,10 @@ public class ExampleParent extends TreeParent implements GUIDefaults {
 				example = c.calculateExample(added);
 			}
 			if (example == null) {
-				addChild("none");
+				addChild(NONE);
 			} else {
 				SelectableFeature root = example.getRoot();
-				root.setName("Product " + number);
+				root.setName(PRODUCT + number);
 				addChild(root);
 
 				Configuration example = c.calculateExample(added);
@@ -81,7 +91,7 @@ public class ExampleParent extends TreeParent implements GUIDefaults {
 				}
 			}
 		} catch (TimeoutException e) {
-			addChild("timeout");
+			addChild(TIMEOUT_STRING);
 		}
 	}
 

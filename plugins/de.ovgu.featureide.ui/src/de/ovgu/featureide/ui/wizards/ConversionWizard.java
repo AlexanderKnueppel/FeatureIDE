@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.ADD_FEATUREIDE_NATURE;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -58,7 +60,7 @@ public class ConversionWizard extends Wizard implements INewWizard {
 	@Override
 	public void addPages() {
 		// addPage(new ConversionPage(selection));
-		setWindowTitle("Add FeatureIDE Nature");
+		setWindowTitle(ADD_FEATUREIDE_NATURE);
 		addPage(page);
 		super.addPages();
 	}

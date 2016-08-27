@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,22 +20,26 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions.calculations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CALCULATE_TAUTOLOGY_CONSTRAINTS;
+
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.jface.action.Action;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
 /**
- * TODO description
+ * Action to specify feature model analysis.<br>
+ * Enables / disables checks for tautologies in constraints.
  * 
  * @author Stefan Krueger
+ * @author Marcus Pinnecke
  */
 public class TautologyContraintsCalculationsAction extends Action {
 
-	private final FeatureModel featureModel;
+	private final IFeatureModel featureModel;
 
-	public TautologyContraintsCalculationsAction(GraphicalViewerImpl viewer, FeatureModel featureModel) {
-		super("Calculate Tautology Constraints");
+	public TautologyContraintsCalculationsAction(GraphicalViewerImpl viewer, IFeatureModel featureModel) {
+		super(CALCULATE_TAUTOLOGY_CONSTRAINTS);
 		this.featureModel = featureModel;
 		setChecked(featureModel.getAnalyser().calculateTautologyConstraints);
 	}
@@ -46,7 +50,6 @@ public class TautologyContraintsCalculationsAction extends Action {
 			featureModel.getAnalyser().calculateTautologyConstraints = false;
 		} else {
 			featureModel.getAnalyser().calculateTautologyConstraints = true;
-			//featureModel.getAnalyser().calculateRedundantConstraints = true;
 			featureModel.getAnalyser().calculateFeatures = true;
 			featureModel.getAnalyser().calculateConstraints = true;
 		}

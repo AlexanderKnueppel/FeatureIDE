@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -27,9 +27,10 @@ import java.util.List;
 
 import org.sat4j.specs.TimeoutException;
 
-import de.ovgu.featureide.fm.core.Constraint;
-import de.ovgu.featureide.fm.core.Feature;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IConstraint;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.functional.Functional;
 import de.ovgu.featureide.ui.UIPlugin;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
@@ -43,10 +44,10 @@ import de.ovgu.featureide.ui.statistics.core.composite.Parent;
 public final class StatisticsFeatureComplexity extends LazyParent {
 
 	private static final double precision = 1000.0;
-	
-	private final FeatureModel model;
 
-	public StatisticsFeatureComplexity(String description, FeatureModel model) {
+	private final IFeatureModel model;
+
+	public StatisticsFeatureComplexity(String description, IFeatureModel model) {
 		super(description, null);
 		this.model = model;
 	}
@@ -64,28 +65,28 @@ public final class StatisticsFeatureComplexity extends LazyParent {
 				UIPlugin.getDefault().logError(e);
 			}
 
-			final Collection<Feature> listOfFeatures = model.getFeatures();
+			final Collection<IFeature> listOfFeatures = Functional.toList(model.getFeatures());
 
-			final List<Feature> listOfCompoundFeatures = new ArrayList<Feature>();
-			final List<Feature> listOfPrimitiveFeatures = new ArrayList<Feature>();
-			final List<Feature> listOfAbstractFeatures = new ArrayList<Feature>();
-			final List<Feature> listOfConcreteFeatures = new ArrayList<Feature>();
+			final List<IFeature> listOfCompoundFeatures = new ArrayList<IFeature>();
+			final List<IFeature> listOfPrimitiveFeatures = new ArrayList<IFeature>();
+			final List<IFeature> listOfAbstractFeatures = new ArrayList<IFeature>();
+			final List<IFeature> listOfConcreteFeatures = new ArrayList<IFeature>();
 
-			for (Feature f : listOfFeatures) {
-				if (f.getChildren().isEmpty()) {
+			for (IFeature f : listOfFeatures) {
+				if (f.getStructure().getChildren().isEmpty()) {
 					listOfPrimitiveFeatures.add(f);
 				} else {
 					listOfCompoundFeatures.add(f);
 				}
-				if (f.isConcrete()) {
+				if (f.getStructure().isConcrete()) {
 					listOfConcreteFeatures.add(f);
 				} else {
 					listOfAbstractFeatures.add(f);
 				}
 			}
 
-			final HashSet<Feature> constraintFeatures = new HashSet<>(model.getNumberOfFeatures() << 1);
-			for (Constraint constraint : model.getConstraints()) {
+			final HashSet<IFeature> constraintFeatures = new HashSet<>(model.getNumberOfFeatures() << 1);
+			for (IConstraint constraint : model.getConstraints()) {
 				constraintFeatures.addAll(constraint.getContainedFeatures());
 			}
 
@@ -108,6 +109,14 @@ public final class StatisticsFeatureComplexity extends LazyParent {
 			addChild(new Parent(NUMBER_CONSTRAINT_FEATURES, constraintFeatures.size()));
 
 			addChild(new Parent(CONSTRAINT_RATIO, Math.floor((precision * constraintFeatures.size()) / model.getNumberOfFeatures()) / precision));
+
+			addChild(new CoreFeaturesParentNode(CORE_FEATURES, model));
+
+			addChild(new DeadFeaturesParentNode(DEAD_FEATURES, model));
+
+			addChild(new FalseOptionalFeaturesParentNode(FO_FEATURES, model));
+
+			addChild(new AtomicParentNode(ATOMIC_SETS, model));
 		}
 	}
 }

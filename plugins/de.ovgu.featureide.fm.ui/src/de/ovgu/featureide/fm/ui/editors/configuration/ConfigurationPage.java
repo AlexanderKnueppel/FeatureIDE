@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,8 @@
  */
 package de.ovgu.featureide.fm.ui.editors.configuration;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CONFIGURATION;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -27,9 +29,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import de.ovgu.featureide.fm.core.configuration.Configuration;
 import de.ovgu.featureide.fm.core.configuration.SelectableFeature;
-import de.ovgu.featureide.fm.core.configuration.Selection;
 import de.ovgu.featureide.fm.ui.FMUIPlugin;
 
 /**
@@ -43,7 +43,7 @@ import de.ovgu.featureide.fm.ui.FMUIPlugin;
 public class ConfigurationPage extends ConfigurationTreeEditorPage {
 
 	private static final String ID = FMUIPlugin.PLUGIN_ID + "ConfigurationPage";
-	private static final String PAGE_TEXT = "Configuration";
+	private static final String PAGE_TEXT = CONFIGURATION;
 
 	protected void createUITree(Composite parent) {
 		tree = new Tree(parent, SWT.CHECK);
@@ -92,12 +92,13 @@ public class ConfigurationPage extends ConfigurationTreeEditorPage {
 
 	@Override
 	public void pageChangeTo(int index) {
-		final Configuration configuration = configurationEditor.getConfiguration();
-		for (SelectableFeature feature : configuration.getFeatures()) {
-			if (feature.getAutomatic() == Selection.UNDEFINED && feature.getManual() == Selection.UNSELECTED) {
-				configuration.setManual(feature, Selection.UNDEFINED);
-			}
-		}
+//		final IConfiguration configuration = configurationEditor.getConfiguration();
+//		for (SelectableFeature feature : configuration.getFeatures()) {
+//			if (feature.getAutomatic() == Selection.UNDEFINED && feature.getManual() == Selection.UNSELECTED) {
+//				configuration.setManual(feature, Selection.UNDEFINED);
+//			}
+//		}
 		super.pageChangeTo(index);
 	}
+
 }

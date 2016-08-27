@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURES;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -176,7 +178,7 @@ public class StatisticsProgramSizeNew extends LazyParent {
 							e.printStackTrace();
 						}
 
-						String feat = (file.getFullPath().toString().substring(file.getFullPath().toString().indexOf("features") + 9, file.getFullPath()
+						String feat = (file.getFullPath().toString().substring(file.getFullPath().toString().indexOf(FEATURES) + 9, file.getFullPath()
 								.toString().length() - 1)).split("/")[0];
 
 						if (!featureExtensionLOCList.containsKey(file.getFileExtension() + "#" + feat)) {

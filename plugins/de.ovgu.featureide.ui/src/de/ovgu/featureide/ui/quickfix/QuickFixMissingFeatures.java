@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,8 @@
  */
 package de.ovgu.featureide.ui.quickfix;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CREATE_CONFIGURATIONS_FOR;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +32,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
-import de.ovgu.featureide.fm.core.Feature;
+import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
 import de.ovgu.featureide.fm.core.configuration.SelectableFeature;
 import de.ovgu.featureide.fm.core.configuration.Selection;
@@ -64,18 +66,27 @@ class QuickFixMissingFeatures extends QuickFixMissingConfigurations {
 	}
 	
 	private List<Configuration> createConfigurations(final Collection<String> unusedFeatures, final IProgressMonitor monitor) {
-		monitor.beginTask("Create configurations", unusedFeatures.size());
+		monitor.beginTask(CREATE_CONFIGURATIONS_FOR, unusedFeatures.size());
 		final List<Configuration> confs = new LinkedList<Configuration>();
 		while (!unusedFeatures.isEmpty()) {
+			monitor.subTask(createShortMessage(unusedFeatures));
+			if (monitor.isCanceled()) {
+				break;
+			}
 			final Configuration configuration = new Configuration(featureModel, true);
 			for (final String feature : unusedFeatures) {
 				if (configuration.getSelectablefeature(feature).getSelection() == Selection.UNDEFINED) {
 					configuration.setManual(feature, Selection.SELECTED);
-					monitor.worked(1);
+					
 				}
 			}
-			for (final Feature feature : configuration.getSelectedFeatures()) {
-				unusedFeatures.remove(feature.getName());
+			if (monitor.isCanceled()) {
+				break;
+			}
+			for (final IFeature feature : configuration.getSelectedFeatures()) {
+				if (unusedFeatures.remove(feature.getName())) {
+					monitor.worked(1);	
+				}
 			}
 			
 			// select further features to get a valid configuration

@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,9 +20,12 @@
  */
 package de.ovgu.featureide.ui.wizards;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.RENAME_COLORSCHEME;
+
 import org.eclipse.jface.wizard.Wizard;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.color.FeatureColorManager;
 import de.ovgu.featureide.ui.UIPlugin;
 
 /**
@@ -37,15 +40,15 @@ public class RenameColorSchemeWizard extends Wizard {
 
 	public RenameColorSchemePage page;
 	
-	private final FeatureModel featureModel;
+	private final IFeatureModel featureModel;
 
 	/**
 	 * Constructor for RenameColorSchemeWizard.
 	 */
-	public RenameColorSchemeWizard(FeatureModel featureModel) {
+	public RenameColorSchemeWizard(IFeatureModel featureModel) {
 		super();
 		this.featureModel = featureModel;
-		setWindowTitle("Rename Colorscheme");
+		setWindowTitle(RENAME_COLORSCHEME);
 	}
 
 	/**
@@ -63,7 +66,7 @@ public class RenameColorSchemeWizard extends Wizard {
 	public boolean performFinish() {
 		final String csName = page.getColorSchemeName();
 		if (csName != null && !csName.isEmpty()) {
-			featureModel.getColorschemeTable().renameColorscheme(csName);
+			FeatureColorManager.renameColorScheme(featureModel, csName);
 			return true;
 		}
 		return false;

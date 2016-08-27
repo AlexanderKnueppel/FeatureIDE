@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,7 +20,9 @@
  */
 package de.ovgu.featureide.ui.views.collaboration.outline;
 
-import java.util.Arrays;
+import static de.ovgu.featureide.fm.core.localization.StringTable.COLLABORATION_MODEL_NOT_FOUND;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_FILE_FOUND;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -44,16 +46,17 @@ import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
 import de.ovgu.featureide.core.fstmodel.IRoleElement;
 import de.ovgu.featureide.core.fstmodel.preprocessor.FSTDirective;
+import de.ovgu.featureide.fm.core.functional.Functional;
 
 /**
  * Provides the content for the collaboration outline.
  * 
  * @author Jan Wedding
  * @author Melanie Pflaume
- * @author Stefan Krüger
+ * @author Stefan Krï¿½ger
  * @author Florian Proksch
  * @author Dominic Labsch
- * @author Daniel Püsche
+ * @author Daniel Pï¿½sche
  */
 public class CollaborationOutlineTreeContentProvider implements ITreeContentProvider {
 
@@ -78,7 +81,7 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement == null || !(inputElement instanceof IFile)) {
-			return new String[] { "no file found" };
+			return new String[] { NO_FILE_FOUND };
 		}
 
 		final IFile file = (IFile) inputElement;
@@ -95,7 +98,7 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 				}
 			}
 		}
-		return new String[] { "Collaboration model not found" };
+		return new String[] { COLLABORATION_MODEL_NOT_FOUND };
 	}
 
 	@Override
@@ -113,7 +116,12 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 				invariants.addAll(role.getClassFragment().getInvariants());
 				methods.addAll(role.getMethods());
 				fields.addAll(role.getFields());
-				directives.addAll(role.getDirectives());
+				TreeSet<FSTDirective> roleDirectives = role.getDirectives();
+				for (FSTDirective directive : roleDirectives) {
+					if (directive.getParent() == null) {
+						directives.add(directive);
+					}
+				}
 				innerClasses.addAll(role.getInnerClasses());
 			}
 
@@ -145,7 +153,7 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 				}
 			}
 
-			List<String> featureOrder = CorePlugin.getFeatureProject(((FSTMethod) parentElement).getRole().getFile()).getFeatureModel().getFeatureOrderList();
+			List<String> featureOrder = Functional.toList(CorePlugin.getFeatureProject(((FSTMethod) parentElement).getRole().getFile()).getFeatureModel().getFeatureOrderList());
 
 			obj = new FSTRole[roleList.size()];
 			int index = 0;
@@ -188,7 +196,6 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 			return filter(roleList.toArray());
 		} else if (parentElement instanceof FSTDirective) {
 			FSTDirective[] directiveArray = ((FSTDirective) parentElement).getChildren().clone();
-			Arrays.sort(directiveArray);
 			return filter(directiveArray);
 		} else if (parentElement instanceof FSTClassFragment) {
 			final TreeSet<FSTMethod> methods = new TreeSet<FSTMethod>();
@@ -218,21 +225,21 @@ public class CollaborationOutlineTreeContentProvider implements ITreeContentProv
 		return filter(obj);
 	}
 
-	private final Set<IFilter> filters = new HashSet<>();
+	private final Set<ICollaborationOutlineFilter> filters = new HashSet<>();
 
 	//add filter to filter set
-	public void addFilter(IFilter filter) {
+	public void addFilter(ICollaborationOutlineFilter filter) {
 		filters.add(filter);
 	}
 
 	//remove filter from filter set
-	public void removeFilter(IFilter filter) {
+	public void removeFilter(ICollaborationOutlineFilter filter) {
 		filters.remove(filter);
 	}
 
 	//apply all filters from filter set
 	private Object[] filter(Object[] obj) {
-		for (IFilter filter : filters) {
+		for (ICollaborationOutlineFilter filter : filters) {
 			obj = filter.filter(obj);
 		}
 		return obj;

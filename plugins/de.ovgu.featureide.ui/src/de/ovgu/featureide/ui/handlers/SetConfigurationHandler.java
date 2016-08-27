@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.handlers;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CANT_SET_CONFIGURATION_AS_CURRENT_CONFIGURATION_BECAUSE_IT_DOES_NOT_BELONG_TO_A_FEATURE_PROJECT;
 
 import org.eclipse.core.resources.IFile;
 
@@ -40,7 +42,7 @@ public class SetConfigurationHandler extends AFileHandler {
 	protected void singleAction(IFile file) {
 		final IFeatureProject project = CorePlugin.getFeatureProject(file);
 		if (project == null) {
-			UIPlugin.getDefault().logWarning("Can't set configuration as current configuration because it does not belong to a feature project");
+			UIPlugin.getDefault().logWarning(CANT_SET_CONFIGURATION_AS_CURRENT_CONFIGURATION_BECAUSE_IT_DOES_NOT_BELONG_TO_A_FEATURE_PROJECT);
 		} else {
 			project.setCurrentConfiguration(file);
 		}

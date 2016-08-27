@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -23,15 +23,21 @@ package de.ovgu.featureide.fm.core.editing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
 import org.prop4j.Node;
 import org.prop4j.NodeReader;
 import org.sat4j.specs.TimeoutException;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
-import de.ovgu.featureide.fm.core.io.IFeatureModelReader;
+import de.ovgu.featureide.common.Commons;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.base.impl.FMFactoryManager;
+import de.ovgu.featureide.fm.core.configuration.Configuration;
 import de.ovgu.featureide.fm.core.io.UnsupportedModelException;
-import de.ovgu.featureide.fm.core.io.guidsl.GuidslReader;
+import de.ovgu.featureide.fm.core.io.guidsl.GuidslFormat;
 
 /**
  * Checks that the calculation of edit categories works properly. A couple of
@@ -40,6 +46,7 @@ import de.ovgu.featureide.fm.core.io.guidsl.GuidslReader;
  * 
  * @author Thomas Thuem
  * @author Fabian Benduhn
+ * @author Marcus Pinnecke, 01.07.15
  */
 public class TModelComparator {
 
@@ -329,13 +336,35 @@ public class TModelComparator {
 	private Comparison compare(String fm1, String fm2)
 			throws UnsupportedModelException {
 		ModelComparator comperator = new ModelComparator(TIMEOUT);
-		FeatureModel oldModel = new FeatureModel();
-		IFeatureModelReader reader = new GuidslReader(oldModel);
-		reader.readFromString(fm1);
-		FeatureModel newModel = new FeatureModel();
-		reader = new GuidslReader(newModel);
-		reader.readFromString(fm2);
+		IFeatureModel oldModel = FMFactoryManager.getFactory().createFeatureModel();
+		GuidslFormat reader = new GuidslFormat();
+		reader.read(oldModel, fm1);
+		IFeatureModel newModel = FMFactoryManager.getFactory().createFeatureModel();
+		reader.read(newModel, fm2);
 		return comperator.compare(oldModel, newModel);
 	}
 
+	@Test
+	/**
+	 * Based on https://github.com/tthuem/FeatureIDE/issues/264
+	 * @author Marcus Pinnecke
+	 * 
+	 */
+	public void testForFeatureIDEaddedProducts() throws FileNotFoundException, UnsupportedModelException, TimeoutException {
+	    final IFeatureModel fm = Commons.loadFeatureModelFromFile("issue_264_model_optional.xml", Commons.FEATURE_MODEL_BENCHMARK_PATH_REMOTE, Commons.FEATURE_MODEL_BENCHMARK_PATH_LOCAL_CLASS_PATH);
+	    final IFeatureModel fmGen = Commons.loadFeatureModelFromFile("issue_264_model_alternative.xml", Commons.FEATURE_MODEL_BENCHMARK_PATH_REMOTE, Commons.FEATURE_MODEL_BENCHMARK_PATH_LOCAL_CLASS_PATH);
+	    final ModelComparator comparator = new ModelComparator(1000000);
+	    final Comparison comparison = comparator.compare(fm, fmGen);
+	    
+	    assertEquals(Comparison.GENERALIZATION, comparison);
+	    
+	    final Set<String> addedProducts = new HashSet<String>();
+	    
+	    Configuration c;
+	    while((c = comparator.calculateExample(true)) != null) {
+	        System.out.println(c);
+	        addedProducts.add(c.toString());
+	    }
+	    // TODO: assertEquals(12, addedProducts.size());
+	}
 }

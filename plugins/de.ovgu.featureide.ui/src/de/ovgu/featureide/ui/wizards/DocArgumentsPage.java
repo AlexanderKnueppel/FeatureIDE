@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,9 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.JAVADOC_OPTIONS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SPECIFY_OPTIONS_FOR_JAVADOC_TOOL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -44,8 +47,8 @@ public class DocArgumentsPage extends AbstractWizardPage {
 	private String options;
 
 	public DocArgumentsPage() {
-		super("JavaDoc Options");
-		setDescription("Specify Options for JavaDoc Tool");
+		super(JAVADOC_OPTIONS);
+		setDescription(SPECIFY_OPTIONS_FOR_JAVADOC_TOOL);
 		this.options = "";
 	}
 

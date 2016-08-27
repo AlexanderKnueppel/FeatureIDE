@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.core.internal;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.REMOVE_PROJECT;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -84,7 +86,7 @@ public class ProjectChangeListener implements IResourceChangeListener {
 	}
 
 	private void removeProject(final IProject project) {
-		Job job = new Job("Remove project") {
+		Job job = new Job(REMOVE_PROJECT) {
 			protected IStatus run(IProgressMonitor monitor) {
 				CorePlugin.getDefault().removeProject(project);
 				return Status.OK_STATUS;

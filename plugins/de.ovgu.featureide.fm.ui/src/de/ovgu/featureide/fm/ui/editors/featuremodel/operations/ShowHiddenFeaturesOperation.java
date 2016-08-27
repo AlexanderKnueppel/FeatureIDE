@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,33 +20,34 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.operations;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
-import de.ovgu.featureide.fm.ui.editors.FeatureUIHelper;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SHOW_HIDDEN_FEATURES;
+
+import de.ovgu.featureide.fm.core.base.event.FeatureIDEEvent;
+import de.ovgu.featureide.fm.core.base.event.FeatureIDEEvent.EventType;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalFeatureModel;
 
 /**
  * Specifies whether hidden features are shown.
  * 
  * @author David Halm
  * @author Patrick Sulkowski
+ * @author Marcus Pinnecke
  */
-public class ShowHiddenFeaturesOperation extends AbstractFeatureModelOperation {
+public class ShowHiddenFeaturesOperation extends AbstractGraphicalFeatureModelOperation {
 
-	private FeatureModel featureModel;
-
-	public ShowHiddenFeaturesOperation(FeatureModel featureModel) {
-		super(featureModel, "Show Hidden Features");
-		this.featureModel = featureModel;
+	public ShowHiddenFeaturesOperation(IGraphicalFeatureModel featureModel) {
+		super(featureModel, SHOW_HIDDEN_FEATURES);
 	}
 
 	@Override
-	public void redo() {
-		featureModel.getLayout().showHiddenFeatures(!featureModel.getLayout().showHiddenFeatures());
-		FeatureUIHelper.showHiddenFeatures(featureModel.getLayout().showHiddenFeatures(), featureModel);
+	public FeatureIDEEvent operation() {
+		graphicalFeatureModel.getLayout().showHiddenFeatures(!graphicalFeatureModel.getLayout().showHiddenFeatures());
+		return new FeatureIDEEvent(graphicalFeatureModel, EventType.MODEL_DATA_CHANGED);
 	}
 
 	@Override
-	public void undo() {
-		redo();
+	public FeatureIDEEvent inverseOperation() {
+		return operation();
 	}
 
 }

@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,10 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.ui.editors;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.IFF;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IMPLIES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NOT;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -182,15 +186,15 @@ public class ConstraintContentProposalProvider implements IContentProposalProvid
 		//		Show "and" for "A |"
 		//		Hide "and" for "A and |"
 		proposals.add(new ContentProposal("and"));
-		proposals.add(new ContentProposal("iff"));
-		proposals.add(new ContentProposal("implies"));
+		proposals.add(new ContentProposal(IFF));
+		proposals.add(new ContentProposal(IMPLIES));
 		proposals.add(new ContentProposal("or"));
 
 		// TODO: Add binary operators only iff their appearance makes sense in content proposal
 		// Example:
-		//		Show "not" for "A implies |"
-		//		Hide "not" for "A |"
-		proposals.add(new ContentProposal("not"));
+		//		Show NOT for "A implies |"
+		//		Hide NOT for "A |"
+		proposals.add(new ContentProposal(NOT));
 
 		// TODO: Add features only iff a feature name is valid in context
 		// Example: 

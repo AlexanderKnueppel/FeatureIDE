@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,9 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.genericdatatypes;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.DOUBLE_CLICK_TO_SORT_BY_VALUE_IN_DESCENDING_ORDER;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DOUBLE_CLICK_TO_SORT_IN_ALPHABETICAL_ORDER;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -92,9 +95,9 @@ public abstract class AbstractSortModeNode extends LazyParent implements IToolTi
 	public String getToolTip() {
 		if (hasChildren()) {
 			if (sortByValue) {
-				return "Double-click to sort in alphabetical order";
+				return DOUBLE_CLICK_TO_SORT_IN_ALPHABETICAL_ORDER;
 			}
-			return "Double-click to sort by value in descending order";
+			return DOUBLE_CLICK_TO_SORT_BY_VALUE_IN_DESCENDING_ORDER;
 		}
 		return null;
 	}

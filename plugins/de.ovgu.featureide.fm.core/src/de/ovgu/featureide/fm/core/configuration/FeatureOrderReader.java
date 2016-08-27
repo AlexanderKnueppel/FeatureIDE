@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,34 +20,31 @@
  */
 package de.ovgu.featureide.fm.core.configuration;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CAN_NOT_READ__ORDER_FILE;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-import org.eclipse.core.resources.IFile;
-
-import de.ovgu.featureide.fm.core.FMCorePlugin;
+import de.ovgu.featureide.fm.core.Logger;
+import de.ovgu.featureide.fm.core.io.FeatureOrderFormat;
 
 /**
  * Read the .order file from the project directory. The constructor need the
  * location of the project as parameter
  * 
+ * @deprecated Use {@link FeatureOrderFormat} instead.
+ * 
  * @author Christian Becker
  */
+@Deprecated
 public class FeatureOrderReader {
 
 	private File file;
 
 	public FeatureOrderReader(File file) {
 		this.file = new File(file.toString() + System.getProperty("file.separator") + ".order");
-	}
-
-	/**
-	 * @param orderFile
-	 */
-	public FeatureOrderReader(IFile orderFile) {
-		file = orderFile.getRawLocation().toFile();
 	}
 
 	/**
@@ -64,7 +61,7 @@ public class FeatureOrderReader {
 			}
 			scanner.close();
 		} catch (FileNotFoundException e) {
-			FMCorePlugin.getDefault().logInfo("Can not read .order file");
+			Logger.logInfo(CAN_NOT_READ__ORDER_FILE);
 		}
 
 		return list;

@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,9 @@
  */
 package de.ovgu.featureide.core.mpl.job;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.COPIED_SOURCE_FILES_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.COPYING_SOURCE_FILES;
+
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -27,13 +30,14 @@ import org.eclipse.core.runtime.IPath;
 
 import de.ovgu.featureide.core.mpl.MPLPlugin;
 import de.ovgu.featureide.fm.core.job.AProjectJob;
+import de.ovgu.featureide.fm.core.job.monitor.IMonitor;
 import de.ovgu.featureide.fm.core.job.util.JobArguments;
 
 /**
  * 
  * @author Sebastian Krieter
  */
-public class MPLCopyExternalJob extends AProjectJob<MPLCopyExternalJob.Arguments> {
+public class MPLCopyExternalJob extends AProjectJob<MPLCopyExternalJob.Arguments, Boolean> {
 	
 	public static class Arguments extends JobArguments {
 		private final IFolder srcFolder;
@@ -47,12 +51,12 @@ public class MPLCopyExternalJob extends AProjectJob<MPLCopyExternalJob.Arguments
 	}
 	
 	protected MPLCopyExternalJob(Arguments arguments) {
-		super("Copying Source Files", arguments);
-		setPriority(BUILD);
+		super(COPYING_SOURCE_FILES, arguments);
 	}
-	
+
 	@Override
-	protected boolean work() {
+	public Boolean execute(IMonitor workMonitor) throws Exception {
+		this.workMonitor = workMonitor;
 		IPath destPath = arguments.destFolder.getFullPath();
 		
 		try {
@@ -61,7 +65,7 @@ public class MPLCopyExternalJob extends AProjectJob<MPLCopyExternalJob.Arguments
 				IResource srcMember = srcMembers[i];
 				IPath px = destPath.append(srcMember.getName());
 				if (!px.toFile().exists()) {
-					srcMember.move(px, true, workMonitor.getMonitor());
+					srcMember.move(px, true, null);
 				}
 			}
 		} catch (CoreException e) {
@@ -69,7 +73,7 @@ public class MPLCopyExternalJob extends AProjectJob<MPLCopyExternalJob.Arguments
 			return false;
 		}
 
-		MPLPlugin.getDefault().logInfo("Copied Source Files.");
+		MPLPlugin.getDefault().logInfo(COPIED_SOURCE_FILES_);
 		return true;
 	}
 }

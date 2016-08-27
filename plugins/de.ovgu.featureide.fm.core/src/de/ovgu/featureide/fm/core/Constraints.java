@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -25,6 +25,11 @@ import java.util.List;
 
 import org.prop4j.NodeWriter;
 
+import de.ovgu.featureide.fm.core.base.IConstraint;
+
+/**
+ * @author Marcus Pinnecke
+ */
 public final class Constraints {
 
 	/**
@@ -32,24 +37,24 @@ public final class Constraints {
 	 * feature names with braces if a feature name is a also an operator.<br/>
 	 * <br/>
 	 * <b>Example</b></br> <code>
-	 * Constraint c = new Constraint(fm, new Implies(new Literal("A"), new Literal("implies")));
-	 * </code> The constraint <code>c</code> is printed to <code>A implies "implies"</code>
+	 * Constraint c = new Constraint(fm, new Implies(new Literal("A"), new Literal(IMPLIES)));
+	 * </code> The constraint <code>c</code> is printed to <code>A implies IMPLIES</code>
 	 * 
 	 * @param c The constraint
 	 * @return A string representation
 	 */
-	public static final String autoQuote(final Constraint constraint) {
+	public static final String autoQuote(final IConstraint constraint) {
 		final String c = constraint.getNode().toString(NodeWriter.shortSymbols);
 		return autoQuote(c);
 	}
 
 	public static final String autoQuote(final String constraint) {
 		// Quote features that has the same name as an operator, e.g. Feature 
-		// implies will be "implies" afterwards
+		// implies will be IMPLIES afterwards
 		String printable = quoteOperatorNames(constraint);
 
-		// ATTENTION: Backwards iteration is used here, to first replace "<=>" with "iff".
-		// That's because "=>" comes before "<=>" in "shortSymbols", such that "<=>" will
+		// ATTENTION: Backwards iteration is used here, to first replace "<=>WITHiff".
+		// That's because "=>COMES_BEFORE<=>INshortSymbolsCOMMA__SUCH_THAT<=>" will
 		// be replaces by "<implies"" when not iterating backwards.
 		for (int i = NodeWriter.shortSymbols.length - 1; i >= 0; i--)
 			printable = printable.replace(NodeWriter.shortSymbols[i].trim(), NodeWriter.textualSymbols[i].trim());

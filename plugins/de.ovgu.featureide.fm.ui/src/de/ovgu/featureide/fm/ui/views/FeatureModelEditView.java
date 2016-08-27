@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,14 +20,10 @@
  */
 package de.ovgu.featureide.fm.ui.views;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.FileNotFoundException;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DISABLE_AUTOMATIC_CALCULATIONS;
+import static de.ovgu.featureide.fm.core.localization.StringTable.START_CALCULATION;
+import static de.ovgu.featureide.fm.core.localization.StringTable.UPDATING_FEATURE_MODEL_EDITS;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -36,11 +32,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.draw2d.ConnectionLayer;
-import org.eclipse.gef.LayerConstants;
-import org.eclipse.gef.editparts.ScalableFreeformRootEditPart;
-import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
-import org.eclipse.gef.ui.parts.ScrollingGraphicalViewer;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -53,21 +44,13 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.progress.UIJob;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
-import de.ovgu.featureide.fm.core.PropertyConstants;
-import de.ovgu.featureide.fm.core.editing.evaluation.Evaluation;
-import de.ovgu.featureide.fm.core.io.FeatureModelReaderIFileWrapper;
-import de.ovgu.featureide.fm.core.io.UnsupportedModelException;
-import de.ovgu.featureide.fm.core.io.xml.XmlFeatureModelReader;
+import de.ovgu.featureide.fm.core.base.event.FeatureIDEEvent;
+import de.ovgu.featureide.fm.core.base.event.FeatureIDEEvent.EventType;
+import de.ovgu.featureide.fm.core.base.event.IEventListener;
 import de.ovgu.featureide.fm.ui.FMUIPlugin;
 import de.ovgu.featureide.fm.ui.editors.FeatureModelEditor;
-import de.ovgu.featureide.fm.ui.editors.featuremodel.GEFImageWriter;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.GUIDefaults;
-import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.GraphicalEditPartFactory;
-import de.ovgu.featureide.fm.ui.editors.featuremodel.layouts.FeatureDiagramLayoutManager;
-import de.ovgu.featureide.fm.ui.editors.featuremodel.layouts.LevelOrderLayout;
 import de.ovgu.featureide.fm.ui.views.featuremodeleditview.ViewContentProvider;
 import de.ovgu.featureide.fm.ui.views.featuremodeleditview.ViewLabelProvider;
 
@@ -76,6 +59,7 @@ import de.ovgu.featureide.fm.ui.views.featuremodeleditview.ViewLabelProvider;
  * the current editing version is compared to the last saved model.
  * 
  * @author Thomas Thuem
+ * @author Marcus Pinnecke
  */
 public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 
@@ -86,8 +70,8 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 	private static final QualifiedName ACTIVATOR_KEY = new QualifiedName(FMUIPlugin.PLUGIN_ID + ".EditViewActivator", FMUIPlugin.PLUGIN_ID
 			+ ".EditViewActivator");
 
-	private static final String ACTIVATOR_ACTION_TEXT = "Disable automatic calculations";
-	private static final String MANUAL_CALCULATION_TEXT = "Start calculation";
+	private static final String ACTIVATOR_ACTION_TEXT = DISABLE_AUTOMATIC_CALCULATIONS;
+	private static final String MANUAL_CALCULATION_TEXT = START_CALCULATION;
 
 	private static final IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 
@@ -102,7 +86,7 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 	 */
 	private Action manualAction = new Action() {
 		public void run() {
-			Job job = new Job("Updating Feature Model Edits") {
+			Job job = new Job(UPDATING_FEATURE_MODEL_EDITS) {
 				protected IStatus run(IProgressMonitor monitor) {
 					if (featureModelEditor == null)
 						contentProvider.defaultContent();
@@ -161,9 +145,9 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 
 	};
 
-	private PropertyChangeListener modelListener = new PropertyChangeListener() {
-		public void propertyChange(PropertyChangeEvent evt) {
-			if (!PropertyConstants.MODEL_LAYOUT_CHANGED.equals(evt.getPropertyName()))
+	private IEventListener modelListener = new IEventListener() {
+		public void propertyChange(FeatureIDEEvent evt) {
+			if (!EventType.MODEL_LAYOUT_CHANGED.equals(evt.getEventType()))
 				refresh();
 		}
 	};
@@ -246,8 +230,6 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 		viewer.getControl().setFocus();
 	}
 
-	private Job evaluation;
-
 	private void setFeatureModelEditor(IWorkbenchPart activeEditor) {
 		if (featureModelEditor != null && featureModelEditor == activeEditor)
 			return;
@@ -260,67 +242,6 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 		if (activeEditor instanceof FeatureModelEditor) {
 			featureModelEditor = (FeatureModelEditor) activeEditor;
 			featureModelEditor.getFeatureModel().addListener(modelListener);
-
-			if (evaluation == null && featureModelEditor.getGrammarFile().getResource().getProject().getName().startsWith("EvaluationTest")) {
-				evaluation = new Job("Evaluation Test") {
-					@Override
-					protected IStatus run(IProgressMonitor monitor) {
-						Evaluation.evaluate(featureModelEditor.getGrammarFile().getResource().getProject());
-						return Status.OK_STATUS;
-					}
-				};
-				evaluation.setPriority(Job.LONG);
-				evaluation.schedule();
-				UIJob conversion = new UIJob("Converting Feature Models") {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						try {
-							convertModelToBitmapTest(featureModelEditor.getGrammarFile().getResource().getProject().getFolder("models"));
-						} catch (Exception e) {
-							FMUIPlugin.getDefault().logError(e);
-						}
-						return Status.OK_STATUS;
-					}
-
-					public void convertModelToBitmapTest(IFolder folder) throws CoreException {
-						for (IResource res : folder.members())
-							if (res instanceof IFile && res.getName().endsWith(".m")) {
-								IFile fmFile = (IFile) res;
-								try {
-									FeatureModel fm = new FeatureModel();
-
-									FeatureModelReaderIFileWrapper reader = new FeatureModelReaderIFileWrapper(new XmlFeatureModelReader(fm));
-									reader.readFromFile(fmFile);
-
-									String imageName = fmFile.getRawLocation().toOSString();
-									imageName = imageName.substring(0, imageName.length() - ".m".length()) + ".png";
-									createBitmap(fm, new File(imageName));
-								} catch (FileNotFoundException e) {
-									FMUIPlugin.getDefault().logError(e);
-								} catch (UnsupportedModelException e) {
-									FMUIPlugin.getDefault().logError(e);
-								}
-							}
-						folder.refreshLocal(IResource.DEPTH_ONE, null);
-					}
-
-					private void createBitmap(FeatureModel featureModel, File file) {
-						GraphicalViewerImpl graphicalViewer = new ScrollingGraphicalViewer();
-						graphicalViewer.createControl(viewer.getControl().getParent());
-						graphicalViewer.getControl().setBackground(DIAGRAM_BACKGROUND);
-						graphicalViewer.setEditPartFactory(new GraphicalEditPartFactory());
-						ScalableFreeformRootEditPart rootEditPart = new ScalableFreeformRootEditPart();
-						((ConnectionLayer) rootEditPart.getLayer(LayerConstants.CONNECTION_LAYER)).setAntialias(SWT.ON);
-						graphicalViewer.setRootEditPart(rootEditPart);
-						graphicalViewer.setContents(featureModel);
-						FeatureDiagramLayoutManager layoutManager = new LevelOrderLayout();
-						layoutManager.layout(featureModel);
-						GEFImageWriter.writeToFile(graphicalViewer, file);
-					}
-				};
-				conversion.setPriority(Job.LONG);
-				conversion.schedule();
-			}
 		}
 		refresh();
 	}
@@ -334,7 +255,7 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 		 * This job waits for the calculation job to finish and starts
 		 * immediately a new one
 		 */
-		Job waiter = new Job("Updating Feature Model Edits") {
+		Job waiter = new Job(UPDATING_FEATURE_MODEL_EDITS) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
@@ -350,7 +271,7 @@ public class FeatureModelEditView extends ViewPart implements GUIDefaults {
 					FMUIPlugin.getDefault().logError(e);
 				}
 
-				job = new Job("Updating Feature Model Edits") {
+				job = new Job(UPDATING_FEATURE_MODEL_EDITS) {
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						activatorAction.setEnabled(true);

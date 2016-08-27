@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.editors;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.RESTRICTION;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -47,7 +49,7 @@ import de.ovgu.featureide.ui.UIPlugin;
  * TODO maybe the BasicJavaEditorActionContributor should used at plugin.xml
  * TODO the images for composed and source files should differ(?)
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings(RESTRICTION)
 public class JavaEditor extends CompilationUnitEditor {
 	public static final String ID = UIPlugin.PLUGIN_ID + ".editors.JavaEditor";
 	private static final Image TITLE_IMAGE = UIPlugin

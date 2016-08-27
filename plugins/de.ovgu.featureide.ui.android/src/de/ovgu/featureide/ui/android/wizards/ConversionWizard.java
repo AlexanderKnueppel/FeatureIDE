@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.android.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.ADD_FEATUREIDE_NATURE_TO_ANDROID_PROJECT;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -44,7 +46,7 @@ public class ConversionWizard extends Wizard implements INewWizard {
 
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		setWindowTitle("Add FeatureIDE Nature to Android Project");
+		setWindowTitle(ADD_FEATUREIDE_NATURE_TO_ANDROID_PROJECT);
 		page = new ConversionPage();
 		this.selection = selection;
 	}

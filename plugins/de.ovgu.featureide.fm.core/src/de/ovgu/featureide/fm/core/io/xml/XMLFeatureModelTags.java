@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,18 +20,22 @@
  */
 package de.ovgu.featureide.fm.core.io.xml;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.AUTO;
+import static de.ovgu.featureide.fm.core.localization.StringTable.REDUNDANT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.TAUTOLOGY;
 /**
  * Provides the XML tags for {@link XmlFeatureModelReader} and {@link XmlFeatureModelWriter}. 
  * 
  * @author Jens Meinicke
  */
 public interface XMLFeatureModelTags {
+	static final String PROPERTIES = "properties";
 	static final String FEATURE_MODEL = "featureModel";
 	static final String STRUCT = "struct";
 	static final String FEATURE_ORDER = "featureOrder";
-	static final String COMMENTS = "comments";
-	static final String CALCULATIONS = "calculations";
 	static final String CONSTRAINTS = "constraints";
+	static final String CONSTRAINT = "constraint";
+	static final String FEATURES = "features";
 	static final String CHOSEN_LAYOUT_ALGORITHM = "chosenLayoutAlgorithm";
 	static final String C = "c";
 	static final String TRUE = "true";
@@ -40,10 +44,7 @@ public interface XMLFeatureModelTags {
 	static final String ALT = "alt";
 	static final String AND = "and";
 	static final String DESCRIPTION = "description";
-	static final String HIDDEN = "hidden";
 	static final String USER_DEFINED = "userDefined";
-	static final String MANDATORY = "mandatory";
-	static final String ABSTRACT = "abstract";
 	static final String VAR = "var";
 	static final String IMP = "imp";
 	static final String EQ = "eq";
@@ -51,14 +52,14 @@ public interface XMLFeatureModelTags {
 	static final String DISJ = "disj";
 	static final String COORDINATES = "coordinates";
 	static final String CALCULATE_FEATURES = "Features";
-	static final String CALCULATE_REDUNDANT = "Redundant";
-	static final String CALCULATE_TAUTOLOGY = "Tautology";
-	static final String CALCULATE_CONSTRAINTS = "Constraints";
-	static final String CALCULATE_AUTO = "Auto";
+	static final String CALCULATE_REDUNDANT = REDUNDANT;
+	static final String CALCULATE_TAUTOLOGY = TAUTOLOGY;
+	static final String CALCULATE_CONSTRAINTS = de.ovgu.featureide.fm.core.localization.StringTable.CONSTRAINTS;
+	static final String CALCULATE_AUTO = AUTO;
 	static final String NAME = "name";
-	static final String NOT = "not";
 	static final String FALSE = "false";
 	static final String SHOW_HIDDEN_FEATURES = "showHiddenFeatures";
+	static final String SHOW_SHORT_NAMES = "showShortNames";
 	static final String HORIZONTAL_LAYOUT = "horizontalLayout";
 	static final String RULE = "rule";
 	static final String UNKNOWN = "unknown";

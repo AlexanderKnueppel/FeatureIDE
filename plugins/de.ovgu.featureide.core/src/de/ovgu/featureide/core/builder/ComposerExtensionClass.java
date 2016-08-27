@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,10 @@
  */
 package de.ovgu.featureide.core.builder;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.JAVA;
+import static de.ovgu.featureide.fm.core.localization.StringTable.RESTRICTION;
+
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -50,16 +54,21 @@ import org.osgi.framework.Bundle;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.fstmodel.preprocessor.FSTDirective;
-import de.ovgu.featureide.fm.core.Feature;
+import de.ovgu.featureide.fm.core.ExtensionManager.NoSuchExtensionException;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.impl.ConfigFormatManager;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
-import de.ovgu.featureide.fm.core.configuration.ConfigurationWriter;
+import de.ovgu.featureide.fm.core.configuration.DefaultFormat;
+import de.ovgu.featureide.fm.core.io.IPersistentFormat;
+import de.ovgu.featureide.fm.core.io.manager.FileHandler;
 
 /**
  * Abstract class for FeatureIDE composer extensions with default values.
  * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke (Feature Interface)
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings(RESTRICTION)
 public abstract class ComposerExtensionClass implements IComposerExtensionClass {
 
 	public static final IPath JRE_CONTAINER = new Path("org.eclipse.jdt.launching.JRE_CONTAINER");
@@ -67,7 +76,7 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 
 	protected static final String JAVA_NATURE = "org.eclipse.jdt.core.javanature";
 	protected final static String[] JAVA_TEMPLATE = new String[] {
-			"Java",
+			JAVA,
 			"java",
 			PACKAGE_PATTERN + "/**" + NEWLINE + " * TODO description" + NEWLINE + " */" + NEWLINE + "public class " + CLASS_NAME_PATTERN + " {" + NEWLINE
 					+ NEWLINE + "}" };
@@ -113,13 +122,13 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 	}
 
 	public void copyNotComposedFiles(Configuration c, IFolder destination) {
-		List<Feature> selectedFeatures = c.getSelectedFeatures();
+		List<IFeature> selectedFeatures = c.getSelectedFeatures();
 		if (selectedFeatures != null) {
 			if (destination == null) {
 				destination = featureProject.getBuildFolder();
 			}
 
-			for (Feature feature : selectedFeatures) {
+			for (IFeature feature : selectedFeatures) {
 				IFolder folder = featureProject.getSourceFolder().getFolder(feature.getName());
 				try {
 					if (!destination.exists()) {
@@ -320,13 +329,13 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 	public void buildConfiguration(IFolder folder, Configuration configuration, String configurationName) {
 		try {
 			if (!folder.exists()) {
-				folder.create(true, false, null);
+				folder.create(true, true, null);
 			}
-			IFile configurationFile = folder.getFile(configurationName + "." + getConfigurationExtension());
-			ConfigurationWriter writer = new ConfigurationWriter(configuration);
-			writer.saveToFile(configurationFile);
+			final IPersistentFormat<Configuration> format = ConfigFormatManager.getInstance().getFormatById(DefaultFormat.ID);
+			IFile configurationFile = folder.getFile(configurationName + "." + format.getSuffix());
+			FileHandler.save(Paths.get(configurationFile.getLocationURI()), configuration, format);
 			copyNotComposedFiles(configuration, folder);
-		} catch (CoreException e) {
+		} catch (CoreException | NoSuchExtensionException e) {
 			CorePlugin.getDefault().logError(e);
 		}
 	}
@@ -340,10 +349,6 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 	}
 
 	public boolean canGeneratInParallelJobs() {
-		return true;
-	}
-
-	public boolean showContextFieldsAndMethods() {
 		return true;
 	}
 
@@ -363,8 +368,8 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 		return false;
 	}
 
-	public boolean hasCompositionMechanisms() {
-		return false;
+	public String[] getCompositionMechanisms() {
+		return new String[0];
 	}
 
 	public boolean createFolderForFeatures() {
@@ -404,5 +409,18 @@ public abstract class ComposerExtensionClass implements IComposerExtensionClass 
 	@Override
 	public <T extends IComposerObject> T getComposerObjectInstance(Class<T> c)  {
 		return null;
+	}
+	
+	@Override
+	public Mechanism getGenerationMechanism() {
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see de.ovgu.featureide.core.builder.IComposerExtensionClass#showContextFieldsAndMethods()
+	 */
+	@Override
+	public boolean showContextFieldsAndMethods() {
+		return true;
 	}
 }

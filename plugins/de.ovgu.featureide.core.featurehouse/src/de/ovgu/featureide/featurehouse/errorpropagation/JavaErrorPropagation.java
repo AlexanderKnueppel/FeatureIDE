@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -21,8 +21,8 @@
 package de.ovgu.featureide.featurehouse.errorpropagation;
 
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Scanner;
 
 import org.eclipse.core.resources.IFile;
@@ -36,12 +36,16 @@ import de.ovgu.featureide.core.fstmodel.FSTField;
 import de.ovgu.featureide.core.fstmodel.FSTMethod;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.functional.Functional;
+import de.ovgu.featureide.fm.core.functional.Functional.IFunction;
 
 /**
  * Propagates errors for <code>FeatureHouse</code> Java files.
  * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke (Feature Interface)
  */
 public class JavaErrorPropagation extends ErrorPropagation {
 
@@ -52,10 +56,10 @@ public class JavaErrorPropagation extends ErrorPropagation {
 	private static final String RAW_TYPE = "raw type";
 	private static final String GENERIC_TYPE = "generic type";
 	private static final String TYPE_SAFETY = "Type safety";
-	// private static final String IMPORT = "The import";
+	// private static final String IMPORT = THE_IMPORT;
 
 	private static final String TASK = "org.eclipse.jdt.core.task";
-	private List<String> layerNames = null;
+	private Collection<String> layerNames = null;
 
 	protected JavaErrorPropagation(IFeatureProject featureProject) {
 		super(featureProject);
@@ -274,11 +278,18 @@ public class JavaErrorPropagation extends ErrorPropagation {
 		}
 
 		if (layerNames == null) {
-			FeatureModel model = project.getFeatureModel();
+			IFeatureModel model = project.getFeatureModel();
 			if (model.isFeatureOrderUserDefined()) {
 				layerNames = model.getFeatureOrderList();
 			} else {
-				layerNames = model.getConcreteFeatureNames();
+				layerNames = Functional.toList(Functional.map(model.getFeatures(), new  IFunction<IFeature, String>() {
+
+					@Override
+					public String invoke(IFeature t) {
+						return t.getName();
+					}
+					
+				}));
 			}
 		}
 

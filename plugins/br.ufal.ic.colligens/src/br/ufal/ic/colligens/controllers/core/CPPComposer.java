@@ -1,5 +1,11 @@
 package br.ufal.ic.colligens.controllers.core;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.C_HEADER_FILE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DISPLAY_IS_NULL;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IS_NOT_INSTALLED_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.PREPROCESSOR_ANNOTATION_CHECKING;
+import static de.ovgu.featureide.fm.core.localization.StringTable.THE_REQUIRED_BUNDLE;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -48,7 +54,7 @@ import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.builder.IComposerExtensionClass;
 import de.ovgu.featureide.core.builder.preprocessor.PPComposerExtensionClass;
 import de.ovgu.featureide.core.fstmodel.preprocessor.FSTDirective;
-import de.ovgu.featureide.fm.core.Feature;
+import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.configuration.Configuration;
 
 /**
@@ -64,8 +70,8 @@ import de.ovgu.featureide.fm.core.configuration.Configuration;
 public class CPPComposer extends PPComposerExtensionClass {
 
 	private static final String PLUGIN_CDT_ID = "org.eclipse.cdt";
-	private static final String PLUGIN_WARNING = "The required bundle "
-			+ PLUGIN_CDT_ID + " is not installed.";
+	private static final String PLUGIN_WARNING = THE_REQUIRED_BUNDLE
+			+ PLUGIN_CDT_ID + IS_NOT_INSTALLED_;
 	public static final String COMPOSER_ID = Colligens.PLUGIN_ID
 			+ ".cppcomposer";
 	public static final String C_NATURE = "org.eclipse.cdt.core.cnature";
@@ -155,35 +161,29 @@ public class CPPComposer extends PPComposerExtensionClass {
 
 		if (!prepareFullBuild(config))
 			return;
-		//
-		//
-		// Job job = new Job("Analyzing!") {
-		// @Override
-		// protected IStatus run(IProgressMonitor monitor) {
-		// //this perfom a build using the Feature configuration selected
-		// IFolder buildFolder = featureProject.getBuildFolder();
-		//
-		// if (buildFolder.getName().equals("src")) {
-		// buildFolder =
-		// featureProject.getProject().getFolder(System.getProperty("file.separator")
-		// +
-		// "build");
-		// }
-		// runTypeChefAnalyzes(featureProject.getSourceFolder());
-		//
-		// if(continueCompilationFlag){
-		// runBuild(getActivatedFeatureArgs(), featureProject.getSourceFolder(),
-		// buildFolder);
-		// }
-		// return Status.OK_STATUS;
-		// }
-		// };
-		// job.setPriority(Job.SHORT);
-		// job.schedule();
-		//
-		//
-		//
-		//
+		
+		Job job = new Job("Analyzing!") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				// this perfom a build using the Feature configuration selected
+				IFolder buildFolder = featureProject.getBuildFolder();
+
+				if (buildFolder.getName().equals("src")) {
+					buildFolder = featureProject.getProject().getFolder(System.getProperty("file.separator") + "build");
+				}
+				runTypeChefAnalyzes(featureProject.getSourceFolder());
+
+				if (continueCompilationFlag) {
+					final LinkedList<String> lst_selectedFeatures = new LinkedList<String>();
+					lst_selectedFeatures.addAll(activatedFeatures);
+					runBuild(getActivatedFeatureArgs(lst_selectedFeatures) , featureProject.getSourceFolder(), buildFolder);
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setPriority(Job.SHORT);
+		job.schedule();
+
 		if (cppModelBuilder != null) {
 			cppModelBuilder.buildModel();
 		}
@@ -204,7 +204,7 @@ public class CPPComposer extends PPComposerExtensionClass {
 
 	private void annotationChecking() {
 		deleteAllPreprocessorAnotationMarkers();
-		Job job = new Job("preprocessor annotation checking") {
+		Job job = new Job(PREPROCESSOR_ANNOTATION_CHECKING) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				annotationChecking(featureProject.getSourceFolder());
@@ -371,7 +371,7 @@ public class CPPComposer extends PPComposerExtensionClass {
 			if (negative)
 				ppExpression = new Not(ppExpression.clone());
 
-			doThreeStepExpressionCheck(ppExpression, lineNumber, res);
+			checkExpressions(ppExpression, lineNumber, res);
 
 		}
 	}
@@ -412,13 +412,12 @@ public class CPPComposer extends PPComposerExtensionClass {
 
 		// find includes
 		String projectName = sourceFolder.getProject().getName();
-		System.out.println(projectName);
+		
 		ICProject project = CoreModel.getDefault().getCModel()
 				.getCProject(projectName);
 		try {
 			IIncludeReference includes[] = project.getIncludeReferences();
 			for (int i = 0; i < includes.length; i++) {
-				// System.out.println(includes[i].getElementName());
 				compilerArgs.add("-I" + includes[i].getElementName());
 			}
 			if (!Colligens.getDefault().getPreferenceStore().getString("LIBS")
@@ -471,13 +470,12 @@ public class CPPComposer extends PPComposerExtensionClass {
 			for (Iterator<IResource> iterator = prjController.getList()
 					.iterator(); iterator.hasNext();) {
 				IResource type = iterator.next();
-				System.out.println(type.getLocation().toOSString());
 			}
 			typeChef.run(prjController.getList());
 
 			final Display display = Display.getDefault();
 			if (display == null) {
-				throw new NullPointerException("Display is null");
+				throw new NullPointerException(DISPLAY_IS_NULL);
 			}
 
 			display.syncExec(new Runnable() {
@@ -582,7 +580,7 @@ public class CPPComposer extends PPComposerExtensionClass {
 		list.add(new String[] { "C Source File", "c",
 				"\r\n" + "int main(int argc, char **argv)" + " {\r\n\r\n}" });
 		list.add(new String[] {
-				"C Header File",
+				C_HEADER_FILE,
 				"h",
 				"#ifndef " + CLASS_NAME_PATTERN + "_H_\n" + "#define "
 						+ CLASS_NAME_PATTERN + "_H_\n\n\n" + "#endif /* "
@@ -639,12 +637,11 @@ public class CPPComposer extends PPComposerExtensionClass {
 	 * Show variants with errors
 	 */
 	private synchronized void verifyVariantsWithProblems() {
-		System.out.println("akkkkkkk");
 		threadInExecId.remove(Thread.currentThread().getId());
 		if (threadInExecId.isEmpty()) {
 			final Display display = Display.getDefault();
 			if (display == null) {
-				throw new NullPointerException("Display is null");
+				throw new NullPointerException(DISPLAY_IS_NULL);
 			}
 			display.syncExec(new Runnable() {
 				@Override
@@ -688,7 +685,7 @@ public class CPPComposer extends PPComposerExtensionClass {
 
 		List<String> myActivatedFeatures = new LinkedList<String>();
 
-		for (Feature feature : configuration.getSelectedFeatures()) {
+		for (IFeature feature : configuration.getSelectedFeatures()) {
 			myActivatedFeatures.add(feature.getName());
 		}
 

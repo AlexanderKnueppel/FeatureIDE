@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.views.outline;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURE_CONTEXT_OUTLINE;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -52,7 +54,7 @@ import de.ovgu.featureide.core.signature.base.AbstractClassSignature;
 import de.ovgu.featureide.core.signature.base.AbstractFieldSignature;
 import de.ovgu.featureide.core.signature.base.AbstractMethodSignature;
 import de.ovgu.featureide.core.signature.base.AbstractSignature;
-import de.ovgu.featureide.fm.core.Feature;
+import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.ui.UIPlugin;
 import de.ovgu.featureide.ui.views.collaboration.GUIDefaults;
 import de.ovgu.featureide.ui.views.collaboration.outline.OutlineLabelProvider;
@@ -143,8 +145,8 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 			} else if (element instanceof AbstractClassSignature) {
 				return ((AbstractClassSignature) element).getName();
 			}
-		} else if (element instanceof Feature) {
-			return ((Feature) element).getDisplayName();
+		} else if (element instanceof IFeature) {
+			return ((IFeature) element).getProperty().getDisplayName();
 		}
 		return element.toString();
 	}
@@ -160,7 +162,7 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 
 	@Override
 	public String getLabelProvName() {
-		return "Feature Context Outline";
+		return FEATURE_CONTEXT_OUTLINE;
 	}
 
 	@Override
@@ -170,12 +172,6 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 
 	@Override
 	public boolean refreshContent(IFile oldFile, IFile currentFile) {
-		if (currentFile != null && oldFile != null) {
-			// TODO MPL: ... ?
-			if (currentFile.getName().equals(oldFile.getName()) && viewer.getTree().getItems().length > 1) {
-				return true;
-			}
-		}
 		return false;
 	}
 
@@ -219,11 +215,11 @@ public class ContextOutlineLabelProvider extends OutlineLabelProvider {
 					final AbstractSignature sig = (AbstractSignature) selection;
 					final AFeatureData[] featureDataArray = sig.getFeatureData();
 					openEditor(sig, featureProject, featureDataArray[0].getID());
-				} else if (selection instanceof Feature) {
+				} else if (selection instanceof IFeature) {
 					final ProjectSignatures signatures = featureProject.getProjectSignatures();
 					if (signatures != null) {
 						final TreeItem decl = viewer.getTree().getSelection()[0].getParentItem();
-						openEditor((AbstractSignature) decl.getData(), featureProject, signatures.getFeatureID(((Feature) selection).getName()));
+						openEditor((AbstractSignature) decl.getData(), featureProject, signatures.getFeatureID(((IFeature) selection).getName()));
 					}
 				}
 			}

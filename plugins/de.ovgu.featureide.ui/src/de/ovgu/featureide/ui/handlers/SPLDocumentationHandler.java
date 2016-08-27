@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,7 @@
  */
 package de.ovgu.featureide.ui.handlers;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.DOCUMENTATION_WIZARD;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.fm.ui.handlers.base.AProjectJobHandler;
 import de.ovgu.featureide.fm.ui.wizards.AbstractWizard;
@@ -30,7 +31,7 @@ public class SPLDocumentationHandler extends AProjectJobHandler {
 
 	@Override
 	protected AbstractWizard instantiateWizard() {
-		return new BuildDocWizard("Documentation Wizard", "MetaDocumentation", false);
+		return new BuildDocWizard(DOCUMENTATION_WIZARD, "MetaDocumentation", false);
 	}
 
 	@Override

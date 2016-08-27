@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.views.collaboration.figures;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.ARIAL;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -70,7 +72,7 @@ import de.ovgu.featureide.ui.views.collaboration.action.ShowFieldsMethodsAction;
 
 public class RoleFigure extends Figure implements GUIDefaults {
 
-	private static Font FONT_BOLD = new Font(null, "Arial", 8, SWT.BOLD);
+	private static Font FONT_BOLD = new Font(null, ARIAL, 8, SWT.BOLD);
 
 	private final Panel panel = new Panel();
 	private boolean selected = false;
@@ -477,7 +479,11 @@ public class RoleFigure extends Figure implements GUIDefaults {
 	}
 
 	private String getClassName() {
-		return role.getClassFragment().getName().split("[.]")[0];
+		String name = role.getFile().getName();
+		if (name.contains("." + role.getFile().getFileExtension())) {
+			name = name.substring(0, name.lastIndexOf("."));
+		}
+		return name;
 	}
 	
 	// create label for nested class
@@ -596,8 +602,8 @@ public class RoleFigure extends Figure implements GUIDefaults {
 		for (FSTDirective d : role.getDirectives()) {
 			String dependencyString = d.toDependencyString();
 			if (!duplicates.contains(dependencyString)) {
-				duplicates.add(dependencyString);
-				Label partLabel = new RoleFigureLabel(dependencyString, IMAGE_HASH, dependencyString);
+//				duplicates.add(dependencyString);
+				Label partLabel = new RoleFigureLabel(dependencyString, IMAGE_HASH, dependencyString, d);
 				addLabel(partLabel);
 			}
 			// TODO draw separationline between fields and methods

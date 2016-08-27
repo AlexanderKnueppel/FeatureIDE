@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2013  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,18 +20,20 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CREATE_CONSTRAINT;
+
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 
-import de.ovgu.featureide.fm.core.Feature;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.ConstraintDialog;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.FeatureEditPart;
 
 /**
- * The "Create Constraint" action for a selected feature inside the feature diagram.
+ * The CREATE_CONSTRAINT action for a selected feature inside the feature diagram.
  * Calling this action the constraint dialog will automatically contains the selected
  * feature inside the input control.
  * 
@@ -45,7 +47,7 @@ public class CreateConstraintWithAction extends CreateConstraintAction {
 	 * @param viewer
 	 * @param featuremodel
 	 */
-	public CreateConstraintWithAction(Object viewer, FeatureModel featuremodel) {
+	public CreateConstraintWithAction(Object viewer, IFeatureModel featuremodel) {
 		super(viewer, featuremodel);
 
 		if (viewer instanceof GraphicalViewerImpl)
@@ -59,7 +61,7 @@ public class CreateConstraintWithAction extends CreateConstraintAction {
 			if (selection.size() == 1) {
 				Object editPart = selection.getFirstElement();
 
-				Feature feature = editPart instanceof FeatureEditPart ? ((FeatureEditPart) editPart).getFeature() : null;
+				IFeature feature = editPart instanceof FeatureEditPart ? ((FeatureEditPart) editPart).getFeature().getObject() : null;
 
 				if (feature != null) {
 					updateConstraintActionText(feature.getName());
@@ -73,7 +75,7 @@ public class CreateConstraintWithAction extends CreateConstraintAction {
 	 */
 	protected void updateConstraintActionText(String featureName) {
 		this.selectedFeature = featureName;
-		this.setText("Create Constraint" + (featureName.isEmpty() ? "" : " starting with \"" + featureName + "\""));
+		this.setText(CREATE_CONSTRAINT + (featureName.isEmpty() ? "" : " starting with \"" + featureName + "\""));
 	}
 
 	/* (non-Javadoc)

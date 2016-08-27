@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,14 @@
  */
 package de.ovgu.featureide.ui.statistics.core;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CANCEL;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DATA_WAS_SUCCESSFULLY_EXPORTED;
+import static de.ovgu.featureide.fm.core.localization.StringTable.EXPORT_STATISTICS_INTO_CSV;
+import static de.ovgu.featureide.fm.core.localization.StringTable.OK;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SHOW_DIALOG;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SHOW_ERRORDIALOG;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SUCCESS;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +45,7 @@ import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -62,20 +71,28 @@ public class CsvExporter {
 		super();
 		this.shell = shell;
 	}
-	
+
 	private String returnVal;
-	
+
 	private Object[] visibleExpandedElements;
-	
+
 	public void export(final Object[] export) {
-		
+
 		UIJob uiJob = new UIJob("") {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				visibleExpandedElements = export;				
-				FileDialog dialog = new FileDialog(shell);
-				dialog.setFilterExtensions(new String[] { "*.csv" });
-				dialog.setText("choose wisely");
+				visibleExpandedElements = export;
+				final FileDialog dialog = new FileDialog(shell, SWT.SAVE);
+				final String filterPath = "/";
+				final String[] filterExtensions = new String[] { "*.csv", "*" };
+				final String[] filterNames = new String[] { "CSV files (" + filterExtensions[0] + ')', "All files (" + filterExtensions[1] + ')' };
+
+				dialog.setFilterNames(filterNames);
+				dialog.setFilterExtensions(filterExtensions);
+				dialog.setFilterPath(filterPath);
+				dialog.setText(EXPORT_STATISTICS_INTO_CSV);
+				dialog.setFileName("newfile.csv");
+
 				returnVal = dialog.open();
 				if (returnVal == null) {
 					return Status.CANCEL_STATUS;
@@ -83,50 +100,55 @@ public class CsvExporter {
 				return Status.OK_STATUS;
 			}
 		};
-		
+
 		uiJob.setPriority(Job.INTERACTIVE);
 		uiJob.schedule();
 		uiJob.addJobChangeListener(new IJobChangeListener() {
-			
+
 			@Override
-			public void sleeping(IJobChangeEvent event) {}
-			
+			public void sleeping(IJobChangeEvent event) {
+			}
+
 			@Override
-			public void scheduled(IJobChangeEvent event) {}
-			
+			public void scheduled(IJobChangeEvent event) {
+			}
+
 			@Override
-			public void running(IJobChangeEvent event) {}
-			
+			public void running(IJobChangeEvent event) {
+			}
+
 			@Override
 			public void done(IJobChangeEvent event) {
 				if (event.getResult() == Status.OK_STATUS) {
-					actualExport();
+					exportToCSV();
 				}
 			}
-			
+
 			@Override
-			public void awake(IJobChangeEvent event) {}
-			
+			public void awake(IJobChangeEvent event) {
+			}
+
 			@Override
-			public void aboutToRun(IJobChangeEvent event) {}
+			public void aboutToRun(IJobChangeEvent event) {
+			}
 		});
-		
+
 	}
-	
+
 	/**
 	 * Puts the description of each selected node in the first row as header and
 	 * it's value in the second row.
 	 * 
 	 */
-	private void actualExport() {
-		Job job = new Job("Export statistics into csv") {
-			
+	private void exportToCSV() {
+		Job job = new Job(EXPORT_STATISTICS_INTO_CSV) {
+
 			private StringBuilder firstBuffer;
 			private StringBuilder secondBuffer;
-			
+
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				
+
 				List<String> descs = new LinkedList<String>();
 				List<String> vals = new LinkedList<String>();
 				getExportData(descs, vals);
@@ -135,15 +157,10 @@ public class CsvExporter {
 				prepareDataForExport(descs, vals, firstBuffer, secondBuffer);
 				return actualWriting();
 			}
-			
-			/**
-			 * @param firstBuffer
-			 * @param secondBuffer
-			 * @return
-			 */
+
 			private IStatus actualWriting() {
 				BufferedWriter writer = null;
-				
+
 				if (!returnVal.endsWith(".csv")) {
 					returnVal += ".csv";
 				}
@@ -173,42 +190,31 @@ public class CsvExporter {
 				giveUserFeedback(false);
 				return Status.OK_STATUS;
 			}
-			
-			/**
-			 * 
-			 */
+
 			private void giveUserFeedback(final boolean error) {
-				UIJob errorJob = new UIJob(error ? "show errordialog" : "show dialog") {
-					
+				UIJob errorJob = new UIJob(error ? SHOW_ERRORDIALOG : SHOW_DIALOG) {
+
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						Shell shell = Display.getDefault().getActiveShell();
 						if (error) {
 							MessageDialog dial = new MessageDialog(shell, "Error", GUIDefaults.FEATURE_SYMBOL, "The file cannot be accessed!\nTry again?",
-									MessageDialog.ERROR, new String[] { "OK", "Cancel" }, 0);
+									MessageDialog.ERROR, new String[] { OK, CANCEL }, 0);
 							if (dial.open() == 0) {
 								actualWriting();
 							}
 						} else {
-							// MessageDialog.openInformation(shell, ,
-							// "Data was successfully exported.");
-							new MessageDialog(shell, "Success", GUIDefaults.FEATURE_SYMBOL, "Data was successfully exported", MessageDialog.INFORMATION,
-									new String[] { "OK" }, 0).open();
+							new MessageDialog(shell, SUCCESS, GUIDefaults.FEATURE_SYMBOL, DATA_WAS_SUCCESSFULLY_EXPORTED, MessageDialog.INFORMATION,
+									new String[] { OK }, 0).open();
 						}
-						
+
 						return Status.OK_STATUS;
 					}
 				};
 				errorJob.setPriority(INTERACTIVE);
 				errorJob.schedule();
 			}
-			
-			/**
-			 * @param descs
-			 * @param vals
-			 * @param buffer
-			 * @param secBuf
-			 */
+
 			private void prepareDataForExport(List<String> descs, List<String> vals, StringBuilder buffer, StringBuilder secBuf) {
 				for (String desc : descs) {
 					buffer.append(desc);
@@ -219,11 +225,7 @@ public class CsvExporter {
 					secBuf.append(SEPARATOR);
 				}
 			}
-			
-			/**
-			 * @param descs
-			 * @param vals
-			 */
+
 			private void getExportData(List<String> descs, List<String> vals) {
 				descs.add("Description: ");
 				vals.add("Value: ");

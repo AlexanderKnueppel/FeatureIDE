@@ -1,5 +1,7 @@
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.PROJECT_BASED__;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -8,7 +10,7 @@ import de.ovgu.featureide.core.fstmodel.FSTInvariant;
 import de.ovgu.featureide.core.fstmodel.FSTMethod;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
 import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.genericdatatypes.HashMapNode;
@@ -22,10 +24,10 @@ import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.gener
 public class StatisticsContractComplexityNew extends LazyParent {
 
 	private final FSTModel fstModel;
-	private final FeatureModel featModel;
+	private final IFeatureModel featModel;
 	private final String contractComposition;
 
-	public StatisticsContractComplexityNew(String description, FSTModel fstmodel, FeatureModel featmodel, String contractComposition) {
+	public StatisticsContractComplexityNew(String description, FSTModel fstmodel, IFeatureModel featmodel, String contractComposition) {
 		super(description, null);
 		this.fstModel = fstmodel;
 		this.featModel = featmodel;
@@ -136,10 +138,10 @@ public class StatisticsContractComplexityNew extends LazyParent {
 			} else {
 				for (String refinement : contractRefinementMap.keySet()) {
 					contractRefinementRealNameMap.put(
-							"Project based - " + contractComposition,
+							PROJECT_BASED__ + contractComposition,
 							contractRefinementMap.get(refinement)
-									+ (contractRefinementRealNameMap.containsKey("Project based - " + contractComposition) ? contractRefinementRealNameMap
-											.get("Project based - " + contractComposition) : 0));
+									+ (contractRefinementRealNameMap.containsKey(PROJECT_BASED__ + contractComposition) ? contractRefinementRealNameMap
+											.get(PROJECT_BASED__ + contractComposition) : 0));
 				}
 			}
 			//TODO new node?

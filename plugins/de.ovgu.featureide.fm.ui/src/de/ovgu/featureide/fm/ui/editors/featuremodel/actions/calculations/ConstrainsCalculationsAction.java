@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,21 +20,23 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions.calculations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CALCULATE_CONSTRAINT_ERRORS;
+
 import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.jface.action.Action;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
 /**
- * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke
  */
 public class ConstrainsCalculationsAction extends Action {
 
-	private final FeatureModel featureModel;
+	private final IFeatureModel featureModel;
 
-	public ConstrainsCalculationsAction(GraphicalViewerImpl viewer, FeatureModel featureModel) {
-		super("Calculate Constraint Errors");
+	public ConstrainsCalculationsAction(GraphicalViewerImpl viewer, IFeatureModel featureModel) {
+		super(CALCULATE_CONSTRAINT_ERRORS);
 		this.featureModel = featureModel;
 		setChecked(featureModel.getAnalyser().calculateConstraints);
 	}
@@ -45,6 +47,8 @@ public class ConstrainsCalculationsAction extends Action {
 			featureModel.getAnalyser().calculateConstraints = false;
 			featureModel.getAnalyser().calculateRedundantConstraints = false;
 			featureModel.getAnalyser().calculateTautologyConstraints = false;
+			featureModel.getAnalyser().calculateDeadConstraints = false;
+			featureModel.getAnalyser().calculateFOConstraints = false;
 		} else {
 			featureModel.getAnalyser().calculateConstraints = true;
 			featureModel.getAnalyser().calculateFeatures = true;

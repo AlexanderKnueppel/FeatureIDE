@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,10 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.ui;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CHOOSE_WHAT_TO_EXPORT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DOUBLE_CLICK_TO_SELECT_ALL_CHILDNODES;
+import static de.ovgu.featureide.fm.core.localization.StringTable.INIT_DIALOG___TREEVIEWER;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -55,8 +59,8 @@ import de.ovgu.featureide.ui.statistics.ui.helper.TreeLabelProvider;
  */
 public class CheckBoxTreeViewDialog extends Dialog {
 
-	private static final String TOOLTIP = "double-click to select all childnodes";
-	private static final String TITLE = "Choose what to export";
+	private static final String TOOLTIP = DOUBLE_CLICK_TO_SELECT_ALL_CHILDNODES;
+	private static final String TITLE = CHOOSE_WHAT_TO_EXPORT;
 	private Parent invisibleRoot;
 	private CheckboxTreeViewer viewer;
 	private TreeViewer oldTree;
@@ -117,7 +121,7 @@ public class CheckBoxTreeViewDialog extends Dialog {
 	 * 
 	 */
 	private void initViewer() {
-		UIJob job = new UIJob("init dialog - treeviewer") {
+		UIJob job = new UIJob(INIT_DIALOG___TREEVIEWER) {
 
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {

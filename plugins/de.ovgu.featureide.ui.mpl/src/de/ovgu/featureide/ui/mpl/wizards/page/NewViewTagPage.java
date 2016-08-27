@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,10 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.mpl.wizards.page;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.CREATES_A_MULTI_FEATUREIDE_PROJECT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.ENTER_A_VIEW_NAME;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SELECT_A_COMPOSER;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -45,8 +49,8 @@ public class NewViewTagPage extends AbstractWizardPage {
 	
 	public NewViewTagPage() {
 		super("");
-		setTitle("Select a composer");
-		setDescription("Creates a Multi-FeatureIDE project");
+		setTitle(SELECT_A_COMPOSER);
+		setDescription(CREATES_A_MULTI_FEATUREIDE_PROJECT);
 	}
 
 	public void createControl(Composite parent) {
@@ -100,7 +104,7 @@ public class NewViewTagPage extends AbstractWizardPage {
 	@Override
 	protected String checkPage() {
 		if (viewNameText.getText().isEmpty()) {
-			return "Enter a view name";
+			return ENTER_A_VIEW_NAME;
 		} else {
 			return null;
 		}

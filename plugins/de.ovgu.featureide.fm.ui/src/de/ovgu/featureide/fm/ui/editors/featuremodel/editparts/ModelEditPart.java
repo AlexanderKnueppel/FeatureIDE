@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -29,10 +29,12 @@ import org.eclipse.draw2d.FreeformLayer;
 import org.eclipse.draw2d.FreeformLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.MarginBorder;
+import org.eclipse.gef.EditPart;
 import org.eclipse.gef.EditPolicy;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.functional.Functional;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.Legend;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.policies.ModelLayoutEditPolicy;
 import de.ovgu.featureide.fm.ui.properties.FMPropertyManager;
@@ -44,6 +46,7 @@ import de.ovgu.featureide.fm.ui.properties.FMPropertyManager;
  * editpart.
  * 
  * @author Thomas Thuem
+ * @author Marcus Pinnecke
  */
 public class ModelEditPart extends AbstractGraphicalEditPart {
 
@@ -52,8 +55,8 @@ public class ModelEditPart extends AbstractGraphicalEditPart {
 		setModel(featureModel);
 	}
 
-	public FeatureModel getFeatureModel() {
-		return (FeatureModel) getModel();
+	public IGraphicalFeatureModel getFeatureModel() {
+		return (IGraphicalFeatureModel) getModel();
 	}
 
 	protected IFigure createFigure() {
@@ -70,12 +73,12 @@ public class ModelEditPart extends AbstractGraphicalEditPart {
 
 	@Override
 	protected List<Object> getModelChildren() {
-		final FeatureModel fm = getFeatureModel();
+		final IGraphicalFeatureModel fm = getFeatureModel();
 
 		final List<?> constraints = fm.getConstraints();
-		final Collection<?> features = fm.getFeatures();
+		final Collection<?> features = Functional.toList(fm.getFeatures());
 
-		final ArrayList<Object> list = new ArrayList<Object>(constraints.size() + features.size() + 1);
+		final ArrayList<Object> list = new ArrayList<>(constraints.size() + features.size() + 1);
 
 		list.addAll(features);
 		list.addAll(constraints);
@@ -87,4 +90,11 @@ public class ModelEditPart extends AbstractGraphicalEditPart {
 		return list;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.gef.editparts.AbstractEditPart#createChild(java.lang.Object)
+	 */
+	@Override
+	public EditPart createChild(Object model) {
+		return super.createChild(model);
+	}
 }

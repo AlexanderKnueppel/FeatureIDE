@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,10 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.featurecpp;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.EQUATION;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IS_NOT_INSTALLED_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.THE_REQUIRED_BUNDLE;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -51,7 +55,7 @@ import de.ovgu.featureide.fm.core.configuration.Configuration;
  */
 public class FeatureCppComposer extends ComposerExtensionClass {
 	private static final String PLUGIN_ID = "org.eclipse.cdt";
-	private static final String PLUGIN_WARNING = "The required bundle "+PLUGIN_ID+" is not installed.";
+	private static final String PLUGIN_WARNING = THE_REQUIRED_BUNDLE+PLUGIN_ID+IS_NOT_INSTALLED_;
 	public static final String COMPOSER_ID = "de.ovgu.featureide.composer.featurecpp";
 	public static final String C_NATURE = "org.eclipse.cdt.core.cnature";
 	public static final String CC_NATURE = "org.eclipse.cdt.core.ccnature";
@@ -230,7 +234,7 @@ public class FeatureCppComposer extends ComposerExtensionClass {
 
 	@Override
 	public String getConfigurationExtension() {
-		return "equation";
+		return EQUATION;
 	}
 
 	@Override
@@ -251,8 +255,8 @@ public class FeatureCppComposer extends ComposerExtensionClass {
 		
 		if (featureProject != null && featureProject.getProject() != null) {
 			featureCppModelBuilder.resetModel();
-			StringBuilder stringBuilder = new StringBuilder();
-			for (String name : featureProject.getFeatureModel().getConcreteFeatureNames()) {
+			final StringBuilder stringBuilder = new StringBuilder();
+			for (final String name : featureProject.getFeatureModel().getFeatureOrderList()) {
 				stringBuilder.append(name);
 				stringBuilder.append("\r\n");
 			}
@@ -309,4 +313,5 @@ public class FeatureCppComposer extends ComposerExtensionClass {
 	{
 		return false;
 	}
+
 }

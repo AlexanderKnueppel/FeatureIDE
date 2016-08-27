@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,12 +20,14 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.actions;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.EDIT_CONSTRAINT;
+
 import java.util.Iterator;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import de.ovgu.featureide.fm.core.Constraint;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IConstraint;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.ConstraintEditPart;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.ModelEditPart;
 
@@ -35,13 +37,14 @@ import de.ovgu.featureide.fm.ui.editors.featuremodel.editparts.ModelEditPart;
  * 
  * @author Christian Becker
  * @author Thomas Thuem
+ * @author Marcus Pinnecke (Feature Interface)
  */
 public class EditConstraintAction extends AbstractConstraintEditorAction {
 
-	private Constraint constraint;
+	private IConstraint constraint;
 
-	public EditConstraintAction(Object viewer, FeatureModel featuremodel) {
-		super(viewer, featuremodel, "Edit Constraint");
+	public EditConstraintAction(Object viewer, IFeatureModel featuremodel) {
+		super(viewer, featuremodel, EDIT_CONSTRAINT);
 		setEnabled(false);
 	}
 
@@ -60,11 +63,11 @@ public class EditConstraintAction extends AbstractConstraintEditorAction {
 		while (iter.hasNext()) {
 			Object editPart = iter.next();
 			if (editPart instanceof ConstraintEditPart) {
-				constraint = ((ConstraintEditPart) editPart).getConstraintModel();
+				constraint = ((ConstraintEditPart) editPart).getConstraintModel().getObject();
 				return true;
 			}
-			if (editPart instanceof Constraint) {
-				constraint = (Constraint) editPart;
+			if (editPart instanceof IConstraint) {
+				constraint = (IConstraint) editPart;
 				return true;
 			}
 		}

@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -25,17 +25,21 @@ import java.util.LinkedList;
 
 import javax.annotation.Nonnull;
 
+import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.color.FeatureColor;
+import de.ovgu.featureide.fm.core.color.FeatureColorManager;
 /**
  * Represents a feature at the {@link FSTModel}.<br>
  * Contains {@link FSTRole}s with their corresponding {@link FSTClass}.
  * 
  * @author Jens Meinicke
+ * @author Marcus Pinnecke (Feature Interface)
  */
 public class FSTFeature {
 
 	private final HashMap<String, FSTRole> roles = new HashMap<String, FSTRole>();
 	protected String name;
-	private int color = -1;
 	private final FSTModel model;
 	private static final int hashCodePrime = 37;
 	private boolean hasMethodContracts = false;
@@ -52,13 +56,14 @@ public class FSTFeature {
 		}
 		return false;
 	}
-
-	public void setColor(int color) {
-		this.color = color;
-	}
 	
 	public int getColor() {
-		return color;
+		if (model == null) {
+			return FeatureColor.NO_COLOR.getValue();
+		}
+		final IFeatureModel featureModel = model.getFeatureProject().getFeatureModel();
+		IFeature feature = featureModel.getFeature(name);
+		return FeatureColorManager.getColor(feature).getValue();
 	}
 
 	public String getName() {

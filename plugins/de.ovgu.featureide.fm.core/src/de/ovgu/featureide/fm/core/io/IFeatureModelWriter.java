@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -22,12 +22,13 @@ package de.ovgu.featureide.fm.core.io;
 
 import java.io.File;
 
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
 /**
  * Writes a feature model to a file or string.
  * 
  * @author Thomas Thuem
+ * @author Marcus Pinnecke (Feature Interface)
  */
 public interface IFeatureModelWriter {
 
@@ -36,23 +37,15 @@ public interface IFeatureModelWriter {
 	 * 
 	 * @return the model to write
 	 */
-	public FeatureModel getFeatureModel();
+	public IFeatureModel getFeatureModel();
 	
 	/**
 	 * Sets the feature model to be saved in a textual representation.
 	 * 
 	 * @param featureModel the model to write
 	 */
-	public void setFeatureModel(FeatureModel featureModel);
+	public void setFeatureModel(IFeatureModel featureModel);
 
-	/**
-	 * Saves a feature model to a file.
-	 * 
-	 * @param file
-	 * @throws CoreException
-	 */
-//	public abstract void writeToFile(IFile file) throws CoreException;
-	
 	/**
 	 * Saves a feature model to a file.
 	 * 

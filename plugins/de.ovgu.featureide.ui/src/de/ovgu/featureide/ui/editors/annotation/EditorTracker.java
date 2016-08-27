@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -77,21 +77,21 @@ public class EditorTracker {
 
 	private IPartListener2 partListener = new IPartListener2() {
 		public void partOpened(IWorkbenchPartReference partref) {
-			//System.out.println("opened "+partref.getTitle());
+			//System.out.println(OPENED+partref.getTitle());
 			
 		}
 
 		public void partActivated(IWorkbenchPartReference partref) {
-		//	System.out.println("activated "  +partref.getTitle());
+		//	System.out.println(ACTIVATED  +partref.getTitle());
 			annotateEditor(partref);
 		}
 
 		public void partBroughtToTop(IWorkbenchPartReference partref) {
-		//	System.out.println("toTop "  +partref.getTitle());
+		//	System.out.println(TOTOP  +partref.getTitle());
 		}
 
 		public void partVisible(IWorkbenchPartReference partref) {
-			//System.out.println("visible "  +partref.getTitle());
+			//System.out.println(VISIBLE  +partref.getTitle());
 			try {
 				if (annotatedPartrefSet.contains(partref)) {
 					updateEditor(partref);

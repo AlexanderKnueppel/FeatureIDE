@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,8 @@
  */
 package de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.PROJECT_BASED__;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -28,7 +30,7 @@ import de.ovgu.featureide.core.fstmodel.FSTInvariant;
 import de.ovgu.featureide.core.fstmodel.FSTMethod;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
 import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.genericdatatypes.HashMapNode;
@@ -42,10 +44,10 @@ import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.gener
 public class StatisticsContractComplexity extends LazyParent {
 	
 	private final FSTModel fstModel;
-	private final FeatureModel featModel;
+	private final IFeatureModel featModel;
 	private final String contractComposition;
 
-	public StatisticsContractComplexity(String description, FSTModel fstmodel, FeatureModel featmodel, String contractComposition) {
+	public StatisticsContractComplexity(String description, FSTModel fstmodel, IFeatureModel featmodel, String contractComposition) {
 		super(description, null);
 		this.fstModel = fstmodel;
 		this.featModel = featmodel;
@@ -144,11 +146,11 @@ public class StatisticsContractComplexity extends LazyParent {
 					contractRefinementRealNameMap.put(REFINEMENT_COMPOSING_MECHANISM_MAPPING.get(refinement.trim()), contractRefinementMap.get(refinement));
 				}
 			} else {
-				// contractRefinementRealNameMap.put("Project based - " +
+				// contractRefinementRealNameMap.put(PROJECT_BASED__ +
 				// contractComposition, contractRefinementMap.get(""));
 				for (String refinement : contractRefinementMap.keySet()) {
-					contractRefinementRealNameMap.put("Project based - " + contractComposition, contractRefinementMap.get(refinement)
-							+ (contractRefinementRealNameMap.containsKey("Project based - " + contractComposition) ? contractRefinementRealNameMap.get("Project based - " + contractComposition) : 0));
+					contractRefinementRealNameMap.put(PROJECT_BASED__ + contractComposition, contractRefinementMap.get(refinement)
+							+ (contractRefinementRealNameMap.containsKey(PROJECT_BASED__ + contractComposition) ? contractRefinementRealNameMap.get(PROJECT_BASED__ + contractComposition) : 0));
 				}
 			}
 			addChild(new HashMapNode(METHOD_CONTRACT_REFINEMENT, null, contractRefinementRealNameMap));

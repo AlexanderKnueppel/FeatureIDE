@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.migration.impl;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.FUNCTIONALITY_NOT_YET_IMPLEMENTED;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -45,7 +47,7 @@ public class VariantsToFeatureHouseSPLMigrator extends DefaultSPLMigrator {
 		if (withGui)
 			initWizard(projectSelection);
 		else
-			throw new IllegalArgumentException("Functionality not yet implemented");
+			throw new IllegalArgumentException(FUNCTIONALITY_NOT_YET_IMPLEMENTED);
 
 	}
 

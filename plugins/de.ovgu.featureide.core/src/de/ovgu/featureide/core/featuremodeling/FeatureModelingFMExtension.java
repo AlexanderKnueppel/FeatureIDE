@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.core.featuremodeling;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEED_AN_ORDER_COMMA__AS_THERE_IS_NO_SOURCE_CODE_TO_COMPOSE_;
 
 import org.eclipse.core.resources.IProject;
 
@@ -42,7 +44,7 @@ public class FeatureModelingFMExtension extends FMComposerExtension {
 	
 	private static String ORDER_PAGE_MESSAGE = 
 			"FeatureIDE projects for modelling purpose only do not\n" +
-			"need an order, as there is no source code to compose.";
+			NEED_AN_ORDER_COMMA__AS_THERE_IS_NO_SOURCE_CODE_TO_COMPOSE_;
 	
 	@Override
 	public String getOrderPageMessage() {

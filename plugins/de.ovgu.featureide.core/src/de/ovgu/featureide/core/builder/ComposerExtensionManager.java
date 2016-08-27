@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,13 +20,17 @@
  */
 package de.ovgu.featureide.core.builder;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.IS_NOT_AVAILABLE_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.THE_REQUIRED_COMPOSER;
+
 import java.util.List;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 
 import de.ovgu.featureide.core.CorePlugin;
-import de.ovgu.featureide.core.ExtensionPointManager;
 import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.fm.core.EclipseExtensionLoader;
+import de.ovgu.featureide.fm.core.ExtensionManager;
 
 /**
  * Manages the FeatureIDE extensions to compose features.
@@ -35,27 +39,27 @@ import de.ovgu.featureide.core.IFeatureProject;
  * @author Stefan Krueger
  * @author Sebastian Krieter
  */
-public class ComposerExtensionManager extends ExtensionPointManager<IComposerExtension> {
+public class ComposerExtensionManager extends ExtensionManager<IComposerExtension> {
 
 	private static ComposerExtensionManager instance = new ComposerExtensionManager();
 
-	ComposerExtensionManager() {
-		super(CorePlugin.PLUGIN_ID, IComposerExtension.extensionPointID);
+	private ComposerExtensionManager() {
+		setExtensionLoaderInternal(new EclipseExtensionLoader<IComposerExtension>(CorePlugin.PLUGIN_ID, IComposerExtension.extensionPointID, IComposerExtension.extensionID, IComposerExtension.class) {
+			@Override
+			protected IComposerExtension parseExtension(IConfigurationElement configurationElement) {
+				if (!IComposerExtension.extensionID.equals(configurationElement.getName()))
+					return null;
+				return new ComposerExtensionProxy(configurationElement);
+			}
+		});
 	}
 
 	public static ComposerExtensionManager getInstance() {
 		return instance;
 	}
 
-	@Override
-	protected IComposerExtension parseExtension(IConfigurationElement configurationElement) {
-		if (!IComposerExtension.extensionID.equals(configurationElement.getName()))
-			return null;
-		return new ComposerExtensionProxy(configurationElement);
-	}
-
 	public List<IComposerExtension> getComposers() {
-		return getProviders();
+		return getExtensions();
 	}
 
 	/**
@@ -79,8 +83,8 @@ public class ComposerExtensionManager extends ExtensionPointManager<IComposerExt
 				return tool;
 			}
 		}
-		CorePlugin.getDefault().logWarning("The required composer " + composerID + " is not available.");
+		CorePlugin.getDefault().logWarning(THE_REQUIRED_COMPOSER + composerID + IS_NOT_AVAILABLE_);
 		return null;
 	}
-	
+
 }

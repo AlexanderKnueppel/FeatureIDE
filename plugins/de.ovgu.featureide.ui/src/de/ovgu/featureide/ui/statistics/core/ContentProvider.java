@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,10 @@
  */
 package de.ovgu.featureide.ui.statistics.core;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.PROJECT_NAME;
+import static de.ovgu.featureide.fm.core.localization.StringTable.REFRESH_STATISTICS_VIEW;
+import static de.ovgu.featureide.fm.core.localization.StringTable.STATISTICS_OF_THE_FEATURE_MODEL;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -34,10 +38,9 @@ import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.builder.IComposerExtensionClass;
 import de.ovgu.featureide.core.fstmodel.FSTModel;
-import de.ovgu.featureide.fm.core.FeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.ui.statistics.core.composite.LazyParent;
 import de.ovgu.featureide.ui.statistics.core.composite.Parent;
-import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.AtomicParentNode;
 import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.ConfigParentNode;
 import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.DirectivesNode;
 import de.ovgu.featureide.ui.statistics.core.composite.lazyimplementations.StatisticsContractComplexityNew;
@@ -148,7 +151,7 @@ public class ContentProvider implements ITreeContentProvider, StatisticsIds {
 	private synchronized void addNodes() {
 		IComposerExtensionClass composer = project.getComposer();
 		FSTModel fstModel = getFSTModel(composer);
-		FeatureModel featModel = project.getFeatureModel();
+		IFeatureModel featModel = project.getFeatureModel();
 		JobDoneListener.getInstance().init(viewer);
 
 		godfather = new Parent("GODFATHER", null);
@@ -160,7 +163,6 @@ public class ContentProvider implements ITreeContentProvider, StatisticsIds {
 		Parent featureModelStatistics = new Parent(STATISTICS_OF_THE_FEATURE_MODEL);
 		featureModelStatistics.addChild(new StatisticsFeatureComplexity(NUMBER_OF_FEATURE, featModel));
 		featureModelStatistics.addChild(new ConfigParentNode(VALID_CONFIGURATIONS, featModel));
-		featureModelStatistics.addChild(new AtomicParentNode(ATOMIC_SETS, featModel));
 		godfather.addChild(featureModelStatistics);
 
 		if (composer.getGenerationMechanism() == IComposerExtensionClass.Mechanism.FEATURE_ORIENTED_PROGRAMMING) {
@@ -197,7 +199,7 @@ public class ContentProvider implements ITreeContentProvider, StatisticsIds {
 	 * priority.
 	 */
 	protected void refresh() {
-		UIJob job_setColor = new UIJob("Refresh statistics view") {
+		UIJob job_setColor = new UIJob(REFRESH_STATISTICS_VIEW) {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				if (!viewer.getControl().isDisposed()) {

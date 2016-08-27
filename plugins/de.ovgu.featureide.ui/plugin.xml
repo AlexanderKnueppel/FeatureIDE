@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-	<extension-point id="de.ovgu.featureide.ui.views.outline" name="Outline" schema="schema/de.ovgu.featureide.ui.views.outline.exsd"/>     
-
+	<extension-point id="de.ovgu.featureide.ui.views.outline" name="Outline" schema="schema/de.ovgu.featureide.ui.views.outline.exsd"/>
 	<extension
 			point="org.eclipse.ui.newWizards">
 		<wizard
@@ -174,23 +173,24 @@
 	<extension
 			point="org.eclipse.ui.editors.markerAnnotationSpecification">
 		<specification
-				annotationImageProvider="de.ovgu.featureide.ui.editors.annotation.ColorAnnotationImageProvider"
-				annotationType="de.ovgu.featureide.ui.editors.annotations.image"
-				colorPreferenceKey="colorAnnotationImage_color"
-				colorPreferenceValue="0,0,0"
-				contributesToHeader="false"
-				highlightPreferenceKey="colorAnnotationImage_highlight"
-				highlightPreferenceValue="false"
-				includeOnPreferencePage="false"
-				label="ColorAnnotationImage"
-				overviewRulerPreferenceKey="colorAnnotationImage_overviewRuler"
-				overviewRulerPreferenceValue="false"
-				textPreferenceKey="colorAnnotationImage_text"
-				textPreferenceValue="false"
-				textStylePreferenceKey="colorAnnotationImage_textStyle"
-				textStylePreferenceValue="NONE"
-				verticalRulerPreferenceKey="colorAnnotationImage_verticalRuler"
-				verticalRulerPreferenceValue="true">
+        annotationImageProvider="de.ovgu.featureide.ui.editors.annotation.ColorAnnotationImageProvider"
+        annotationType="de.ovgu.featureide.ui.editors.annotations.image"
+        colorPreferenceKey="colorAnnotationImage_color"
+        colorPreferenceValue="0,0,0"
+        contributesToHeader="false"
+        highlightPreferenceKey="colorAnnotationImage_highlight"
+        highlightPreferenceValue="false"
+        includeOnPreferencePage="false"
+        label="ColorAnnotationImage"
+        overviewRulerPreferenceKey="colorAnnotationImage_overviewRuler"
+        overviewRulerPreferenceValue="false"
+        presentationLayer="0"
+        textPreferenceKey="colorAnnotationImage_text"
+        textPreferenceValue="false"
+        textStylePreferenceKey="colorAnnotationImage_textStyle"
+        textStylePreferenceValue="NONE"
+        verticalRulerPreferenceKey="colorAnnotationImage_verticalRuler"
+        verticalRulerPreferenceValue="true">
 		</specification>
 		<specification
 				annotationImageProvider="de.ovgu.featureide.ui.editors.annotation.ColorAnnotationImageProvider"
@@ -203,10 +203,10 @@
 				includeOnPreferencePage="false"
 				label="ColorAnnotation_Red"
 				overviewRulerPreferenceKey="colorAnnotationRed_overviewRuler"
-				overviewRulerPreferenceValue="true"
+				overviewRulerPreferenceValue="false"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationRed_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationRed_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationRed_verticalRuler"
@@ -606,7 +606,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationRed_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationRed_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationRed_verticalRuler"
@@ -626,7 +626,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationOrange_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationOrange_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationOrange_verticalRuler"
@@ -646,7 +646,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationYellow_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationYellow_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationYellow_verticalRuler"
@@ -666,7 +666,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationDarkGreen_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationDarkGreen_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationDarkGreen_verticalRuler"
@@ -686,7 +686,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationLightGreen_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationLightGreen_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationLightGreen_verticalRuler"
@@ -706,7 +706,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationCyan_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationCyan_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationCyan_verticalRuler"
@@ -726,7 +726,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationLightGrey_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationLightGrey_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationLightGrey_verticalRuler"
@@ -746,7 +746,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationBlue_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationBlue_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationBlue_verticalRuler"
@@ -766,7 +766,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationMargenta_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationMargenta_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationMargenta_verticalRuler"
@@ -786,7 +786,7 @@
 				overviewRulerPreferenceValue="true"
 				presentationLayer="0"
 				textPreferenceKey="colorAnnotationPink_text"
-				textPreferenceValue="true"
+				textPreferenceValue="false"
 				textStylePreferenceKey="colorAnnotationPink_textStyle"
 				textStylePreferenceValue="NONE"
 				verticalRulerPreferenceKey="colorAnnotationPink_verticalRuler"
@@ -984,7 +984,7 @@
 	<extension
 			point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
 			id="ContextViewCompletion"
-			name="ContextViewCompletion">
+			name="Context-View Completion">
 		<javaCompletionProposalComputer
 				activate="false"
 				categoryID="org.eclipse.jdt.ui.ContextViewCompletion"
@@ -995,6 +995,22 @@
 		</javaCompletionProposalComputer>
 		<proposalCategory
 				id="ContextViewCompletion"
+				name="tes"
+				icon="icons/featureide.gif"/>
+	</extension>
+	<extension
+			point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+			id="FeatureCompletion"
+			name="Feature Completion">
+		<javaCompletionProposalComputer
+				activate="false"
+				categoryID="org.eclipse.jdt.ui.ContextViewCompletion"
+				categoryId="de.ovgu.featureide.ui.AnnoCompletion"
+				class="de.ovgu.featureide.ui.editors.AnnoCompletion">
+			<partition type="__java_singleline_comment"/>
+		</javaCompletionProposalComputer>
+		<proposalCategory
+				id="FeatureCompletion"
 				name="tes"
 				icon="icons/featureide.gif"/>
 	</extension>
@@ -1097,6 +1113,20 @@
 				</visibleWhen>
 			</command>
 			<command
+					commandId="de.ovgu.featureide.ui.commands.buildFeatureGraph"
+					icon="icons/FeatureIconSmall.ico"
+					id="de.ovgu.featureide.fm.ui.actions.buildFeatureGraph"
+					label="Build Feature Graph"
+					tooltip="Builds a graph with all non-core features and computes the transitive hull."
+					style="push">
+				<visibleWhen
+						checkEnabled="false">
+					<reference
+							definitionId="de.ovgu.featureide.ui.expressions.onlyProjects">
+					</reference>
+				</visibleWhen>
+			</command>
+			<command
 					commandId="de.ovgu.featureide.ui.commands.setConfiguration"
 					icon="icons/currentconfiguration.gif"
 					id="de.ovgu.featureide.fm.ui.actions.setConfiguration"
@@ -1110,6 +1140,16 @@
 					</reference>
 				</visibleWhen>
 			</command>
+   <dynamic
+         class="de.ovgu.featureide.ui.actions.DynamicProfileMenu"
+         id="de.ovgu.featureide.ui.ProfileSchemeMenu">
+      <visibleWhen
+            checkEnabled="false">
+         <reference
+               definitionId="de.ovgu.featureide.ui.expressions.onlyProjects">
+         </reference>
+      </visibleWhen>
+   </dynamic>
 		</menuContribution>
 
 		<menuContribution
@@ -1119,46 +1159,49 @@
 					icon="icons/FeatureIconSmall.ico"
 					id="de.ovgu.featureide.fm.ui.menus.popupMenuNoFP"
 					label="FeatureIDE">
-				<visibleWhen
-						checkEnabled="false">
-					<with
-							variable="activeMenuSelection">
-						<iterate ifEmpty="false"
-								operator="or">
-							<test
-									args="de.ovgu.featureide.core.featureProjectNature"
-									property="de.ovgu.featureide.fm.ui.properties.nature"
-									value="false">
-							</test>
-						</iterate>
-					</with>
-				</visibleWhen>
-				<command
-						commandId="de.ovgu.featureide.ui.commands.Conversion"
-						icon="icons/FeatureIconSmall.ico"
-						id="de.ovgu.featureide.fm.ui.actions.addFeatureIDENature"
-						label="Add FeatureIDE Nature"
-						style="push">
-					<visibleWhen
-							checkEnabled="false">
-						<reference
-								definitionId="de.ovgu.featureide.ui.expressions.onlyProjects">
-						</reference>
-					</visibleWhen>
-				</command>
 			</menu>
 		</menuContribution>
 		<menuContribution
 				allPopups="false"
 				locationURI="popup:#CompilationUnitEditorContext?after=additions">
 			<command
-					commandId="de.ovgu.featureide.ui.commands.enableHighlighting"
-					icon="icons/FeatureIconSmall.ico"
-					id="de.ovgu.featureide.fm.ui.actions.enableHighlighting"
-					label="Enable Editor Highlighting"
-					style="toggle">
+         commandId="de.ovgu.featureide.ui.commands.enableHighlighting"
+         icon="icons/FeatureColorIcon.gif"
+         id="de.ovgu.featureide.fm.ui.actions.enableHighlighting"
+         label="Enable Editor Highlighting"
+         style="toggle">
 			</command>
 		</menuContribution>
+  <menuContribution
+        allPopups="false"
+        locationURI="popup:org.eclipse.ui.projectConfigure">
+     <command
+           commandId="de.ovgu.featureide.ui.commands.Conversion"
+           icon="icons/FeatureIconSmall.ico"
+           id="de.ovgu.featureide.fm.ui.actions.addFeatureIDENature"
+           label="Convert to FeatureIDE Project..."
+           style="push">
+        <visibleWhen
+              checkEnabled="false">
+           <and>
+              <reference
+                    definitionId="de.ovgu.featureide.ui.expressions.onlyProjects">
+              </reference>
+              <with
+                      variable="activeMenuSelection">
+                <iterate ifEmpty="false"
+                            operator="or">
+                      <test
+                                  args="de.ovgu.featureide.core.featureProjectNature"
+                                  property="de.ovgu.featureide.fm.ui.properties.nature"
+                                  value="false">
+                      </test>
+                </iterate>
+          </with>
+           </and>
+        </visibleWhen>
+     </command>
+  </menuContribution>
 	</extension>
 	<extension
 			point="org.eclipse.ui.commands">
@@ -1184,6 +1227,10 @@
 				name="Product Generator">
 		</command>
 		<command
+				id="de.ovgu.featureide.ui.commands.buildFeatureGraph"
+				name="Build Feature Graph">
+		</command>
+		<command
 				id="de.ovgu.featureide.ui.mpl.commands.javadoc.context"
 				name="Create context documentation (Javadoc)">
 		</command>
@@ -1203,6 +1250,10 @@
 				id="de.ovgu.featureide.ui.mpl.commands.javadoc.statistic"
 				name="Create documentation statistics">
 		</command>
+  <command
+        id="de.ovgu.featureide.fm.ui.colorscheme"
+        name="Colorscheme">
+  </command>
 	</extension>
 	<extension
 			point="org.eclipse.ui.handlers">
@@ -1217,6 +1268,10 @@
 		<handler
 				class="de.ovgu.featureide.ui.handlers.BuildProductsHandler"
 				commandId="de.ovgu.featureide.ui.commands.productGenerator">
+		</handler>
+		<handler
+				class="de.ovgu.featureide.ui.handlers.BuildFeatureGraphHandler"
+				commandId="de.ovgu.featureide.ui.commands.buildFeatureGraph">
 		</handler>
 	  <handler
 	        class="de.ovgu.featureide.ui.handlers.VariantDocumentationHandler"
@@ -1290,4 +1345,80 @@
 				type="java.lang.Object">
 		</propertyTester>
 	</extension>
+	<extension point="org.eclipse.debug.ui.launchShortcuts">
+	    <shortcut
+           class="de.ovgu.featureide.ui.actions.generator.IntegrationTestLaunchShortcut"
+           description="Runs JUnit test cases on a product with and a product without the feature (if possible)."
+           icon="icons/FeatureIconSmall.ico"
+           id="de.ovgu.javaAppletShortcut"
+           label="Run as JUnit Integration Test"
+           modes="run">
+            <contextualLaunch>
+				  <enablement>
+				    <with variable="selection">
+				     <count value="1"/>
+				      <iterate operator="and">
+				             <instanceof
+				                   value="org.eclipse.core.resources.IFolder">
+				             </instanceof>
+				             <test
+				                   property="de.ovgu.featureide.ui.properties.integration">
+				             </test>
+             				<test
+									args="de.ovgu.featureide.core.featureProjectNature"
+									property="de.ovgu.featureide.fm.ui.properties.nature"
+									value="true">
+							</test>
+				      </iterate>
+				     </with>
+				  </enablement>
+			  </contextualLaunch>
+	    </shortcut>
+	</extension>
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+		<propertyTester
+				class="de.ovgu.featureide.ui.properties.IntegrationTester"
+				id="de.ovgu.featureide.ui.properties.integrationtester"
+				namespace="de.ovgu.featureide.ui.properties"
+				properties="integration"
+				type="org.eclipse.core.resources.IFolder">
+		</propertyTester>
+	</extension>
+ <extension
+       point="org.eclipse.ui.navigator.viewer">
+    <viewerContentBinding
+          viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+       <includes>
+          <contentExtension
+                pattern="de.ovgu.featureide.ui.contentID">
+          </contentExtension>
+       </includes>
+    </viewerContentBinding>
+ </extension>
+ <extension
+       point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+          contentProvider="de.ovgu.featureide.ui.projectExplorer.NullContentProvider"
+          icon="icons/FeatureIconSmall.ico"
+          id="de.ovgu.featureide.ui.contentID"
+          labelProvider="de.ovgu.featureide.ui.projectExplorer.ProjectExplorerLabelProvider"
+          name="FeatureIDEProjectExplorer"
+          priority="highest">
+       <triggerPoints>
+          <or>
+             <instanceof
+                   value="org.eclipse.core.resources.IFile">
+             </instanceof>
+             <instanceof
+                   value="org.eclipse.core.resources.IFolder">
+             </instanceof>
+             <instanceof
+                   value="java.lang.Object">
+             </instanceof>
+          </or>
+       </triggerPoints>
+    </navigatorContent>
+ </extension>
+	
+	
 </plugin>

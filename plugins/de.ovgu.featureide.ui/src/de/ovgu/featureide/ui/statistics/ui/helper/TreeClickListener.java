@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.statistics.ui.helper;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.RESORT_NODE;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -93,7 +95,7 @@ public class TreeClickListener implements IDoubleClickListener {
 				sortNode.setSortByValue(!(selected instanceof ClassNodeParent || selected instanceof FieldNodeParent || selected instanceof MethodNodeParent || sortNode
 						.isSortByValue()));
 
-				final UIJob job = new UIJob("resort node") {
+				final UIJob job = new UIJob(RESORT_NODE) {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						view.refresh(sortNode);

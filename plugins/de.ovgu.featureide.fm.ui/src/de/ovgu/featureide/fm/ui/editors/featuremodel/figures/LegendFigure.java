@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -20,6 +20,10 @@
  */
 package de.ovgu.featureide.fm.ui.editors.featuremodel.figures;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.CONSTRAINT_MAKES_THE_MODEL_VOID_;
+
+import java.util.List;
+
 import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.GridLayout;
 import org.eclipse.draw2d.Label;
@@ -31,11 +35,14 @@ import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Color;
 
-import de.ovgu.featureide.fm.core.ExtendedFeatureModel;
-import de.ovgu.featureide.fm.core.FeatureModel;
 import de.ovgu.featureide.fm.core.FeatureModelAnalyzer;
-import de.ovgu.featureide.fm.core.FeatureModelAnalyzer.Attribute;
+import de.ovgu.featureide.fm.core.base.FeatureUtils;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.base.IFeatureModelStructure;
+import de.ovgu.featureide.fm.core.base.impl.ExtendedFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.FeatureUIHelper;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalConstraint;
+import de.ovgu.featureide.fm.ui.editors.IGraphicalFeatureModel;
 import de.ovgu.featureide.fm.ui.editors.featuremodel.GUIDefaults;
 import de.ovgu.featureide.fm.ui.properties.FMPropertyManager;
 import de.ovgu.featureide.fm.ui.properties.language.ILanguage;
@@ -46,6 +53,7 @@ import de.ovgu.featureide.fm.ui.properties.language.ILanguage;
  * @author Fabian Benduhn
  * @author Florian Proksch
  * @author Stefan Krueger
+ * @author Marcus Pinnecke
  */
 public class LegendFigure extends Figure implements GUIDefaults {
 
@@ -94,7 +102,9 @@ public class LegendFigure extends Figure implements GUIDefaults {
 	private static final String REDUNDANT_TOOLTIP = "Redundant constraint:\n\n This constraint does not change the product line.";
 	private static final String UNSATISFIABLE_CONST_TOOLTIP = "Unsatisfiable Constraint\n\nThis constraint cannot become true";
 	private static final String TAUTOLOGY_CONST_TOOLTIP = "Constraint is tautology\n\n This constraint cannot become false.";
-	private static final String MODEL_CONST_TOOLTIP = "Constraint makes the model void.";
+	private static final String MODEL_CONST_TOOLTIP = CONSTRAINT_MAKES_THE_MODEL_VOID_;
+	private static final String IMPLICIT_TOOLTIP = "Implicit constraint:\n\n This constraint is an implicit dependency of the feature model.";
+
 
 	private static final int ABSTRACT = 0;
 	private static final int CONCRETE = 1;
@@ -107,6 +117,8 @@ public class LegendFigure extends Figure implements GUIDefaults {
 	private static final int IMPORTED = 8;
 	private static final int INHERITED = 9;
 	private static final int INTERFACED = 10;
+	private static final int IMPLICIT = 11;
+
 
 	private static final XYLayout layout = new XYLayout();
 
@@ -131,31 +143,37 @@ public class LegendFigure extends Figure implements GUIDefaults {
 	private boolean imported = false;
 	private boolean inherited = false;
 	private boolean interfaced = false;
+	private boolean implicitConst = false; 
 
 	@Override
 	public boolean useLocalCoordinates() {
 		return true;
 	}
 
-	public LegendFigure(FeatureModel featureModel, Point pos) {
+	public LegendFigure(IGraphicalFeatureModel graphicalFeatureModel, Point pos) {
+		final IFeatureModel featureModel = graphicalFeatureModel.getFeatureModel();
 		final FeatureModelAnalyzer analyser = featureModel.getAnalyser();
 
-		mandatory = featureModel.hasMandatoryFeatures();
-		optional = featureModel.hasOptionalFeatures();
-		alternative = featureModel.hasAlternativeGroup();
-		or = featureModel.hasOrGroup();
-		_abstract = analyser.getAttributeFlag(Attribute.Abstract);
-		concrete = analyser.getAttributeFlag(Attribute.Concrete);
-		hidden = analyser.getAttributeFlag(Attribute.Hidden);
-		dead = analyser.getAttributeFlag(Attribute.Dead);
-		showHidden = featureModel.getLayout().showHiddenFeatures();
-		falseoptional = analyser.getAttributeFlag(Attribute.FalseOptional);
-		indetHidden = analyser.getAttributeFlag(Attribute.IndetHidden);
+		final IFeatureModelStructure fmStructure = featureModel.getStructure();
+		mandatory = fmStructure.hasMandatoryFeatures();
+		optional = fmStructure.hasOptionalFeatures();
+		alternative = fmStructure.hasAlternativeGroup();
+		or = fmStructure.hasOrGroup();
+		_abstract = fmStructure.hasAbstract();
+		concrete = fmStructure.hasConcrete();
+		hidden = fmStructure.hasHidden();
+		dead = fmStructure.hasDeadFeatures();
+		
+		showHidden = graphicalFeatureModel.getLayout().showHiddenFeatures();
+		falseoptional = fmStructure.hasFalseOptionalFeatures();
+		indetHidden = fmStructure.hasIndetHidden();
 
-		unsatisfiableConst = analyser.calculateConstraints && featureModel.hasUnsatisfiableConst();
-		tautologyConst = analyser.calculateTautologyConstraints && featureModel.hasTautologyConst();
-		voidModelConst = analyser.calculateConstraints && featureModel.hasVoidModelConst();
-		redundantConst = analyser.calculateRedundantConstraints && featureModel.hasRedundantConst();
+		unsatisfiableConst = analyser.calculateConstraints && FeatureUtils.hasUnsatisfiableConst(featureModel);
+		tautologyConst = analyser.calculateTautologyConstraints && FeatureUtils.hasTautologyConst(featureModel);
+		voidModelConst = analyser.calculateConstraints && FeatureUtils.hasVoidModelConst(featureModel);
+		redundantConst = analyser.calculateRedundantConstraints && FeatureUtils.hasRedundantConst(featureModel);
+		implicitConst = isImplicit(graphicalFeatureModel); 
+
 
 		if (featureModel instanceof ExtendedFeatureModel) {
 			ExtendedFeatureModel extendedFeatureModel = (ExtendedFeatureModel) featureModel;
@@ -170,8 +188,8 @@ public class LegendFigure extends Figure implements GUIDefaults {
 		setLayoutManager(layout);
 		setBorder(FMPropertyManager.getLegendBorder());
 		setLegendSize();
-		FeatureUIHelper.setLegendSize(featureModel, this.getSize());
-		FeatureUIHelper.setLegendFigure(featureModel, this);
+		FeatureUIHelper.setLegendSize(graphicalFeatureModel, this.getSize());
+		FeatureUIHelper.setLegendFigure(graphicalFeatureModel, this);
 		createRows();
 		setForegroundColor(FMPropertyManager.getLegendForgroundColor());
 		setBackgroundColor(FMPropertyManager.getLegendBackgroundColor());
@@ -248,6 +266,10 @@ public class LegendFigure extends Figure implements GUIDefaults {
 			height = height + ROW_HEIGHT;
 			setWidth(language.getRedundantConst());
 		}
+		if (implicitConst) {
+			height = height + ROW_HEIGHT;
+			setWidth(language.getRedundantConst());
+		}
 		this.setSize(width, height);
 	}
 
@@ -256,6 +278,16 @@ public class LegendFigure extends Figure implements GUIDefaults {
 		if (widthInPixels > width) {
 			width = widthInPixels;
 		}
+	}
+	
+	private boolean isImplicit(IGraphicalFeatureModel fm) {
+		List<IGraphicalConstraint> consts = fm.getConstraints();
+		for (IGraphicalConstraint c : consts) {
+			if (c.isImplicit()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void createRows() {
@@ -313,11 +345,20 @@ public class LegendFigure extends Figure implements GUIDefaults {
 		if (tautologyConst) {
 			createRowTautologyConst(row++);
 		}
+		if (implicitConst) {
+			createRowImplicitConst(row++);
+		}
 	}
 
 	private void createRowRedundantConst(int row) {
 		createSymbol(row, FALSE_OPT, false, REDUNDANT_TOOLTIP);
 		Label labelIndetHidden = createLabel(row, language.getRedundantConst(), FMPropertyManager.getFeatureForgroundColor(), REDUNDANT_TOOLTIP);
+		add(labelIndetHidden);
+	}
+	
+	private void createRowImplicitConst(int row) {
+		createSymbol(row, IMPLICIT, false, IMPLICIT_TOOLTIP);
+		Label labelIndetHidden = createLabel(row, language.getImplicitConst(), FMPropertyManager.getFeatureForgroundColor(), IMPLICIT_TOOLTIP);
 		add(labelIndetHidden);
 	}
 
@@ -508,13 +549,13 @@ public class LegendFigure extends Figure implements GUIDefaults {
 
 		PolylineConnection p = new PolylineConnection();
 		p.setForegroundColor(FMPropertyManager.getConnectionForgroundColor());
-		p.setSourceDecoration(new CircleDecoration(mandatory));
-
+		final CircleDecoration circleDecoration = new CircleDecoration(mandatory);
+		p.setSourceDecoration(circleDecoration);
 		Point source = new Point(MANDATORY_PADDING, ROW_HEIGHT * row - LIFT + SYMBOL_SIZE / 2);
-
 		Point target = new Point(MANDATORY_PADDING + SYMBOL_SIZE / 2, row * ROW_HEIGHT - LIFT);
 
 		p.setEndpoints(source, target);
+		p.setBounds(new Rectangle(getBounds()).shrink(-1, -1));
 		String toolTipText;
 		if (mandatory)
 			toolTipText = MANDATORY_TOOLTIP;
@@ -557,9 +598,14 @@ public class LegendFigure extends Figure implements GUIDefaults {
 		case (FALSE_OPT):
 			if (feature) {
 				rect.setBorder(FMPropertyManager.getConcreteFeatureBorder(false));
-			} else {
+			} 
+			else {
 				rect.setBorder(FMPropertyManager.getConstraintBorder(false));
 			}
+			rect.setBackgroundColor(FMPropertyManager.getWarningColor());
+			break;
+		case (IMPLICIT):
+			rect.setBorder(IMPLICIT_CONSTRAINT_BORDER);
 			rect.setBackgroundColor(FMPropertyManager.getWarningColor());
 			break;
 		case (IMPORTED):

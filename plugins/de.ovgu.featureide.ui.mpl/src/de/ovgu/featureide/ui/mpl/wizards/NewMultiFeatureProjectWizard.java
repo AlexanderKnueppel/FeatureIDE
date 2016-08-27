@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ui.mpl.wizards;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.NEW_MULTI_FEATURE_PROJECT;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -43,7 +45,7 @@ public class NewMultiFeatureProjectWizard extends Wizard implements IWorkbenchWi
 	
 	@Override
 	public void addPages() {
-		setWindowTitle("New Multi-Feature Project");
+		setWindowTitle(NEW_MULTI_FEATURE_PROJECT);
 		multiPage = new NewMultiFeatureProjectPage();
 		addPage(multiPage);
 		super.addPages();

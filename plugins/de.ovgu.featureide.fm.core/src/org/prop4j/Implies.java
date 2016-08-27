@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -27,19 +27,32 @@ import java.util.List;
  * true.
  * 
  * @author Thomas Thuem
+ * @author Marcus Pinnecke (Feature Interface)
  */
-public class Implies extends Node {
+public class Implies extends Node implements Cloneable {
 	
 	public Implies(Object leftChild, Object rightChild) {
 		setChildren(leftChild, rightChild);
 	}
-	
+
+	@Override
+	protected Node eliminateNonCNFOperators(Node[] newChildren) {
+		return new Or(new Not(newChildren[0]), newChildren[1]);
+	}
+
 	@Override
 	protected Node eliminate(List<Class<? extends Node>> list) {
 		super.eliminate(list);
 		if (list.contains(getClass()))
 			return new Or(new Not(children[0]), children[1]);
 		return this;
+	}
+	
+	@Override
+	public int hashCode() {
+		// TODO: This is equivalent not to implement hashCode() at all, and was added for legacy code reasons. 
+		// Please note: implementing "equals" without custom hashCode should be avoided
+		return super.hashCode();	
 	}
 	
 	@Override

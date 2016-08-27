@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,9 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.ui.properties.page;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.EXPORT;
+import static de.ovgu.featureide.fm.core.localization.StringTable.IMPORT;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -221,7 +224,7 @@ public class FMPropertyPage extends PropertyPage implements IFMPropertyPage, GUI
 
 		int widthHint = convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
 		Button importButton = new Button(buttonBar, SWT.PUSH);
-		importButton.setText("Import");
+		importButton.setText(IMPORT);
 		GridData data = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 		Point minButtonSize = importButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		data.widthHint = Math.max(widthHint, minButtonSize.x);
@@ -233,7 +236,7 @@ public class FMPropertyPage extends PropertyPage implements IFMPropertyPage, GUI
 		});
 
 		Button exportButton = new Button(buttonBar, SWT.PUSH);
-		exportButton.setText("Export");
+		exportButton.setText(EXPORT);
 		data = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 		minButtonSize = exportButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		data.widthHint = Math.max(widthHint, minButtonSize.x);
@@ -426,7 +429,7 @@ public class FMPropertyPage extends PropertyPage implements IFMPropertyPage, GUI
 	}
 
 	/**
-	 * Fills the List "languages" with all defines languages at the extension point
+	 * Fills the List LANGUAGES with all defines languages at the extension point
 	 * "de.ovgu.featureide.fm.core.language".
 	 */
 	private void getLanguageExtensions() {

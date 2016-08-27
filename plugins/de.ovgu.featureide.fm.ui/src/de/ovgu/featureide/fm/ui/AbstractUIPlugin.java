@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,11 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.fm.ui;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.IN_EDITOR;
+import static de.ovgu.featureide.fm.core.localization.StringTable.STARTING_FEATUREIDE_PLUG_IN_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.STOPPING_FEATUREIDE_PLUG_IN_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.UNABLE_TO_OPEN_FILE;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
@@ -52,7 +57,7 @@ abstract public class AbstractUIPlugin extends org.eclipse.ui.plugin.AbstractUIP
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		logInfo("Starting FeatureIDE plug-in '" + getID() + "'");
+		logInfo(STARTING_FEATUREIDE_PLUG_IN_ + getID() + "'");
 	}
 
 	/*
@@ -60,7 +65,7 @@ abstract public class AbstractUIPlugin extends org.eclipse.ui.plugin.AbstractUIP
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
-		logInfo("Stopping FeatureIDE plug-in '" + getID() + "'");
+		logInfo(STOPPING_FEATUREIDE_PLUG_IN_ + getID() + "'");
 		super.stop(context);
 	}
 
@@ -90,7 +95,7 @@ abstract public class AbstractUIPlugin extends org.eclipse.ui.plugin.AbstractUIP
 		try {
 			page.openEditor(editorInput, editorID);
 		} catch (PartInitException e) {
-			logError("Unable to open file " + file + " in editor " + editorID, e);
+			logError(UNABLE_TO_OPEN_FILE + file + IN_EDITOR + editorID, e);
 		}
 	}
 

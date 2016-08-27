@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -19,6 +19,8 @@
  * See http://featureide.cs.ovgu.de/ for further information.
  */
 package de.ovgu.featureide.ahead.wrapper;
+
+import static de.ovgu.featureide.fm.core.localization.StringTable.JAK;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,7 +105,7 @@ public class AheadBuildErrorEvent {
 		int javaLine = this.line;
 		
 		String javaName = javaFile.getName();
-		String jakName = javaName.substring(0, javaName.lastIndexOf('.')) + ".jak"; 
+		String jakName = javaName.substring(0, javaName.lastIndexOf('.')) + JAK; 
 		IFile composedJakFile = ((IFolder) javaFile.getParent()).getFile(jakName);
 
 		javaFile.refreshLocal(IResource.DEPTH_ZERO, null);
@@ -191,15 +193,7 @@ public class AheadBuildErrorEvent {
 		}
 		return line;
 	}
-	
-	/**
-	 * TODO description/rename
-	 * @param composedJakLine 
-	 * @param jakContent 
-	 * @return
-	 * @throws IOException 
-	 * @throws CoreException 
-	 */
+
 	public int setSourceLine(int composedJakLine, int line, String jakContent) {
 		int jakLine = composedJakLine - line + 1;
 		try {
@@ -252,7 +246,7 @@ public class AheadBuildErrorEvent {
 		if (newFile.exists())
 			return newFile;
 		
-//		AheadCorePlugin.getDefault().logWarning("Was not able to locate an error in the source jak file '" + filename + "'");
+//		AheadCorePlugin.getDefault().logWarning(WAS_NOT_ABLE_TO_LOCATE_AN_ERROR_IN_THE_SOURCE_JAK_FILE_ + filename + "'");
 		return null;
 	}
 

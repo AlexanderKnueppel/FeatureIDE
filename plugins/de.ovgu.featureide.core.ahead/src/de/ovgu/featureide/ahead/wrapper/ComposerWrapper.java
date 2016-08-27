@@ -1,5 +1,5 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
  * 
@@ -21,6 +21,11 @@
 package de.ovgu.featureide.ahead.wrapper;
 
 import static de.ovgu.featureide.ahead.wrapper.AheadBuildErrorType.COMPOSER_ERROR;
+import static de.ovgu.featureide.fm.core.localization.StringTable.DOES_NOT_EXIST;
+import static de.ovgu.featureide.fm.core.localization.StringTable.FILE_SKIPPED_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.NO_FEATURE_FOLDER_FOUND_IN_THE_JAK_FILE_PATH_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.SOURCE_PATH_NOT_CONTAINED_IN_THE_JAK_FILE_PATH_;
+import static de.ovgu.featureide.fm.core.localization.StringTable.UNEXPECTED_ERROR_WHILE_PARSING;
 import jampack.Jampack;
 
 import java.io.BufferedReader;
@@ -30,8 +35,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.TreeMap;
 
 import mixin.Mixin;
@@ -49,6 +54,7 @@ import de.ovgu.featureide.ahead.model.AbstractJakModelBuilder;
 import de.ovgu.featureide.ahead.model.JampackJakModelBuilder;
 import de.ovgu.featureide.ahead.model.MixinJakModelBuilder;
 import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.fm.core.base.FeatureUtils;
 
 /**
  * 
@@ -59,6 +65,7 @@ import de.ovgu.featureide.core.IFeatureProject;
  * 
  * @author Tom Brosch
  * @author Thomas Thuem
+ * @author Marcus Pinnecke (Feature Interface)
  * 
  */
 public class ComposerWrapper {
@@ -143,11 +150,10 @@ public class ComposerWrapper {
 			try {
 				if (featureFolder.exists())
 					featureFolder.accept(new FeatureVisitor(this));
-				else if (featureProject.getFeatureModel().getConcreteFeatureNames()
-						.contains(featureFolder.getName()))
+				else if (FeatureUtils.extractConcreteFeaturesAsStringList(featureProject.getFeatureModel()).contains(featureFolder.getName()))
 					featureProject.createBuilderMarker(featureProject
 							.getProject(), "Feature folder "
-							+ featureFolder.getName() + " does not exist", 0,
+							+ featureFolder.getName() + DOES_NOT_EXIST, 0,
 							IMarker.SEVERITY_WARNING);
 			} catch (CoreException e) {
 				AheadCorePlugin.getDefault().logError(e);
@@ -204,12 +210,12 @@ public class ComposerWrapper {
 					featureProject.getProject().getLocation().toFile());
 			list = reader2.featureOrderRead();
 		}*/
-		List<String> featureOrderList = featureProject.getFeatureModel().getFeatureOrderList();
+		Collection<String> featureOrderList = featureProject.getFeatureModel().getFeatureOrderList();
 		for (IFolder folder : featureFolders) {
 			allFeatureFolders.add(folder);
 		}
 		if (featureOrderList == null || featureOrderList.isEmpty()) {	
-			for (String feature : featureProject.getFeatureModel().getConcreteFeatureNames()) {
+			for (String feature : FeatureUtils.extractConcreteFeaturesAsStringList(featureProject.getFeatureModel())) {
 				IFolder folder = featureProject.getSourceFolder().getFolder(feature);
 				if (!allFeatureFolders.contains(folder)) {
 					allFeatureFolders.add(folder);
@@ -257,8 +263,8 @@ public class ComposerWrapper {
 		String jakFilePath = newJakFile.getRawLocation().toOSString();
 
 		if (!jakFilePath.startsWith(srcFolderPath)) {
-			AheadCorePlugin.getDefault().logWarning("Source path not contained in the Jak file path '"
-							+ jakFilePath + "'. File skipped.");
+			AheadCorePlugin.getDefault().logWarning(SOURCE_PATH_NOT_CONTAINED_IN_THE_JAK_FILE_PATH_
+							+ jakFilePath + FILE_SKIPPED_);
 			return;
 		}
 
@@ -269,8 +275,8 @@ public class ComposerWrapper {
 		int pos = jakFilePath.indexOf(java.io.File.separator);
 
 		if (pos < 0) {
-			AheadCorePlugin.getDefault().logWarning("No feature folder found in the Jak file path '"
-					+ jakFilePath + "'. File skipped.");
+			AheadCorePlugin.getDefault().logWarning(NO_FEATURE_FOLDER_FOUND_IN_THE_JAK_FILE_PATH_
+					+ jakFilePath + FILE_SKIPPED_);
 			return;
 		}
 		jakFilePath = jakFilePath.substring(pos + 1).replace("\\", "/");
@@ -354,7 +360,7 @@ public class ComposerWrapper {
 			} catch (Exception e) {
 				AheadCorePlugin.getDefault().logError(e);
 				handleErrorMessage(featureProject.getSourceFolder(),
-						"Unexpected error while parsing "
+						UNEXPECTED_ERROR_WHILE_PARSING
 								+ newJakIFile.getName(), 0);
 			}
 		}
@@ -400,7 +406,7 @@ public class ComposerWrapper {
 			} catch (Exception e) {
 				AheadCorePlugin.getDefault().logError(e);
 				handleErrorMessage(featureProject.getSourceFolder(),
-						"Unexpected error while parsing "
+						UNEXPECTED_ERROR_WHILE_PARSING
 								+ newJakIFile.getName(), 0);
 			}
 		}
