@@ -140,7 +140,7 @@ public class FeatureModelAnalyzer {
 
 	private IMonitor monitor = new NullMonitor();
 
-	private FeatureDependencies2 dependencies;
+	private FeatureDependencies dependencies;
 
 	/**
 	 * Returns the value calculated during the last call of
@@ -163,20 +163,21 @@ public class FeatureModelAnalyzer {
 	 * 
 	 * @return
 	 */
-	public FeatureDependencies2 getDependencies() {
+	public FeatureDependencies getDependencies() {
 		if (dependencies == null) {
-			dependencies = new FeatureDependencies2(fm);
+			dependencies = new FeatureDependencies(fm);
 		}
 		return dependencies;
 	}
-
+	
+	
 	/**
 	 * Calculates new dependencies.
 	 * 
 	 * @return
 	 */
 	public void setDependencies() {
-		dependencies = new FeatureDependencies2(fm);
+		dependencies = new FeatureDependencies(fm);
 	}
 
 	public boolean isValid() throws TimeoutException {
