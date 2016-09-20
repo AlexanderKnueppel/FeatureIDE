@@ -928,8 +928,7 @@ public class FeatureHouseComposer extends ComposerExtensionClass {
 	 */
 	private String[] getArguments(final String configPath, final String basePath, final String outputPath, String contract) {
 		return new String[] { CmdLineInterpreter.INPUT_OPTION_EQUATIONFILE, configPath, CmdLineInterpreter.INPUT_OPTION_BASE_DIRECTORY, basePath,
-				CmdLineInterpreter.INPUT_OPTION_OUTPUT_DIRECTORY, outputPath + "/", CmdLineInterpreter.INPUT_OPTION_CONTRACT_STYLE, contract };
-		//CmdLineInterpreter.INPUT_OPTION_NO_CONFIG_OUTPUT_DIR };
+				CmdLineInterpreter.INPUT_OPTION_OUTPUT_DIRECTORY, outputPath + "/", CmdLineInterpreter.INPUT_OPTION_CONTRACT_STYLE, contract, CmdLineInterpreter.INPUT_OPTION_NO_CONFIG_OUTPUT_DIR };
 	}
 
 	private String getContractParameter() {
