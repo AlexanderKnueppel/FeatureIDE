@@ -31,7 +31,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.service.prefs.BackingStoreException;
 
-import de.ovgu.featureide.fm.core.FMCorePlugin;
+import de.ovgu.featureide.fm.core.Logger;
 import de.ovgu.featureide.fm.core.io.FactoryWorkspaceFormat;
 import de.ovgu.featureide.fm.core.io.manager.FileHandler;
 
@@ -72,7 +72,7 @@ public final class EclipseFactoryWorkspaceProvider extends AFactoryWorkspaceProv
 			try {
 				preferences.flush();
 			} catch (BackingStoreException e) {
-				FMCorePlugin.getDefault().logError(e);
+				Logger.logError(e);
 			}
 			for (Entry<String, FactoryWorkspace> entry : projectMap.entrySet()) {
 				final IFile file = root.getProject(entry.getKey()).getFile(FACTORY_WORKSPACE_FILENAME + format.getSuffix());

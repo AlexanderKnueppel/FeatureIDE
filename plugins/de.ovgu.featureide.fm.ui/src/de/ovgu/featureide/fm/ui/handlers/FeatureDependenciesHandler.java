@@ -39,7 +39,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
-import de.ovgu.featureide.fm.core.FeatureDependencies;
+import de.ovgu.featureide.fm.core.FeatureDependencies2;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.io.UnsupportedModelException;
 import de.ovgu.featureide.fm.core.io.manager.FeatureModelManager;
@@ -59,7 +59,7 @@ public class FeatureDependenciesHandler extends AFileHandler {
 		final IFeatureModel mod = readModel(inputFile);
 		Job job = new Job(CALCULATING_FEATURE_DEPENDENCIES) {
 			protected IStatus run(IProgressMonitor monitor) {
-				final String text = new FeatureDependencies(mod).toStringWithLegend();
+				final String text = new FeatureDependencies2(mod).toStringWithLegend();
 				// UI access
 				final StringBuilder path = new StringBuilder();
 				Display.getDefault().syncExec(new Runnable() {

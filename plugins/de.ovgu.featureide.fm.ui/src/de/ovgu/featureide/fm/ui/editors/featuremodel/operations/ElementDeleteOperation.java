@@ -41,7 +41,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Shell;
 
-import de.ovgu.featureide.fm.core.FeatureDependencies;
+import de.ovgu.featureide.fm.core.FeatureDependencies2;
 import de.ovgu.featureide.fm.core.Features;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IConstraint;
@@ -155,7 +155,7 @@ public class ElementDeleteOperation extends MultiFeatureModelOperation implement
 				alreadyDeleted.add(feature);
 			} else {
 				// check for all equivalent features
-				FeatureDependencies featureDependencies = new FeatureDependencies(featureModel, false);
+				FeatureDependencies2 featureDependencies = new FeatureDependencies2(featureModel, false);
 				List<IFeature> equivalent = new LinkedList<IFeature>();
 				for (IFeature f2 : featureDependencies.getImpliedFeatures(feature)) {
 					if (featureDependencies.isAlways(f2, feature)) {

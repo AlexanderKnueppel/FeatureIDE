@@ -41,7 +41,7 @@ import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IConstr;
 
 import de.ovgu.featureide.fm.core.ConstraintAttribute;
-import de.ovgu.featureide.fm.core.FeatureDependencies;
+import de.ovgu.featureide.fm.core.FeatureDependencies2;
 import de.ovgu.featureide.fm.core.FeatureStatus;
 import de.ovgu.featureide.fm.core.Logger;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
@@ -625,7 +625,7 @@ public class FeatureModelAnalysis implements LongRunningMethod<HashMap<Object, O
 		 * - has a non-hidden Node in its atomic set defining its state or
 		 * - if a Node of its atomic set is determined by a constraint of the above form.
 		 */
-		FeatureDependencies featureDependencies = new FeatureDependencies(fm, false);
+		FeatureDependencies2 featureDependencies = new FeatureDependencies2(fm, false);
 		for (IFeature feature : hiddenFeatures) {
 			monitor.checkCancel();
 			if (!list.contains(feature)) {

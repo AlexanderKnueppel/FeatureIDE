@@ -140,7 +140,7 @@ public class FeatureModelAnalyzer {
 
 	private IMonitor monitor = new NullMonitor();
 
-	private FeatureDependencies dependencies;
+	private FeatureDependencies2 dependencies;
 
 	/**
 	 * Returns the value calculated during the last call of
@@ -163,9 +163,9 @@ public class FeatureModelAnalyzer {
 	 * 
 	 * @return
 	 */
-	public FeatureDependencies getDependencies() {
+	public FeatureDependencies2 getDependencies() {
 		if (dependencies == null) {
-			dependencies = new FeatureDependencies(fm);
+			dependencies = new FeatureDependencies2(fm);
 		}
 		return dependencies;
 	}
@@ -176,7 +176,7 @@ public class FeatureModelAnalyzer {
 	 * @return
 	 */
 	public void setDependencies() {
-		dependencies = new FeatureDependencies(fm);
+		dependencies = new FeatureDependencies2(fm);
 	}
 
 	public boolean isValid() throws TimeoutException {
@@ -661,7 +661,7 @@ public class FeatureModelAnalyzer {
 		 * - has a non-hidden Node in its atomic set defining its state or
 		 * - if a Node of its atomic set is determined by a constraint of the above form.
 		 */
-		FeatureDependencies featureDependencies = new FeatureDependencies(fm, false);
+		FeatureDependencies2 featureDependencies = new FeatureDependencies2(fm, false);
 		beginTask(fm.getConstraintCount() + hiddenFeatures.size());
 		for (IFeature feature : hiddenFeatures) {
 			if (canceled()) {

@@ -20,213 +20,39 @@
  */
 package de.ovgu.featureide.fm.core;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import org.prop4j.And;
-import org.prop4j.Implies;
-import org.prop4j.Literal;
-import org.prop4j.Node;
-import org.prop4j.Not;
-import org.prop4j.SatSolver;
-import org.sat4j.specs.TimeoutException;
-
+import de.ovgu.featureide.fm.core.base.FeatureUtilsLegacy;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
-import de.ovgu.featureide.fm.core.editing.AdvancedNodeCreator;
 
 /**
- * Calculates dependencies of features
+ * This class is a legacy class for Fuji to keep working.
  * 
- * @author Soenke Holthusen
- * @author Marcus Pinnecke (Feature Interface) * 
+ * @deprecated Use {@link FeatureDependencies2} instead.
+ * @author Sebastian Krieter
+ * @author Stefan Krueger
  */
-public class FeatureDependencies {
-    private static final String LEGEND_TEXT = "X ALWAYS Y := If X is selected then Y is selected in every valid configuration."
-	    + "\n"
-	    + "X MAYBE  Y := If X is selected then Y is selected in at least one but not all valid configurations. "
-	    + "\n"
-	    + "X NEVER  Y := If X is selected then Y cannot be selected in any valid configuration."
-	    + "\n";
+@Deprecated
+public class FeatureDependencies extends FeatureDependencies2 {
 
-    private IFeatureModel fm;
-    private Node rootNode;
-    
-    private Map<IFeature, Set<IFeature>> always = new HashMap<IFeature, Set<IFeature>>();
-    private Map<IFeature, Set<IFeature>> never = new HashMap<IFeature, Set<IFeature>>();
-    private Map<IFeature, Set<IFeature>> maybe = new HashMap<IFeature, Set<IFeature>>();
-
-    /**
-     * @param fm
-     */
-    public FeatureDependencies(IFeatureModel fm) {
-		this(fm, true);
-    }
-    
-    /**
-     * This constructor has the option to not calculate all dependencies automatically.
-     * @param fm The feature model
-     * @param calculateDependencies <code>true</code> if dependencies should be calculated
-     */
-    public FeatureDependencies(IFeatureModel fm, boolean calculateDependencies) {
-		this.fm = fm;
-		this.rootNode = createRootNode(fm);
-		if (calculateDependencies) {
-			calculateDependencies();
-		}
-    }
-
-    /**
-     * calculates feature dependencies
-     */
-    private void calculateDependencies() {
-		for (IFeature feature : fm.getFeatures()) {
-		    always.put(feature, new HashSet<IFeature>());
-		    never.put(feature, new HashSet<IFeature>());
-		    maybe.put(feature, new HashSet<IFeature>());
-	
-		    Node nodeSel = new And(rootNode, new Literal(feature.getName()));
-	
-		    for (IFeature current_feature : fm.getFeatures()) {
-				if (!current_feature.equals(feature)) {
-				    try {
-						if (nodeImpliesFeature(nodeSel, current_feature.getName(), true)) {
-						    always.get(feature).add(current_feature);
-						} else if (nodeImpliesFeature(nodeSel, current_feature.getName(), false)) {
-						    never.get(feature).add(current_feature);
-						} else {
-						    maybe.get(feature).add(current_feature);
-						}
-				    } catch (TimeoutException e) {
-				    	Logger.logError(e);
-				    }
-				}
-		    }
-		}
-    }
-    
-    
-    
-    /**
-     * Gets all implied features of the given feature
-     * @param feature
-     * @return all implied features
-     */
-    public Collection<IFeature> getImpliedFeatures(IFeature feature) {
-    	if (always.containsKey(feature)) {
-    		return always.get(feature);
-    	}
-    	always.put(feature, new HashSet<IFeature>());
-    	Node nodeSel = new And(rootNode, new Literal(feature.getName()));
-    	Collection<IFeature> impliedFeatures = always.get(feature);
-    	try {
-    		for (IFeature f : fm.getFeatures()) {
-    			if (!f.equals(feature)) {
-					if (nodeImpliesFeature(nodeSel, f.getName(), true)) {
-					    impliedFeatures.add(f);
-					}
-    			}
-    		}
-    	} catch (TimeoutException e) {
-			Logger.logError(e);
-		}
-    	return impliedFeatures;
-    }
-    
-    /**
-	 * @param A Feature
-	 * @param B Feature
-	 * @return <code>true</code> if A implies B
-	 */
-	public boolean isAlways(IFeature A, IFeature B) {
-		if (always.containsKey(A)) {
-			return always.get(A).contains(B);
-		}
-		Node nodeSel = new And(rootNode, new Literal(A.getName()));
-		try {
-			return nodeImpliesFeature(nodeSel, B.getName(), true);
-		} catch (TimeoutException e) {
-			Logger.logError(e);
-		}
-		return false;
+	public FeatureDependencies(IFeatureModel fm, boolean calculateDependencies) {
+		super(fm, calculateDependencies);
 	}
-    
-    /**
-     * creates the Node representation of the featureModel
-     * 
-     * @param fm
-     *            featureModel
-     * @return Node representing the featureModel
-     */
-    private  Node createRootNode(IFeatureModel fm) {
-		return AdvancedNodeCreator.createCNF(fm);
-    }
 
-    /**
-     * @param node
-     * @param s
-     * @param positive
-     *            if false, the feature is negated
-     * @return true if the given feature is selected in every valid
-     *         configuration for the featureModel represented by node
-     * @throws TimeoutException
-     */
-    private  boolean nodeImpliesFeature(Node node, String featureName, boolean positive) throws TimeoutException {
-    	Node nodeNeg = null;
-    	if (positive) { 
-    		nodeNeg = new Not((new Implies(node, new Literal(featureName))));
-    	} else {
-    		nodeNeg = new Not((new Implies(node, new Not(featureName))));
-    	}
-    	return !new SatSolver(nodeNeg, 2500).isSatisfiable();
-    }
-    
-    /**
-     * @param feature
-     * @return
-     */
-    public Set<IFeature> always(IFeature feature) {
-    	return always.get(feature);
-    }
-    
-    /**
-     * @param feature
-     * @return
-     */
-    public Set<IFeature> never(IFeature feature) {
-    	return never.get(feature);
-    }
-    
-    /**
-     * @param feature
-     * @return
-     */
-    public Set<IFeature> maybe(IFeature feature) {
-    	return maybe.get(feature);
-    }
-    
-    public String toString() {
-    	StringBuilder builder = new StringBuilder();
-		for (IFeature feature : fm.getFeatures()) {
-		    builder.append("\n");
-		    for (IFeature f : always.get(feature)) {
-				builder.append(feature.getName() + " ALWAYS " + f.getName() + "\n");
-		    }
-		    for (IFeature f : never.get(feature)) {
-				builder.append(feature.getName() + " NEVER " + f.getName() + "\n");
-		    }
-		    for (IFeature f : maybe.get(feature)) {
-				builder.append(feature.getName() + " MAYBE " + f.getName() + "\n");
-		    }
-		}
-		return builder.toString();
-    }
-    
-    public String toStringWithLegend(){
-    	return LEGEND_TEXT + toString();
-    }
+	public FeatureDependencies(IFeatureModel fm) {
+		super(fm);
+	}
 
+	public Set<IFeature> always(Feature feature) {
+		return always.get(FeatureUtilsLegacy.convert(feature));
+	}
+
+	public Set<IFeature> never(Feature feature) {
+		return never.get(FeatureUtilsLegacy.convert(feature));
+	}
+
+	public Set<IFeature> maybe(Feature feature) {
+		return maybe.get(FeatureUtilsLegacy.convert(feature));
+	}
 }
