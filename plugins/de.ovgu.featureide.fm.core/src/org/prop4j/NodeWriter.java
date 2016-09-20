@@ -21,6 +21,8 @@
 package org.prop4j;
 
 import static de.ovgu.featureide.fm.core.localization.StringTable.NO_SYMBOL;
+
+import de.ovgu.featureide.fm.core.editing.NodeCreator;
 /**
  * Converts a propositional node to a String object.
  * 
@@ -129,7 +131,14 @@ public class NodeWriter {
 	protected static String nodeToString(Node node, String[] symbols, boolean optionalBrackets, boolean addQuotationMarks, Class<? extends Node> parent, String prefix) {
 		if (node instanceof Literal) {
 			final Literal literal = (Literal) node;
-			final String literalName = literal.var.toString();
+			final String literalName;
+			if (literal.var == NodeCreator.varTrue) {
+				literalName = "true";
+			} else if (literal.var == NodeCreator.varFalse) {
+				literalName = "false";
+			} else {
+				literalName = literal.var.toString();
+			}
 			return (literal.positive ? "" : symbols[0]) + 
 					prefix +
 					(addQuotationMarks && literalName.contains(" ") ? "\""  + literalName + "\"": literalName);

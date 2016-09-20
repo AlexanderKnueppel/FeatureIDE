@@ -28,41 +28,42 @@ package org.prop4j;
  */
 public class ExpressionLiteral extends Literal {
 
-	private final String expression;
 
 	public ExpressionLiteral(String expression) {
-		super(varExp);
-		this.expression = expression;
+		super(expression);
 	}
 
 	public String getExpression() {
-		return expression;
+		return (String) var;
 	}
 
 	@Override
 	public Literal clone() {
-		ExpressionLiteral clone = new ExpressionLiteral(expression);
+		ExpressionLiteral clone = new ExpressionLiteral((String)var);
 		clone.positive = this.positive;
 		return clone;
 	}
 
-	@Override
-	public boolean equals(Object node) {
-		return super.equals(node) && (node instanceof ExpressionLiteral) && ((ExpressionLiteral) node).expression.equals(expression);
-	}
+	//TODO: This could have been removed, but we forgot to do it before pushing.
+//	@Override
+//	public boolean equals(Object node) {
+//		return super.equals(node) && (node instanceof ExpressionLiteral) && ((ExpressionLiteral) node).expression.equals(expression);
+//	}
 
 	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
 		for (int i = 0; i < level; i++) {
 			nodeStringBuilder.append("\t");
 		}
-		nodeStringBuilder.append("EXP: " + expression);
+		nodeStringBuilder.append("EXP: ");
 
-		return super.toString(nodeStringBuilder, level);
+		return super.toString(nodeStringBuilder, 0);
 	}
 	
-	public final static Object varExp = new Object() {
-		public String toString() {
-			return "Exp";
-		};
-	};
+	
+	
+//	public final static Object varExp = new Object() {
+//		public String toString() {
+//			return "Exp";
+//		};
+//	};
 }

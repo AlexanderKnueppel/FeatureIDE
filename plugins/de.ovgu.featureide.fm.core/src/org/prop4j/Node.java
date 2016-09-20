@@ -519,7 +519,7 @@ public abstract class Node {
 	
 	@Override
 	public String toString() {
-		return NodeWriter.nodeToString(this);
+		return toString(new StringBuilder(), 0).toString();
 	}
 
 	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {

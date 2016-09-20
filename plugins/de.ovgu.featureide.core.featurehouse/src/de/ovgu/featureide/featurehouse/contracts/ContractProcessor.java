@@ -31,9 +31,7 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -62,10 +60,11 @@ import org.sat4j.specs.IConstr;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
 import de.ovgu.featureide.fm.core.Logger;
-import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.editing.NodeCreator;
+import de.ovgu.featureide.fm.core.functional.Functional;
+import de.ovgu.featureide.fm.core.functional.Functional.IFunction;
 
 /**
  * This class is responsible for processing contracts (of metaproducts with dispatcher methods).
@@ -89,16 +88,27 @@ public class ContractProcessor {
 	 * @throws IOException
 	 */
 	public static void performContractOptimizations(final IFeatureModel featureModel, final String outputPath) throws IOException {
-		final Set<String> deadFeaturesLower = new HashSet<String>();
+		final Set<Object> featureNamesLower = new HashSet<>(Functional.toList(Functional.map(featureModel.getFeatures(), new IFunction<IFeature, Object>() {
+			@Override
+			public String invoke(IFeature t) {
+				return t.getName().toLowerCase();
+			}
+		})));
+
+		final Set<Object> deadFeaturesLower = new HashSet<>();
 		for (IFeature deadFeature : featureModel.getAnalyser().getDeadFeatures()) {
 			deadFeaturesLower.add(deadFeature.getName().toLowerCase());
 		}
-		final Set<Object> coreFeatures = new HashSet<Object>();
+		final Set<Object> coreFeaturesLower = new HashSet<>();
 		for (IFeature coreFeature : featureModel.getAnalyser().getCoreFeatures()) {
-			coreFeatures.add(coreFeature.getName().toLowerCase());
+			coreFeaturesLower.add(coreFeature.getName().toLowerCase());
 		}
-		coreFeatures.add(NodeCreator.varTrue);
-
+		coreFeaturesLower.add(NodeCreator.varTrue);
+		deadFeaturesLower.add(NodeCreator.varFalse);
+		
+		featureNamesLower.add(NodeCreator.varTrue);
+		featureNamesLower.add(NodeCreator.varFalse);
+		
 		Path path = Paths.get(outputPath);
 		FileVisitor<Path> fileVisit = new FileVisitor<Path>() {
 
@@ -156,17 +166,16 @@ public class ContractProcessor {
 							ContractNodeReader conNodeReader = new ContractNodeReader();
 							Node oldClauseNode = conNodeReader.parseStringToNode(clauseContent);
 							Node clauseNode = oldClauseNode.toRegularCNF();
-							//							List<String> nodeNames = iterateOverClauseNode(clauseNode);
 							final List<Node> collectNodes;
 							final Node[] andChildren = clauseNode.getChildren();
 							collectNodes = new ArrayList<Node>(andChildren.length);
 							for (int j = 0; j < andChildren.length; j++) {
 								Node childOfAnd = andChildren[j];
-								handleLiteralsAndOrClauses(deadFeaturesLower, coreFeatures, clauseNode, collectNodes, childOfAnd);
+								handleLiteralsAndOrClauses(deadFeaturesLower, coreFeaturesLower, featureNamesLower, clauseNode, collectNodes, childOfAnd);
 							}
 
 							if (collectNodes.isEmpty()) {
-								clauseNode = new Literal("true");
+								clauseNode = new Literal(NodeCreator.varTrue);
 							} else {
 								clauseNode = new And(collectNodes.toArray(new Node[0]));
 								try {
@@ -182,7 +191,7 @@ public class ContractProcessor {
 											redundantSat.removeConstraint(constraint);
 											Node constraintNode = clauseNode.getChildren()[i];
 											if (!redundantSat.isImplied(constraintNode.getChildren())) {
-												redundantSat.addCNF(new Node[] {constraintNode});
+												redundantSat.addCNF(new Node[] { constraintNode });
 												newNodeChildren.add(constraintNode);
 											}
 										}
@@ -215,36 +224,36 @@ public class ContractProcessor {
 
 			}
 
-			private List<String> iterateOverClauseNode(Node clauseNode) {
-				List<String> nodeNames = new ArrayList<String>();
-				nodeNames.add(clauseNode.toString());
-				LinkedList<Node> nodes = new LinkedList<>();
-				nodes.add(clauseNode);
-				while (!nodes.isEmpty()) {
-					Node curNode = nodes.removeFirst();
-					final Node[] nodeChildren = curNode.getChildren();
-					if (nodeChildren != null) {
-						nodes.addAll(Arrays.asList(nodeChildren));
-					}
-					if (curNode instanceof ExpressionLiteral) {
-						nodeNames.add(((ExpressionLiteral) curNode).getExpression());
-					} else {
-						nodeNames.add(curNode.toString());
-					}
-				}
-				Collections.reverse(nodeNames);
-				return nodeNames;
-			}
+//			private List<String> iterateOverClauseNode(Node clauseNode) {
+//				List<String> nodeNames = new ArrayList<String>();
+//				nodeNames.add(clauseNode.toString());
+//				LinkedList<Node> nodes = new LinkedList<>();
+//				nodes.add(clauseNode);
+//				while (!nodes.isEmpty()) {
+//					Node curNode = nodes.removeFirst();
+//					final Node[] nodeChildren = curNode.getChildren();
+//					if (nodeChildren != null) {
+//						nodes.addAll(Arrays.asList(nodeChildren));
+//					}
+//					if (curNode instanceof ExpressionLiteral) {
+//						nodeNames.add(((ExpressionLiteral) curNode).getExpression());
+//					} else {
+//						nodeNames.add(curNode.toString());
+//					}
+//				}
+//				Collections.reverse(nodeNames);
+//				return nodeNames;
+//			}
 
-			private void handleLiteralsAndOrClauses(final Set<String> deadFeatures, final Set<Object> coreFeatures, Node clauseNode,
-					final List<Node> newAndNodes, Node childOfAnd) {
+			private void handleLiteralsAndOrClauses(final Set<Object> deadFeatures, final Set<Object> coreFeaturesLower, Set<Object> featureNamesLower,
+					Node clauseNode, final List<Node> newAndNodes, Node childOfAnd) {
 				boolean expTrue = false;
 				final List<Node> nodes;
 				final Node[] orChildren = childOfAnd.getChildren();
 				nodes = new ArrayList<Node>(orChildren.length);
 				for (int k = 0; k < orChildren.length; k++) {
 					Literal childOfOr = (Literal) orChildren[k];
-					if (handleLiteral(deadFeatures, coreFeatures, nodes, childOfOr)) {
+					if (handleLiteral(deadFeatures, coreFeaturesLower, featureNamesLower, nodes, childOfOr)) {
 						expTrue = true;
 					}
 				}
@@ -257,7 +266,8 @@ public class ContractProcessor {
 				}
 			}
 
-			private boolean handleLiteral(final Set<String> deadFeatures, final Set<Object> coreFeatures, final List<Node> nodes, Literal childOfOr) {
+			private boolean handleLiteral(final Set<Object> deadFeatures, final Set<Object> coreFeaturesLower, Set<Object> featureNamesLower,
+					final List<Node> nodes, Literal childOfOr) {
 				if (childOfOr instanceof ExpressionLiteral) {
 					if (childOfOr.positive) {
 						nodes.add(new Literal(((ExpressionLiteral) childOfOr).getExpression(), childOfOr.positive));
@@ -265,21 +275,23 @@ public class ContractProcessor {
 						nodes.add(new Literal("(" + ((ExpressionLiteral) childOfOr).getExpression() + ")", childOfOr.positive));
 					}
 				} else {
-					if (childOfOr.positive && FeatureUtils.getFeatureNames(featureModel).contains(childOfOr)) {
-						if (coreFeatures.contains(childOfOr.var)) {
-							nodes.clear();
-							return true;
-						}
-						if (!deadFeatures.contains(childOfOr.var)) {
-							nodes.add(new Literal("FM.FeatureModel." + childOfOr.var, true));
-						}
-					} else {
-						if (deadFeatures.contains(childOfOr.var)) {
-							nodes.clear();
-							return true;
-						}
-						if (!coreFeatures.contains(childOfOr.var)) {
-							nodes.add(new Literal("FM.FeatureModel." + childOfOr.var, false));
+					if (featureNamesLower.contains(childOfOr.var)) {
+						if (childOfOr.positive) {
+							if (coreFeaturesLower.contains(childOfOr.var)) {
+								nodes.clear();
+								return true;
+							}
+							if (!deadFeatures.contains(childOfOr.var)) {
+								nodes.add(new Literal("FM.FeatureModel." + childOfOr.var, true));
+							}
+						} else {
+							if (deadFeatures.contains(childOfOr.var)) {
+								nodes.clear();
+								return true;
+							}
+							if (!coreFeaturesLower.contains(childOfOr.var)) {
+								nodes.add(new Literal("FM.FeatureModel." + childOfOr.var, false));
+							}
 						}
 					}
 				}
@@ -374,12 +386,6 @@ public class ContractProcessor {
 					}
 					node.setChildren(newChildren);
 				}
-
-				//				try {
-				//					ModifiableSolver modsol = new ModifiableSolver(null);
-				//				} catch (ContradictionException ex) {
-				//					LOGGER.logError(ex);
-				//				}
 
 				final String nodeToString = NodeWriter.nodeToString(node, NodeWriter.javaSymbols, "FM.FeatureModel.");
 				final String featuremodel = "\n\t/*@ public invariant " + nodeToString + "; @*/\n";

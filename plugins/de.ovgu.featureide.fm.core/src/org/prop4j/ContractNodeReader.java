@@ -20,6 +20,8 @@
  */
 package org.prop4j;
 
+import java.util.regex.Pattern;
+
 import de.ovgu.featureide.fm.core.editing.NodeCreator;
 
 /**
@@ -45,7 +47,7 @@ public class ContractNodeReader {
 		constraint = constraint.trim();
 		Node curNode = null;
 		int op = -1;
-
+		
 		final StringBuilder expressionBuilder = new StringBuilder();
 		int bracketCounter = 0;
 		for (int i = constraint.length() - 1; i >= 0; i--) {
@@ -67,7 +69,7 @@ public class ContractNodeReader {
 			} else if (bracketCounter == 0) {
 				if (curChar == '!') {
 					if (constraint.length() > i + 1 && constraint.charAt(i + 1) != '=') {
-						final Not tmpNode = new Not(expressionBuilder.reverse().toString().trim());
+						final Not tmpNode = new Not(createLiteral(expressionBuilder.reverse().toString().trim()));
 						curNode = pickNodeType(curNode, op, tmpNode);
 						op = -1;
 						expressionBuilder.setLength(0);
@@ -111,19 +113,26 @@ public class ContractNodeReader {
 
 		if (expressionBuilder.length() > 0) {
 			if (curNode == null) {
-				if (constraint.startsWith(fmPrefix)) {
-					return new Literal(constraint.substring(fmPrefix.length()).trim());
-				} else if (constraint.equals("true")) {
-					return new Literal(NodeCreator.varTrue);
-				} else {
-					return new ExpressionLiteral(constraint);
-				}
+				return createLiteral(constraint);
 			} else {
 				curNode = createNode(curNode, op, expressionBuilder);
 			}
 		}
 
 		return curNode;
+	}
+
+	private Node createLiteral(String constraint) {
+		if (constraint.trim().startsWith(fmPrefix)) {
+//			do {
+//				constraint = constraint.substring(fmPrefix.length()).trim();
+//			} while (constraint.startsWith(fmPrefix));
+			return new Literal(constraint.substring(fmPrefix.length()).trim());
+		} else if (constraint.equals("true")) {
+			return new Literal(NodeCreator.varTrue);
+		} else {
+			return new ExpressionLiteral(constraint);
+		}
 	}
 
 	private Node createNode(Node curNode, int op, final StringBuilder expressionBuilder) {
