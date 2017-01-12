@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="de.ovgu.featureide.automating.command.step1"
+            name="Perform adaption for key">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="de.ovgu.featureide.core.featurehouse.proofautomation.handler.FeatureStubBuilderHandler"
+            commandId="de.ovgu.featureide.automating.command.step1">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:de.ovgu.featureide.fm.ui.menus.popupMenu?before=de.ovgu.featureide.fm.ui.menus.popupMenu.submenus">
+         <menu
+               icon="icons/FeatureIconSmall.ico"
+               id="de.ovgu.featureide.featurehouse.ui.submenu"
+               label="FeatureHouse">
+            <command
+                  commandId="de.ovgu.featureide.automating.command.step1"
+                  id="de.ovgu.featureide.automating.step1"
+                  label="Perform adaption for key"
+                  style="push">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+
+</plugin>
