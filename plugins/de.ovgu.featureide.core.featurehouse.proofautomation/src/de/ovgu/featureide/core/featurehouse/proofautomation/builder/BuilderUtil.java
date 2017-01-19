@@ -36,10 +36,12 @@ public class BuilderUtil {
 	 */
 	public static void rewriteFile(StringBuffer sbuffer,File f){
 		try {
-        	BufferedWriter bWriter = new BufferedWriter(new FileWriter(f));
+			FileWriter fw = new FileWriter(f);
+        	BufferedWriter bWriter = new BufferedWriter(fw);
             bWriter.write(sbuffer.toString());
             bWriter.flush();
             bWriter.close();
+            fw.close();
         } catch(IOException e) {
             e.printStackTrace();
         }

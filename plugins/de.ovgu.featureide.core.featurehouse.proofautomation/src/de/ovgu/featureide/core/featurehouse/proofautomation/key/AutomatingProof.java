@@ -22,14 +22,16 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
-import org.key_project.key4eclipse.starter.core.util.KeYUtil;
 import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
-
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.gui.macros.FinishAbstractProofMacro;
+import de.uka.ilkd.key.gui.notification.NotificationEventID;
+import de.uka.ilkd.key.gui.notification.NotificationTask;
 import de.uka.ilkd.key.proof.Proof;
 import de.uka.ilkd.key.proof.Proof.Statistics;
 import de.uka.ilkd.key.proof.init.ProofOblInput;
@@ -118,22 +120,49 @@ public class AutomatingProof {
 		    ProofUserManager.getInstance().addUser(proof, environment, this);
 		}
 		catch (Exception e) {
-			//ToDo
+			e.printStackTrace();
 		}
+		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+        choices.put("assertions", "assertions:safe");
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
+		Set<Thread>  threadsBefore;
+        if(reuseProof!=null){
+	        if(reuseProof.getName().endsWith(".proof")){
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+	        	MainWindow.getInstance().reuseProof(reuseProof);
+	        	waitForNewThread(threadsBefore);
+	        }
+	    }
         StrategyProperties sp = prepareSettingsForMetaproduct();
-        proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-        // Make sure that the new options are used
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplications);
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
         proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplications);
         proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
-        if(reuseProof!=null & reuseProof.getName().endsWith(".proof")){
-        	environment.getUi().reuseProof(reuseProof, environment.getMediator());
-        }
-        KeYUtil.runProofInAutomaticModeWithoutResultDialog(proof);
-        setStatistics();
+        MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        deactivateResultDialog();
+        threadsBefore =Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().startAutoMode();
+        waitForNewThread(threadsBefore);
+        //setStatistics();
 	 }
-	 
+	
+	private void waitForNewThread(Set<Thread> threadsBefore){
+		Set<Thread> mafter =Thread.getAllStackTraces().keySet();
+    	for(Thread t1: mafter){
+    		if(!threadsBefore.contains(t1)){
+    			while(t1.isAlive());
+    		}
+    	}
+	}
+	
+	private void deactivateResultDialog(){
+		NotificationTask task= null;
+		task = MainWindow.getInstance().getNotificationManager().getNotificationTask(NotificationEventID.PROOF_CLOSED);
+        if (task != null) {
+           MainWindow.getInstance().getNotificationManager().removeNotificationTask(task);
+        }
+	}
 	 
 	/**
 	 * Sets the needed statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
@@ -185,6 +214,8 @@ public class AutomatingProof {
 		sp.setProperty(StrategyProperties.QUANTIFIERS_OPTIONS_KEY, StrategyProperties.QUANTIFIERS_NON_SPLITTING_WITH_PROGS);
 		sp.setProperty(StrategyProperties.CLASS_AXIOM_OPTIONS_KEY, StrategyProperties.CLASS_AXIOM_FREE);
 		sp.setProperty(StrategyProperties.AUTO_INDUCTION_OPTIONS_KEY, StrategyProperties.AUTO_INDUCTION_OFF);
+		sp.remove(StrategyProperties.SYMBOLIC_EXECUTION_ALIAS_CHECK_OPTIONS_KEY);
+		sp.remove(StrategyProperties.SYMBOLIC_EXECUTION_NON_EXECUTION_BRANCH_HIDING_OPTIONS_KEY);
 		return sp;
 	}
 	
@@ -280,5 +311,9 @@ public class AutomatingProof {
 	 */
 	private void setAppliedRules(int appliedRules){
 		this.appliedRules = appliedRules;
+	}
+	
+	public Proof getProof(){
+		return proof;
 	}
 }

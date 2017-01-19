@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import de.ovgu.featureide.core.IFeatureProject;
+
 public class MetaProductBuilder {
 	
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
@@ -41,8 +43,8 @@ public class MetaProductBuilder {
 				File[] proofs = f.listFiles();
 				for(File proof: proofs){
 					String methodname = getMethodName(proof);
-					if(checkForOriginal(proof,f.getName())){
-						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+getClassName(proof)+".java");
+					File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+getClassName(proof)+".java");
+					if(checkForOriginal(proof,f.getName())||checkForMethod(methodname+"_"+f.getName(),metaproduct)){
 						replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
 						renameProof(proof,f,methodname+"_"+f.getName());
 					}
@@ -80,6 +82,7 @@ public class MetaProductBuilder {
 	            while(line != null) {
 	            	
 	            	if(line.contains(methodname+"_original_"+featurestub)){
+	            		bReader.close();
 	            		return true;
 	            	}
 	            	line = bReader.readLine();
@@ -89,6 +92,25 @@ public class MetaProductBuilder {
 	            return false;
 	        }
 		}
+		return false;
+	}
+	
+	public static boolean checkForMethod(String method, File metaproductClass){
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(metaproductClass));
+            String line = bReader.readLine();
+            while(line != null) {           	
+            	if(line.matches(".*"+method+"\\s*\\(.*\\)\\s*\\{.*")){
+            		System.out.println(line);
+            		bReader.close();
+            		return true;
+            	}
+            	line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            return false;
+        }
 		return false;
 	}
 	

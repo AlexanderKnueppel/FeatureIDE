@@ -21,6 +21,7 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.handler;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -44,9 +45,9 @@ public class FeatureStubBuilderHandler extends AFeatureProjectHandler{
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
 	@Override
 	protected void singleAction(IFeatureProject featureProject) {
-/*		FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
-		fsg.generate();
-		buildMetaproduct(featureProject);*/
+//		FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
+//		fsg.generate();
+//		buildMetaproduct(featureProject);
 		featureProject.buildRelevantChanges();
 		File transactionAccount = new File(getAbsoluteProjectPath(featureProject)+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
 		File lockAccount = new File(getAbsoluteProjectPath(featureProject)+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
@@ -57,6 +58,13 @@ public class FeatureStubBuilderHandler extends AFeatureProjectHandler{
 		a.performFeaturestubVerification(new File(getProjectPath(featureProject)));
 		FileManager.copySavedProofsToPartialProofs(new File(getProjectPath(featureProject)));
 		MetaProductBuilder.preparePartialProofs(new File(getProjectPath(featureProject)));
+		a.performMetaproductVerification(new File(getProjectPath(featureProject)));
+		try {
+			a.getBufferedWriter().close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public String getAbsoluteProjectPath(IFeatureProject featureProject){

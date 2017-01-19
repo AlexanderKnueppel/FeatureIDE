@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +34,9 @@ import java.util.Set;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.uka.ilkd.key.collection.ImmutableSet;
 import de.uka.ilkd.key.gui.ClassTree;
+import de.uka.ilkd.key.gui.MainWindow;
+import de.uka.ilkd.key.gui.actions.ExitMainAction;
+import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
 import de.uka.ilkd.key.java.declaration.InterfaceDeclaration;
@@ -50,6 +54,9 @@ public class AutomatingProject {
 	private File statistics;
 	private BufferedWriter bw;
 	
+	public BufferedWriter getBufferedWriter(){
+		return bw;
+	}
 	
 	public void performFeaturestubVerification(File projectDir){
 		FileManager.initFolders(projectDir);
@@ -70,24 +77,106 @@ public class AutomatingProject {
 					a.saveProof(saveFeatureStubPath);
 					addStatistics(a);
 					updateSum(a);
-					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
 		addSum();
-		try {
-			bw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		MainWindow.getInstance().dispose();
+		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
+		exit.exitMainWithoutInteraction();
+	}
+	
+	public void performMetaproductVerification(File projectDir){
+		List<File> featurestubs = getAllFeatureStubProofs(projectDir);
+		File java = getMetaproduct(projectDir);	
+		List<AutomatingProof> ap = loadInKeY(java);
+		String metaproductPath = projectDir+FILE_SEPERATOR+"Finished Proofs";
+		for(AutomatingProof a : ap){
+			try {
+				File reuse = getFeatureStubProof(a,featurestubs);
+				a.startMetaProductProof(reuse);
+				a.saveProof(metaproductPath);
+				ProofSettings ps = a.getProof().getSettings();
+				System.out.println("\\settings {\n\""+ps.settingsToString()+"\"\n}\n");
+
+				System.out.println(a.getProof().getSettings().getStrategySettings().getActiveStrategyProperties().toString());
+				addStatistics(a);
+				updateSum(a);			
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
+		MainWindow.getInstance().dispose();
+		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
+		exit.exitMainWithoutInteraction();
+	}
+	
+	private static File getMetaproduct(File projectDir){
+		File[] metaproduct = (new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"src")).listFiles();
+		for(File m :metaproduct){
+			if(m.getName().endsWith(".java")){
+				return m;
+			}
+		}
+		return null;
+	}
+	
+	private static File getFeatureStubProof(AutomatingProof ap, List<File> featureStubProofs){
+		List<File> fittingProofs = new LinkedList<File>();
+		for(File proof: featureStubProofs){
+			if(isProofForMethod(ap,proof)){
+				fittingProofs.add(proof);
+			}
+		}
+		File biggestFile= null;
+		for(File f: fittingProofs){
+			if(biggestFile == null || f.length()>biggestFile.length()){
+				biggestFile = f;
+			}
+		}
+		return biggestFile;
+	}
+	
+	private static boolean isProofForMethod(AutomatingProof ap, File proof){
+		String method = ap.getTargetName();
+		if(method.contains("inv")){
+			method = method.replaceAll("<inv>", "inv");
+		}
+		else{
+			method = method.replaceAll("\\(.*\\)", "");
+		}
+		String predictedName = ap.getTypeName()+"_"+method+".proof";
+		if(proof.getName().equals(predictedName)){
+				return true;
+		}
+		return false;
+	}
+	
+	private static List<File> getAllFeatureStubProofs(File projectDir){
+		File featurestub = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"Partial Proofs for Metaproduct");
+		File[] featurestubs = featurestub.listFiles();
+		List<File> proofs = new LinkedList<File>();
+		for(File f : featurestubs){
+			if(f.isDirectory()){
+				File[] fproof = f.listFiles();
+				for(File p : fproof){
+					if(p.getName().endsWith(".proof")){
+						proofs.add(p);
+					}
+				}
+			}
+		}
+		return proofs;
 	}
 	
 	public static List<AutomatingProof> loadInKeY(File location){
 		KeYEnvironment<?> environment;
 		environment = KeYEnvironment.loadInMainWindow(location, null, null, true);
+		HashMap<String,String> choices =  ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().getDefaultChoices();
+        choices.put("assertions", "assertions:safe");
+        ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().setDefaultChoices(choices);;
 		boolean skipLibraryClasses = true;
 		Set<KeYJavaType> kjts = environment.getJavaInfo().getAllKeYJavaTypes();
 		final Iterator<KeYJavaType> it = kjts.iterator();

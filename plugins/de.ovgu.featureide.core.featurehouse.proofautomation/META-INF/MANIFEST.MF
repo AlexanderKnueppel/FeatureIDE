@@ -7,8 +7,10 @@ Bundle-Activator: de.ovgu.featureide.core.featurehouse.proofautomation.automatin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: de.uka.ilkd.key.collection,
  de.uka.ilkd.key.gui,
+ de.uka.ilkd.key.gui.actions,
  de.uka.ilkd.key.gui.configuration,
  de.uka.ilkd.key.gui.macros,
+ de.uka.ilkd.key.gui.notification,
  de.uka.ilkd.key.java,
  de.uka.ilkd.key.java.abstraction,
  de.uka.ilkd.key.java.declaration,
