@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Automating
+Bundle-Name: Proof Automation
 Bundle-SymbolicName: de.ovgu.featureide.core.featurehouse.proofautomation;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: de.ovgu.featureide.core.featurehouse.proofautomation.automating.Activator
@@ -39,4 +39,19 @@ Require-Bundle: org.eclipse.ui,
  de.ovgu.featureide.core.featurehouse;bundle-version="3.1.0",
  de.ovgu.featureide.fm.core;bundle-version="3.1.0",
  de.ovgu.featureide.fm.ui;bundle-version="3.1.0",
- de.ovgu.featureide.ui;bundle-version="3.1.0"
+ de.ovgu.featureide.ui;bundle-version="3.1.0",
+ org.eclipse.jface
+Bundle-ClassPath: src/,
+ lib/poi-3.16-beta1/lib/commons-codec-1.10.jar,
+ lib/poi-3.16-beta1/lib/commons-collections4-4.1.jar,
+ lib/poi-3.16-beta1/lib/commons-logging-1.2.jar,
+ lib/poi-3.16-beta1/lib/junit-4.12.jar,
+ lib/poi-3.16-beta1/lib/log4j-1.2.17.jar,
+ lib/poi-3.16-beta1/ooxml-lib/curvesapi-1.04.jar,
+ lib/poi-3.16-beta1/ooxml-lib/xmlbeans-2.6.0.jar,
+ lib/poi-3.16-beta1/poi-3.16-beta1.jar,
+ lib/poi-3.16-beta1/poi-examples-3.16-beta1.jar,
+ lib/poi-3.16-beta1/poi-excelant-3.16-beta1.jar,
+ lib/poi-3.16-beta1/poi-ooxml-3.16-beta1.jar,
+ lib/poi-3.16-beta1/poi-ooxml-schemas-3.16-beta1.jar,
+ lib/poi-3.16-beta1/poi-scratchpad-3.16-beta1.jar

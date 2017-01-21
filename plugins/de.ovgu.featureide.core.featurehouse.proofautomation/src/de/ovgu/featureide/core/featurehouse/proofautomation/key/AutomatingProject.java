@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Evaluation;
 import de.uka.ilkd.key.collection.ImmutableSet;
 import de.uka.ilkd.key.gui.ClassTree;
 import de.uka.ilkd.key.gui.MainWindow;
@@ -45,23 +46,12 @@ import de.uka.ilkd.key.logic.op.IObserverFunction;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
 
-public class AutomatingProject {
+public class AutomatingProject{
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private int nodeSum=0;
-	private int branchesSum=0;
-	private int appliedRulesSum=0;
-	private long automodeTimeSum=0;
-	private File statistics;
-	private BufferedWriter bw;
-	
-	public BufferedWriter getBufferedWriter(){
-		return bw;
-	}
 	
 	public void performFeaturestubVerification(File projectDir){
 		FileManager.initFolders(projectDir);
 		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
-		createStatisticsFile(projectDir);
 		String currentFeatureStub;
 		String saveFeatureStubPath;
 		int featurestubIndex = 0;
@@ -75,14 +65,11 @@ public class AutomatingProject {
 				try {
 					a.startFeatureStubProof();
 					a.saveProof(saveFeatureStubPath);
-					addStatistics(a);
-					updateSum(a);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		addSum();
 		MainWindow.getInstance().dispose();
 		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
 		exit.exitMainWithoutInteraction();
@@ -101,9 +88,7 @@ public class AutomatingProject {
 				ProofSettings ps = a.getProof().getSettings();
 				System.out.println("\\settings {\n\""+ps.settingsToString()+"\"\n}\n");
 
-				System.out.println(a.getProof().getSettings().getStrategySettings().getActiveStrategyProperties().toString());
-				addStatistics(a);
-				updateSum(a);			
+				System.out.println(a.getProof().getSettings().getStrategySettings().getActiveStrategyProperties().toString());		
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -207,47 +192,9 @@ public class AutomatingProject {
         return proofs;
         
 	}
-	public void createStatisticsFile (File projectDir){
-		statistics = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"Statistics.txt");
-		try {
-			statistics.createNewFile();
-			bw = new BufferedWriter(new FileWriter(statistics));
-			bw.append("Verification of Project "+projectDir.getName()+ System.getProperty("line.separator"));
-			bw.append("Class\tMethod\tNodes\tBranches\tApplied Rules\tAutomode Time"+System.getProperty("line.separator"));
-			bw.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+
 	
-	public void addStatistics(AutomatingProof a){
-		try {
-			bw.append(a.getTypeName()+"\t"+a.getTargetName()+"\t"+a.getNodes()+
-					"\t"+a.getBranches()+"\t"+a.getAppliedRules()+"\t"+a.getTime()+System.getProperty("line.separator"));
-			bw.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+
 	
-	public void addSum(){
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(statistics));
-			bw.append("Summe\t\t"+nodeSum+
-					"\t"+branchesSum+"\t"+appliedRulesSum+"\t"+automodeTimeSum);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public void updateSum(AutomatingProof a){
-		nodeSum+=a.getNodes();
-		branchesSum+=a.getBranches();
-		appliedRulesSum+=a.getAppliedRules();
-		automodeTimeSum+=a.getTime();
-	}
 	
 }

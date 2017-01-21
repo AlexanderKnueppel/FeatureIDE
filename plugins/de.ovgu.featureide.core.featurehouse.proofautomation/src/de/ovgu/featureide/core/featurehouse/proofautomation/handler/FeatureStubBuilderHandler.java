@@ -59,12 +59,6 @@ public class FeatureStubBuilderHandler extends AFeatureProjectHandler{
 		FileManager.copySavedProofsToPartialProofs(new File(getProjectPath(featureProject)));
 		MetaProductBuilder.preparePartialProofs(new File(getProjectPath(featureProject)));
 		a.performMetaproductVerification(new File(getProjectPath(featureProject)));
-		try {
-			a.getBufferedWriter().close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	public String getAbsoluteProjectPath(IFeatureProject featureProject){

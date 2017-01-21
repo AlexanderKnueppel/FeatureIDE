@@ -33,5 +33,14 @@
          </menu>
       </menuContribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="de.ovgu.featureide.core.featurehouse.proofautomation.ui.ProofAutomationView"
+            id="de.ovgu.featureide.core.featurehouse.proofautomation.ui.ProofAutomationView"
+            name="ProofAutomation"
+            restorable="true">
+      </view>
+   </extension>
 
 </plugin>
