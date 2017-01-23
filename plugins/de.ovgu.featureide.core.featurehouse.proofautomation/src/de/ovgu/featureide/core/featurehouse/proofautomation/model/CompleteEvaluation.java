@@ -27,23 +27,32 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 
 /**
- * TODO description
+ * Represents a complete Evaluation 
  * 
  * @author Stefanie
  */
 public class CompleteEvaluation extends Evaluation{
-	List<EvaluationPhase> allPhases = new LinkedList<EvaluationPhase>();
+	
+	List<EvaluationPhase> allPhases = new LinkedList<EvaluationPhase>(); //contains all single Evaluation phases
 	
 	public List<EvaluationPhase> getAllPhases(){
 		return allPhases;
 	}
 	
+	/**
+	 * Constructor 
+	 * gets a directory which contains all evaluation phases and sets the statistics file and the Evaluation phase list
+	 * @param toEvaluate
+	 */
 	public CompleteEvaluation(File toEvaluate){
 		this.toEvaluate = toEvaluate;
-		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xls");
+		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 		setEvaluationPhases();
 	}
 
+	/**
+	 * Adds all subdirectories which contains a evaluation phase to the list 
+	 */
 	private void setEvaluationPhases(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
@@ -53,6 +62,11 @@ public class CompleteEvaluation extends Evaluation{
 		}
 	}
 	
+	/**
+	 * Returns true if the given file is a evaluation phase
+	 * @param f
+	 * @return
+	 */
 	private boolean isEvaluationPhase(File f){
 		File[] content = f.listFiles();
 		for(File c: content){
@@ -63,11 +77,21 @@ public class CompleteEvaluation extends Evaluation{
 		return false;
 	}
 	
+	/**
+	 * Creates an XLSX File with the result of the evaluation
+	 */
 	public void createXLS(){
 		ExcelManager.generateAllPhasesEvaluationXLS(this);;
 	}
 	
+	/**
+	 * Performs the complete Evaluation
+	 */
 	public void performEvaluation(){
-		System.out.println("This should perform the complete Evaluation!");
+		for(EvaluationPhase e: allPhases){
+			e.performEvaluation();
+			this.updateStatistics(e);
+		}
+		createXLS();
 	}
 }

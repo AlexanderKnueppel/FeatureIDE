@@ -25,34 +25,74 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 
 /**
- * TODO description
+ * This class represents a single Evaluation phase 
+ * (Phase 1 Fefalution, Phase 2 Metaproduct, Phase 3 Concrete Contracts, Phase 4 Method Inlining, Phase 5 Thuem et al.)
  * 
  * @author Stefanie
  */
 public class EvaluationPhase extends Evaluation{
-	private List<SingleProject> bankAccountVersions = new LinkedList<SingleProject>();
+	private List<SingleProject> bankAccountVersions = new LinkedList<SingleProject>(); //contains all BankAccount versions
 	
+	/**
+	 * Constructor
+	 * gets a directory of a single phase and sets the statistics file and the BankAccount list
+	 * @param f
+	 */
 	public EvaluationPhase(File f){
 		this.toEvaluate = f;
-		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-.xls");
+		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setBankAccountVersion();
+	}
+	
+	/**
+	 * Returns the phase number of the evaluation phase
+	 * @return int [1,5]
+	 */
+	public int getVersionNumber(){
+		String name = toEvaluate.getName();
+		if(name.contains("1")){
+			return 1;
+		}
+		else if(name.contains("2")){
+			return 2;
+		}
+		else if(name.contains("3")){
+			return 3;
+		}
+		else if(name.contains("4")){
+			return 4;
+		}
+		else if(name.contains("5")){
+			return 5;
+		}
+		return 0;
 	}
 	
 	public List<SingleProject> getBankAccountVersion(){
 		return bankAccountVersions;
 	}
 
+	/**
+	 * Adds all subdirectories to the BankAccount list, if they contain a BankAccountVersion
+	 */
 	private void setBankAccountVersion(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				bankAccountVersions.add(new SingleProject(f));
+				bankAccountVersions.add(new SingleProject(f,toEvaluate.getName()));
 			}
 		}
 	}
 	
+	/**
+	 * Returns true, if the given File is a BankAccount version
+	 * @param f
+	 * @return
+	 */
 	private boolean isVersion(File f){
 		if(f.getName().contains("BankAccount")){
 			return true;
@@ -62,12 +102,22 @@ public class EvaluationPhase extends Evaluation{
 		}
 	}
 	
+	/**
+	 * Creates an XLSX File with the result of the evaluation
+	 */
 	public void createXLS(){
 		ExcelManager.generateSinglePhaseEvaluationXLS(this);
 	}
 	
+	/**
+	 * Performs the Evaluation of one Phase
+	 */
 	public void performEvaluation(){
-		System.out.println("This should perform a single Evaluation Phase!");
+		for(SingleProject s : bankAccountVersions){
+			s.performEvaluation();
+			this.updateStatistics(s);
+		}
+		createXLS();
 	}
 	
 }

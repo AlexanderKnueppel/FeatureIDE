@@ -161,29 +161,36 @@ public class ExcelManager {
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
 	    Row phasefirstRow = total.createRow(0); 
-	    phasefirstRow.createCell(0).setCellValue(crHelper.createRichTextString("Class"));
-    	phasefirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Method"));
-    	phasefirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Proof Steps"));
-    	phasefirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Branches"));
-    	phasefirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Applied Rules"));
-    	phasefirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    phasefirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Class"));
+    	phasefirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Method"));
+    	phasefirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Proof Steps"));
+    	phasefirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Branches"));
+    	phasefirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Applied Rules"));
+    	phasefirstRow.createCell(6).setCellValue(crHelper.createRichTextString("Proof Time"));
 	    int rowcounter = 1;
 	    for(AutomatingProof a: s.getProofList()){
 	    	Row phaseRows = total.createRow(rowcounter);
-	    	phaseRows.createCell(0).setCellValue(crHelper.createRichTextString(a.getTypeName()));
-	    	phaseRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTargetName()));
-	    	phaseRows.createCell(2).setCellValue(a.getNodes());
-	    	phaseRows.createCell(3).setCellValue(a.getBranches());
-	    	phaseRows.createCell(4).setCellValue(a.getAppliedRules());
-	    	phaseRows.createCell(5).setCellValue(a.getTime());
+	    	phaseRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTypeName()));
+	    	phaseRows.createCell(2).setCellValue(crHelper.createRichTextString(a.getTargetName()));
+	    	phaseRows.createCell(3).setCellValue(a.getNodes());
+	    	phaseRows.createCell(4).setCellValue(a.getBranches());
+	    	phaseRows.createCell(5).setCellValue(a.getAppliedRules());
+	    	phaseRows.createCell(6).setCellValue(a.getTime());
 	    	rowcounter++;
 	    }
+	    Row lastRow = total.createRow(rowcounter);
+	    lastRow.createCell(0).setCellValue(crHelper.createRichTextString("Total"));
+    	lastRow.createCell(3).setCellValue(s.nodeSum);
+    	lastRow.createCell(4).setCellValue(s.branchesSum);
+    	lastRow.createCell(5).setCellValue(s.appliedRulesSum);
+    	lastRow.createCell(6).setCellValue(s.automodeTimeSum);
 	    total.autoSizeColumn(0);
 	    total.autoSizeColumn(1);
 	    total.autoSizeColumn(2);
 	    total.autoSizeColumn(3);
 	    total.autoSizeColumn(4);
 	    total.autoSizeColumn(5);
+	    total.autoSizeColumn(6);
 	    try {
 	    	FileOutputStream fOut = new FileOutputStream(s.statistics);
 			wb.write(fOut);

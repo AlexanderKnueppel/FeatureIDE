@@ -20,64 +20,86 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
-
 /**
- * TODO description
+ * This class represents a single project 
  * 
  * @author Stefanie
  */
 public class SingleProject extends Evaluation{
-	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>();
+	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>(); //contains all Automating proofs of this project
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private BufferedWriter bw;
+	private String evalName;
 	
-	public SingleProject(File f){
+	/**
+	 * Constructor
+	 * gets a directory of a BankAccount version and the current evaluation phase
+	 * and sets the statistic file
+	 * @param f
+	 */
+	public SingleProject(File f, String evalPhase){
 		this.toEvaluate = f;
+		this.evalName = evalPhase;
+		this.statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 	}
 	
 	public List<AutomatingProof> getProofList(){
 		return proofList;
 	}
 	
+	/**
+	 * Performs the evaluation of a single phase dependent on the current phase
+	 */
 	public void performEvaluation(){
-		System.out.println("This should perform a single Project Evaluation");
-//		FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
-//		fsg.generate();
-//		buildMetaproduct(featureProject);
-		File transactionAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
-		File lockAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
 		File metap = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+"Account.java");
-		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
 		BuilderUtil.removeBracketsOfVar(metap, "lock");
-		AutomatingProject a = new AutomatingProject();
-		a.performFeaturestubVerification(toEvaluate);
-		FileManager.copySavedProofsToPartialProofs(toEvaluate);
-		MetaProductBuilder.preparePartialProofs(toEvaluate);
-		a.performMetaproductVerification(toEvaluate);
+		BuilderUtil.removeBracketsOfVar(metap, "result");
+		AutomatingProject aproj = new AutomatingProject();
+		if(evalName.contains("VA 1")){
+			aproj.performVa1(toEvaluate);
+		}
+		else if(evalName.contains("VA 2")){
+			aproj.performVa2(toEvaluate);
+		}
+		else if(evalName.contains("VA 3")){
+			aproj.performVa3(toEvaluate);	
+		}
+		else if(evalName.contains("VA 4")){
+			aproj.performVa4(toEvaluate);
+		}
+		else if(evalName.contains("VA 5")){
+			aproj.performVa5(toEvaluate);
+		}
+		proofList = aproj.getProofList();
+		updateSum();
+		createXLS();
 	}
 	
-	public void updateSum(AutomatingProof a){
-		nodeSum+=a.getNodes();
-		branchesSum+=a.getBranches();
-		appliedRulesSum+=a.getAppliedRules();
-		automodeTimeSum+=a.getTime();
+	/**
+	 * Updates the Statistics 
+	 */
+	public void updateSum(){
+		for(AutomatingProof ap : proofList){
+			nodeSum+=ap.getNodes();
+			branchesSum+=ap.getBranches();
+			appliedRulesSum+=ap.getAppliedRules();
+			automodeTimeSum+=ap.getTime();
+		}
 	}
 	
+	/**
+	 * Creates an XLSX File with the result of the evaluation
+	 */
 	public void createXLS(){
 		ExcelManager.generateSingleProjectXLS(this);;
 	}
+	
 }

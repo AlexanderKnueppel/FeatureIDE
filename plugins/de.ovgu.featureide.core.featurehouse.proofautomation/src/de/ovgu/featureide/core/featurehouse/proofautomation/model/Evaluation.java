@@ -23,24 +23,48 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 import java.io.File;
 
 /**
- * TODO description
+ * Abstract class that contains shared functionality of CompleteEvaluation, EvaluationPhase and SingleProject
  * 
  * @author Stefanie
  */
 public abstract class Evaluation {
 	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	//Directory which should be evaluated
 	public File toEvaluate;
+	//File where the result of the evaluation is saved
 	public File statistics;
+	//Statistics used for Evaluation
 	public int nodeSum=0;
 	public int branchesSum=0;
 	public int appliedRulesSum=0;
 	public long automodeTimeSum=0;
 	
+	/**
+	 * Performs different Steps of the Evaluation
+	 */
 	public abstract void performEvaluation();
 	
+	/**
+	 * Creates an XLSX file with the statistics of the evaluation
+	 */
 	public abstract void createXLS();
 	
+	/**
+	 * Sets the statistics file
+	 * @param name
+	 */
 	public void setStatisticsFile(String name){
 		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+name);
+	}
+	
+	/**
+	 * Adds the sums of the sub evaluation ev to the current evaluation
+	 * @param ev
+	 */
+	public void updateStatistics(Evaluation ev){
+		this.nodeSum+=ev.nodeSum;
+		this.branchesSum+=ev.branchesSum;
+		this.appliedRulesSum+=ev.appliedRulesSum;
+		this.automodeTimeSum+=ev.automodeTimeSum;
 	}
 }

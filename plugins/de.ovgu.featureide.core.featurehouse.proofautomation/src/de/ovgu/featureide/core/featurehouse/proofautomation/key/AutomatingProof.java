@@ -47,7 +47,6 @@ import de.uka.ilkd.key.util.MiscTools;
  *
  */
 public class AutomatingProof {
-	private static final int maxRuleApplications = 100000;
 	private KeYEnvironment<?> environment;
 	private Contract contract;
 	private String typeName;
@@ -82,7 +81,7 @@ public class AutomatingProof {
 	 * and with the "Finish abstract proof part" macro
 	 * @throws Exception
 	 */
-	public void startFeatureStubProof() throws Exception{
+	public void startFeatureStubProof(int maxRuleApplication, StrategyProperties s) throws Exception{
 		try {
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 			Assert.isNotNull(input);
@@ -94,12 +93,12 @@ public class AutomatingProof {
 			 	//ToDo
 		}
 		// Set proof strategy options
-		StrategyProperties sp = prepareSettingsForFeatureStub();
+		StrategyProperties sp = s;
 		proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
 		// Make sure that the new options are used
-		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplications);
+		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-		proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplications);
+		proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
 		proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
 		//Apply Macro "Finish abstract proof part"
 		FinishAbstractProofMacro fapm = new FinishAbstractProofMacro();
@@ -111,7 +110,7 @@ public class AutomatingProof {
 	 * Starts a Proof for the Metaproduct Verification with reuseProof for reuse and prepared Settings
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
-	public void startMetaProductProof(File reuseProof){
+	public void startMetaProductProof(File reuseProof, StrategyProperties s, int maxRuleApplication){
 		try{
 		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 		    Assert.isNotNull(input);
@@ -133,7 +132,36 @@ public class AutomatingProof {
 	        	waitForNewThread(threadsBefore);
 	        }
 	    }
-        StrategyProperties sp = prepareSettingsForMetaproduct();
+        StrategyProperties sp = s;
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+        ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+        ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+        proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+        proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        deactivateResultDialog();
+        threadsBefore =Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().startAutoMode();
+        waitForNewThread(threadsBefore);
+        setStatistics();
+	 }
+	
+/*	public void startVA5Proof(){
+		try{
+		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
+		    Assert.isNotNull(input);
+		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
+		    Assert.isNotNull(proof);
+		    ProofUserManager.getInstance().addUser(proof, environment, this);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+        choices.put("assertions", "assertions:safe");
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
+		Set<Thread>  threadsBefore;
+        StrategyProperties sp = prepareSettingsForVA5();
         MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplications);
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
@@ -144,8 +172,8 @@ public class AutomatingProof {
         threadsBefore =Thread.getAllStackTraces().keySet();
         MainWindow.getInstance().getMediator().startAutoMode();
         waitForNewThread(threadsBefore);
-        //setStatistics();
-	 }
+        setStatistics();
+	 }*/
 	
 	private void waitForNewThread(Set<Thread> threadsBefore){
 		Set<Thread> mafter =Thread.getAllStackTraces().keySet();
@@ -173,50 +201,6 @@ public class AutomatingProof {
 		setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
 		setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
 		setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
-	}
-	
-	/**
-	 * Prepares the StrategyPropertys as used for FeatureStub Verification
-	 * @return The prepared StrategyProperties
-	 */
-	private StrategyProperties prepareSettingsForFeatureStub(){
-		StrategyProperties sp = proof.getSettings().getStrategySettings().getActiveStrategyProperties();
-		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_DEFAULT);
-		sp.setProperty(StrategyProperties.SPLITTING_OPTIONS_KEY, StrategyProperties.SPLITTING_DELAYED);
-		sp.setProperty(StrategyProperties.LOOP_OPTIONS_KEY, StrategyProperties.LOOP_INVARIANT);
-		sp.setProperty(StrategyProperties.BLOCK_OPTIONS_KEY, StrategyProperties.BLOCK_CONTRACT);
-		sp.setProperty(StrategyProperties.METHOD_OPTIONS_KEY, StrategyProperties.METHOD_CONTRACT);
-		sp.setProperty(StrategyProperties.DEP_OPTIONS_KEY, StrategyProperties.DEP_OFF);
-		sp.setProperty(StrategyProperties.QUERY_OPTIONS_KEY, StrategyProperties.QUERY_RESTRICTED);
-		sp.setProperty(StrategyProperties.QUERYAXIOM_OPTIONS_KEY, StrategyProperties.QUERYAXIOM_OFF);
-		sp.setProperty(StrategyProperties.NON_LIN_ARITH_OPTIONS_KEY, StrategyProperties.NON_LIN_ARITH_NONE);
-		sp.setProperty(StrategyProperties.QUANTIFIERS_OPTIONS_KEY, StrategyProperties.QUANTIFIERS_NON_SPLITTING_WITH_PROGS);
-		sp.setProperty(StrategyProperties.CLASS_AXIOM_OPTIONS_KEY, StrategyProperties.CLASS_AXIOM_DELAYED);
-		sp.setProperty(StrategyProperties.AUTO_INDUCTION_OPTIONS_KEY, StrategyProperties.AUTO_INDUCTION_OFF);
-		return sp;
-	}
-	
-	/**
-	 * Prepares the StrategyPropertys as used for Metaproduct Verification
-	 * @return The prepared StrategyProperties
-	 */	
-	private StrategyProperties prepareSettingsForMetaproduct(){
-		StrategyProperties sp = proof.getSettings().getStrategySettings().getActiveStrategyProperties();
-		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_DEFAULT);
-		sp.setProperty(StrategyProperties.SPLITTING_OPTIONS_KEY, StrategyProperties.SPLITTING_DELAYED);
-		sp.setProperty(StrategyProperties.LOOP_OPTIONS_KEY, StrategyProperties.LOOP_INVARIANT);
-		sp.setProperty(StrategyProperties.BLOCK_OPTIONS_KEY, StrategyProperties.BLOCK_CONTRACT);
-		sp.setProperty(StrategyProperties.METHOD_OPTIONS_KEY, StrategyProperties.METHOD_CONTRACT);
-		sp.setProperty(StrategyProperties.DEP_OPTIONS_KEY, StrategyProperties.DEP_ON);
-		sp.setProperty(StrategyProperties.QUERY_OPTIONS_KEY, StrategyProperties.QUERY_ON);
-		sp.setProperty(StrategyProperties.QUERYAXIOM_OPTIONS_KEY, StrategyProperties.QUERYAXIOM_ON);
-		sp.setProperty(StrategyProperties.NON_LIN_ARITH_OPTIONS_KEY, StrategyProperties.NON_LIN_ARITH_DEF_OPS);
-		sp.setProperty(StrategyProperties.QUANTIFIERS_OPTIONS_KEY, StrategyProperties.QUANTIFIERS_NON_SPLITTING_WITH_PROGS);
-		sp.setProperty(StrategyProperties.CLASS_AXIOM_OPTIONS_KEY, StrategyProperties.CLASS_AXIOM_FREE);
-		sp.setProperty(StrategyProperties.AUTO_INDUCTION_OPTIONS_KEY, StrategyProperties.AUTO_INDUCTION_OFF);
-		sp.remove(StrategyProperties.SYMBOLIC_EXECUTION_ALIAS_CHECK_OPTIONS_KEY);
-		sp.remove(StrategyProperties.SYMBOLIC_EXECUTION_NON_EXECUTION_BRANCH_HIDING_OPTIONS_KEY);
-		return sp;
 	}
 	
 	/**
