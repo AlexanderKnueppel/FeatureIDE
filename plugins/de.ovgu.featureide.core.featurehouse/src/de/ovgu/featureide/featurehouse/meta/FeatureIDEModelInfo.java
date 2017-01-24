@@ -82,7 +82,7 @@ public class FeatureIDEModelInfo implements FeatureModelInfo {
 		}
 		
 		for (CharSequence feature : FeatureUtils.extractFeatureNames(featureModel.getFeatures())) {
-			formula = formula.replaceAll("([\\s,\\(])" + feature.toString().toLowerCase(Locale.ENGLISH), "$1FM.FeatureModel." + feature.toString().toLowerCase(Locale.ENGLISH));
+			formula = formula.replaceAll("([\\s,\\(!])" + feature.toString().toLowerCase(Locale.ENGLISH), "$1FM.FeatureModel." + feature.toString().toLowerCase(Locale.ENGLISH));
 		}
 		return formula.trim();
 	}
