@@ -23,10 +23,11 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 /**
@@ -37,18 +38,18 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 public class SingleProject extends Evaluation{
 	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>(); //contains all Automating proofs of this project
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private String evalName;
+	private int evalVersion;
 	
 	/**
 	 * Constructor
-	 * gets a directory of a BankAccount version and the current evaluation phase
+	 * gets a directory of a project version and the current evaluation approach
 	 * and sets the statistic file
 	 * @param f
 	 */
-	public SingleProject(File f, String evalPhase){
-		this.toEvaluate = f;
-		this.evalName = evalPhase;
-		this.statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
+	public SingleProject(File f, int evalVersion){
+		super(f);
+		this.evalVersion = evalVersion;
+		this.statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 	}
 	
 	public List<AutomatingProof> getProofList(){
@@ -56,31 +57,28 @@ public class SingleProject extends Evaluation{
 	}
 	
 	/**
-	 * Performs the evaluation of a single phase dependent on the current phase
+	 * Performs the evaluation of a single approach dependent on the current approach
 	 */
 	public void performEvaluation(){
-		File metap = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+"Account.java");
-		BuilderUtil.removeBracketsOfVar(metap, "lock");
-		BuilderUtil.removeBracketsOfVar(metap, "result");
+		FileManager.initFolders(evaluatePath, evalVersion);
+		MetaProductBuilder.prepareMetaProduct(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 		AutomatingProject aproj = new AutomatingProject();
-		if(evalName.contains("VA 1")){
-			aproj.performVa1(toEvaluate);
-		}
-		else if(evalName.contains("VA 2")){
-			aproj.performVa2(toEvaluate);
-		}
-		else if(evalName.contains("VA 3")){
-			aproj.performVa3(toEvaluate);	
-		}
-		else if(evalName.contains("VA 4")){
-			aproj.performVa4(toEvaluate);
-		}
-		else if(evalName.contains("VA 5")){
-			aproj.performVa5(toEvaluate);
+		switch(evalVersion){
+			case 1 :aproj.performVa1(toEvaluate,evaluatePath);
+					break;
+			case 2 :aproj.performVa2(toEvaluate,evaluatePath);
+					break;
+			case 3 :aproj.performVa3(toEvaluate,evaluatePath);
+					break;
+			case 4 :aproj.performVa4(toEvaluate,evaluatePath);
+					break;
+			case 5 :aproj.performVa5(toEvaluate,evaluatePath);
+					break;
 		}
 		proofList = aproj.getProofList();
 		updateSum();
 		createXLS();
+		aproj.relaseMemoryOfProject();
 	}
 	
 	/**

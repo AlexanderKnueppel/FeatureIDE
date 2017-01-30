@@ -25,76 +25,68 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 
 /**
- * This class represents a single Evaluation phase 
- * (Phase 1 Fefalution, Phase 2 Metaproduct, Phase 3 Concrete Contracts, Phase 4 Method Inlining, Phase 5 Thuem et al.)
+ * This class represents a single Evaluation approach 
+ * (Approach 1 Fefalution, Approach 2 Metaproduct, Approach 3 Concrete Contracts, Approach 4 Method Inlining, Approach 5 Thuem et al.)
  * 
  * @author Stefanie
  */
-public class EvaluationPhase extends Evaluation{
-	private List<SingleProject> bankAccountVersions = new LinkedList<SingleProject>(); //contains all BankAccount versions
+public class EvaluationApproach extends Evaluation{
+	private List<SingleProject> projectVersions = new LinkedList<SingleProject>(); //contains all project versions
 	
 	/**
 	 * Constructor
-	 * gets a directory of a single phase and sets the statistics file and the BankAccount list
+	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
-	public EvaluationPhase(File f){
-		this.toEvaluate = f;
-		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
-		setBankAccountVersion();
+	public EvaluationApproach(File f){
+		super(f);
+		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
+		setProjectVersion();
 	}
 	
 	/**
-	 * Returns the phase number of the evaluation phase
+	 * Returns the Approach number of the evaluation Approach
 	 * @return int [1,5]
 	 */
 	public int getVersionNumber(){
 		String name = toEvaluate.getName();
-		if(name.contains("1")){
-			return 1;
-		}
-		else if(name.contains("2")){
-			return 2;
-		}
-		else if(name.contains("3")){
-			return 3;
-		}
-		else if(name.contains("4")){
-			return 4;
-		}
-		else if(name.contains("5")){
-			return 5;
+		for(int i = 1; i<=15; i++){
+			String number = String.valueOf(i);
+			if(name.contains(number)){
+				return i;
+			}
 		}
 		return 0;
 	}
 	
-	public List<SingleProject> getBankAccountVersion(){
-		return bankAccountVersions;
+	public List<SingleProject> getProjectVersion(){
+		return projectVersions;
 	}
 
 	/**
-	 * Adds all subdirectories to the BankAccount list, if they contain a BankAccountVersion
+	 * Adds all subdirectories to the BankAccount list, if they contain a project Version
 	 */
-	private void setBankAccountVersion(){
+	private void setProjectVersion(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				bankAccountVersions.add(new SingleProject(f,toEvaluate.getName()));
+				projectVersions.add(new SingleProject(f,getVersionNumber()));
 			}
 		}
 	}
 	
 	/**
-	 * Returns true, if the given File is a BankAccount version
+	 * Returns true, if the given File is a project version
 	 * @param f
 	 * @return
 	 */
 	private boolean isVersion(File f){
-		if(f.getName().contains("BankAccount")){
+		if(f.getName().contains(FileManager.projectName)){
 			return true;
 		}
 		else{
@@ -106,14 +98,14 @@ public class EvaluationPhase extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateSinglePhaseEvaluationXLS(this);
+		ExcelManager.generateSingleApproachEvaluationXLS(this);
 	}
 	
 	/**
-	 * Performs the Evaluation of one Phase
+	 * Performs the Evaluation of one Approach
 	 */
 	public void performEvaluation(){
-		for(SingleProject s : bankAccountVersions){
+		for(SingleProject s : projectVersions){
 			s.performEvaluation();
 			this.updateStatistics(s);
 		}

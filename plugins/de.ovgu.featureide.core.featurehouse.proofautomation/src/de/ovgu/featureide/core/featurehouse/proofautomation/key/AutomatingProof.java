@@ -81,7 +81,7 @@ public class AutomatingProof {
 	 * and with the "Finish abstract proof part" macro
 	 * @throws Exception
 	 */
-	public void startFeatureStubProof(int maxRuleApplication, StrategyProperties s) throws Exception{
+	public void startAbstractProof(int maxRuleApplication, StrategyProperties s) throws Exception{
 		try {
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 			Assert.isNotNull(input);
@@ -207,7 +207,7 @@ public class AutomatingProof {
 	 * Saves the proof in the given file
 	 * @param proofFile
 	 */
-	public void saveProof(String path){
+	public File saveProof(String path){
 		final String defaultName 
     	= MiscTools.toValidFileName(environment.getMediator()
     		.getSelectedProof().name()
@@ -215,6 +215,7 @@ public class AutomatingProof {
 		File proofFile = new File (path+System.getProperty("file.separator")+defaultName+".proof");
 		MainWindow w = MainWindow.getInstance();
 		w.saveProof(proofFile);
+		return proofFile;
 	}
 	
 	/**

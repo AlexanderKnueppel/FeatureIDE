@@ -45,7 +45,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationPhase;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationApproach;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
@@ -56,7 +56,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 public class ProofAutomationComposite extends Composite{
 	
 	private File evaluationDir;
-	private List<EvaluationPhase> evaluationPhaseList;
+	private List<EvaluationApproach> evaluationPhaseList;
 	private File currentProject;
 	
 	private Text source;
@@ -150,7 +150,7 @@ public class ProofAutomationComposite extends Composite{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				File f = new File(source.getText());
-				SingleProject sp = new SingleProject(f,null);
+				SingleProject sp = new SingleProject(f,1);
 				sp.performEvaluation();
 			}
 		} );
@@ -163,7 +163,7 @@ public class ProofAutomationComposite extends Composite{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				File f = new File(source.getText());
-				EvaluationPhase ep = new EvaluationPhase(f);
+				EvaluationApproach ep = new EvaluationApproach(f);
 				ep.performEvaluation();
 			}
 		} );

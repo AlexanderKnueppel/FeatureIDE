@@ -51,7 +51,7 @@ public class DefaultStrategies {
 	}
 	
 	/**
-	 * Prepares the StrategyPropertys as used for Metaproduct Verification
+	 * Prepares the StrategyPropertys as used for Metaproduct Verification in VA1 VA2 and VA3
 	 * @return The prepared StrategyProperties
 	 */	
 	public static StrategyProperties defaultSettingsForMetaproduct(){

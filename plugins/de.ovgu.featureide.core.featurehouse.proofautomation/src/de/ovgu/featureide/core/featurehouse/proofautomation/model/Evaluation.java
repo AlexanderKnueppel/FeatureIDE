@@ -21,6 +21,11 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
 /**
  * Abstract class that contains shared functionality of CompleteEvaluation, EvaluationPhase and SingleProject
@@ -29,8 +34,10 @@ import java.io.File;
  */
 public abstract class Evaluation {
 	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	public Date date;
 	//Directory which should be evaluated
 	public File toEvaluate;
+	public File evaluatePath; //contains a subdirectory Evaluation/date time
 	//File where the result of the evaluation is saved
 	public File statistics;
 	//Statistics used for Evaluation
@@ -38,6 +45,13 @@ public abstract class Evaluation {
 	public int branchesSum=0;
 	public int appliedRulesSum=0;
 	public long automodeTimeSum=0;
+	
+	public Evaluation(File f){
+		toEvaluate = f;
+		date = new Date();
+		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
+		evaluatePath = FileManager.createDateDir(date, evalDir);
+	}
 	
 	/**
 	 * Performs different Steps of the Evaluation
@@ -54,7 +68,7 @@ public abstract class Evaluation {
 	 * @param name
 	 */
 	public void setStatisticsFile(String name){
-		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+name);
+		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+name);
 	}
 	
 	/**

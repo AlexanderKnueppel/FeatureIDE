@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
 /**
  * Represents a complete Evaluation 
@@ -33,44 +34,44 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
  */
 public class CompleteEvaluation extends Evaluation{
 	
-	List<EvaluationPhase> allPhases = new LinkedList<EvaluationPhase>(); //contains all single Evaluation phases
+	List<EvaluationApproach> allApproaches = new LinkedList<EvaluationApproach>(); //contains all single Evaluation approaches
 	
-	public List<EvaluationPhase> getAllPhases(){
-		return allPhases;
+	public List<EvaluationApproach> getAllApproaches(){
+		return allApproaches;
 	}
 	
 	/**
 	 * Constructor 
-	 * gets a directory which contains all evaluation phases and sets the statistics file and the Evaluation phase list
+	 * gets a directory which contains all evaluation approaches and sets the statistics file and the Evaluation Approach list
 	 * @param toEvaluate
 	 */
-	public CompleteEvaluation(File toEvaluate){
-		this.toEvaluate = toEvaluate;
-		statistics = new File (toEvaluate.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
-		setEvaluationPhases();
+	public CompleteEvaluation(File f){
+		super(f);
+		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
+		setEvaluationApproach();
 	}
 
 	/**
-	 * Adds all subdirectories which contains a evaluation phase to the list 
+	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
-	private void setEvaluationPhases(){
+	private void setEvaluationApproach(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
-			if(f.isDirectory() && isEvaluationPhase(f)){
-				allPhases.add(new EvaluationPhase(f));
+			if(f.isDirectory() && isEvaluationApproach(f) &&!f.getName().equals(FileManager.evaluationDir)){
+				allApproaches.add(new EvaluationApproach(f));
 			}
 		}
 	}
 	
 	/**
-	 * Returns true if the given file is a evaluation phase
+	 * Returns true if the given file is a evaluation Approach
 	 * @param f
 	 * @return
 	 */
-	private boolean isEvaluationPhase(File f){
+	private boolean isEvaluationApproach(File f){
 		File[] content = f.listFiles();
 		for(File c: content){
-			if(c.getName().contains("BankAccount")){
+			if(c.getName().contains(FileManager.projectName)){
 				return true;
 			}
 		}
@@ -81,14 +82,14 @@ public class CompleteEvaluation extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateAllPhasesEvaluationXLS(this);;
+		ExcelManager.generateAllApproachEvaluationXLS(this);;
 	}
 	
 	/**
 	 * Performs the complete Evaluation
 	 */
 	public void performEvaluation(){
-		for(EvaluationPhase e: allPhases){
+		for(EvaluationApproach e: allApproaches){
 			e.performEvaluation();
 			this.updateStatistics(e);
 		}

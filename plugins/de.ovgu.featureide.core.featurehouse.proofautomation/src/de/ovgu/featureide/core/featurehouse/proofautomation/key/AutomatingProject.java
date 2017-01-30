@@ -28,6 +28,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
+import org.key_project.monkey.product.ui.model.MonKeYProof;
+import org.key_project.monkey.product.ui.util.MonKeYUtil;
+import org.key_project.util.java.SwingUtil;
+
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
@@ -55,6 +60,14 @@ public class AutomatingProject{
 	private List<AutomatingProof> proofList; //contains all proofs of the current project
 	private int maxRuleApplication = 10000; // sets the maximal number of rules to be applicated on one proof
 	
+	public void relaseMemoryOfProject(){
+		for(AutomatingProof a: proofList){
+			if (a.getProof() != null) {
+		      ProofUserManager.getInstance().removeUserAndDispose(a.getProof(), a);
+		      a.getProof().dispose();
+		    }
+		}	
+	}
 	public List<AutomatingProof> getProofList(){
 		return proofList;
 	}
@@ -64,64 +77,91 @@ public class AutomatingProject{
 	}
 	
 	/**
-	 * Performs the evaluation of Phase 1 Fefalution
+	 * Performs the evaluation of approach 1 Fefalution
 	 * @param loc
 	 */
-	public void performVa1(File loc){
-		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
-		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
+	public void performVa1(File loc, File evalPath){
+		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
+		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
 		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-		performFeaturestubVerification(loc);
-		FileManager.copySavedProofsToPartialProofs(loc);
-		MetaProductBuilder.preparePartialProofs(loc);
-		performMetaproductVerification(loc);
+		performFeaturestubVerification(loc,evalPath);
+		FileManager.copySavedProofsToPartialProofs(evalPath);
+		MetaProductBuilder.preparePartialProofs(loc,evalPath);
+		performMetaproductVerification(loc,evalPath);
 	}
 	
 	/**
-	 * Performs the evaluation of Phase 2 Metaproduct
+	 * Performs the evaluation of approach 2 Metaproduct
 	 * @param loc
 	 */
-	public void performVa2(File loc){
-		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
-		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
-		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-	}
-	
-	/**
-	 * Performs the evaluation of Phase 3 Concrete Contracts
-	 * @param loc
-	 */
-	public void performVa3(File loc){
-		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
-		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+"featurestub"+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
-		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-	}
-	
-	/**
-	 * Performs the evaluation of Phase 4 Method Inlining
-	 * @param loc
-	 */
-	public void performVa4(File loc){
-		String metaproductPath = loc.getAbsolutePath()+FILE_SEPERATOR+"Finished Proofs";
-		FileManager.createDir(new File (metaproductPath));
-		proofList = loadInKeY(new File(loc.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+"Account.java"));
-		boolean firstVersion = loc.getName().equals("BankAccountv1");
-		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,metaproductPath);
-		
-	}
-	
-	/**
-	 * Performs the evaluation of Phase 5 Thuem et al
-	 * @param loc
-	 */
-	public void performVa5(File loc){
-		proofList = loadInKeY(new File(loc.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+"Account.java"));
-		String metaproductPath = loc.getAbsolutePath()+FILE_SEPERATOR+"Finished Proofs";
-		FileManager.createDir(new File (metaproductPath));
-		for(AutomatingProof aproof: proofList){
-			aproof.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), 10000);
-			aproof.saveProof(metaproductPath);
+	public void performVa2(File loc,File evalPath){
+		//Phase 1
+		String savePartialProofsPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;
+		File metaproduct = getMetaproduct(loc);
+		List<AutomatingProof> abstractProofs = loadInKeY(metaproduct);
+		List<File> abstractProofPart = new LinkedList<File>();
+		for(AutomatingProof a : abstractProofs){
+			try {
+				a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+				abstractProofPart.add(a.saveProof(savePartialProofsPath));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
+		//Phase 2
+		List<AutomatingProof> metaproductProofs = loadInKeY(metaproduct);
+		proofList = metaproductProofs;
+		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		for(AutomatingProof a : metaproductProofs){
+			String defaultName= a.getTypeName()+"__"+a.getTargetName();
+			File reuse = null;
+			for(File absProof: abstractProofPart){
+				if(absProof.getName().contains(defaultName)){
+					reuse = absProof;
+				}			
+			}
+			try {
+				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
+				a.saveProof(metaproductPath);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * Performs the evaluation of approach 3 Concrete Contracts
+	 * @param loc
+	 */
+	public void performVa3(File loc, File evalPath){
+		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		boolean firstVersion = loc.getName().contains("1");
+		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForMetaproduct(),firstVersion,savePath);
+	}
+	
+	/**
+	 * Performs the evaluation of approach 4 Method Inlining
+	 * @param loc
+	 */
+	public void performVa4(File loc, File evalPath){
+		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		boolean firstVersion = loc.getName().contains("1");
+		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+	}
+	
+	/**
+	 * Performs the evaluation of approach 5 Thuem et al
+	 * @param loc
+	 */
+	public void performVa5(File loc, File evalPath){
+/*		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		for(AutomatingProof aproof: proofList){
+			aproof.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication);
+			aproof.saveProof(savePath);
+		}*/
 	}
 	
 	/**
@@ -129,7 +169,7 @@ public class AutomatingProject{
 	 * @param location : path of the current project 
 	 * @param a : list of all proofs of the current project
 	 * @param s : used StrategyProperties for the verification
-	 * @param firstVersion : true if the current project is the first version in this phase
+	 * @param firstVersion : true if the current project is the first version in this approach
 	 * @param savePath : path where the proofs should be saved
 	 */
 	private void fullProofReuse(File location, List<AutomatingProof> a, StrategyProperties s, boolean firstVersion, String savePath){
@@ -154,8 +194,8 @@ public class AutomatingProject{
 	 * @return
 	 */
 	private File reuseFullProof(File location, AutomatingProof a){
-		File bankAccountv1 = getBankAccount1Path(location);
-		File reuseProofDir = new File (bankAccountv1.getAbsolutePath()+FILE_SEPERATOR+"Finished Proofs");
+		File projectv1 = FileManager.getCurrentEvaluationPath(getProjectv1Path(location));
+		File reuseProofDir = new File (projectv1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir);
 		if(!reuseProofDir.exists()){
 			return null;
 		}
@@ -164,7 +204,6 @@ public class AutomatingProject{
 			String filename = p.getName();
 			String defaultName= a.getTypeName()+"__"+a.getTargetName();
 			if(filename.contains(defaultName)){
-				System.out.println(filename);
 				return p;
 			}
 		}
@@ -172,41 +211,39 @@ public class AutomatingProject{
 	}
 	
 	/**
-	 * Returns the Path of BankAccountv1 of the current Phase
+	 * Returns the Path of BankAccountv1 of the current approach
 	 * @param location
 	 * @return
 	 */
-	private File getBankAccount1Path(File location){
-		String parentPath = location.getParent();
-		parentPath = parentPath+FILE_SEPERATOR+"BankAccountv1";
-		File parentDir = new File(parentPath);
-		if(parentDir.exists()){
-			return parentDir;
+	private File getProjectv1Path(File location){
+		File parentPath = location.getParentFile();
+		File[] allProjects = parentPath.listFiles();
+		File firstProject = null;
+		for(File project : allProjects){
+			if(project.getName().contains("1")){
+				firstProject = project;
+			}
 		}
-		else{
-			return null;
-		}
+		return firstProject;
 	}
 	
 	/**
 	 * Performs the featurestub phase of the verification
 	 * @param projectDir
 	 */
-	private void performFeaturestubVerification(File projectDir){
-		FileManager.initFolders(projectDir);
+	private void performFeaturestubVerification(File projectDir, File evalPath){
 		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
 		String currentFeatureStub;
 		String saveFeatureStubPath;
-		int featurestubIndex = 0;
 		for(File f: featurestubs){
 			String[] seperatedPath = f.getAbsolutePath().split("\\"+FILE_SEPERATOR);
 			currentFeatureStub = seperatedPath[seperatedPath.length-2];
-			saveFeatureStubPath = projectDir+FILE_SEPERATOR+"Saved Proofs"+FILE_SEPERATOR+currentFeatureStub;
+			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
 			FileManager.createDir(new File (saveFeatureStubPath));
 			List<AutomatingProof> ap = loadInKeY(f);
 			for(AutomatingProof a : ap){
 				try {
-					a.startFeatureStubProof(10000, DefaultStrategies.defaultSettingsForFeatureStub());
+					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 					a.saveProof(saveFeatureStubPath);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -214,33 +251,32 @@ public class AutomatingProject{
 			}
 		}
 		MainWindow.getInstance().dispose();
-		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
-		exit.exitMainWithoutInteraction();
+//		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
+//		exit.exitMainWithoutInteraction();
 	}
 	
 	/**
 	 * Performs the second phase of the verification
 	 * @param projectDir
 	 */
-	private void performMetaproductVerification(File projectDir){
-		List<File> featurestubs = getAllFeatureStubProofs(projectDir);
+	private void performMetaproductVerification(File projectDir, File evalPath){
+		List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
 		File java = getMetaproduct(projectDir);	
 		List<AutomatingProof> ap = loadInKeY(java);
 		proofList = ap;
-		String metaproductPath = projectDir+FILE_SEPERATOR+"Finished Proofs";
+		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		for(AutomatingProof a : ap){
 			try {
 				File reuse = getFeatureStubProof(a,featurestubs);
-				a.startMetaProductProof(reuse,null,10000);
+				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
 				a.saveProof(metaproductPath);
-				ProofSettings ps = a.getProof().getSettings();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		MainWindow.getInstance().dispose();
-		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
-		exit.exitMainWithoutInteraction();
+//		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
+//		exit.exitMainWithoutInteraction();
 	}
 	
 	/**
@@ -249,7 +285,7 @@ public class AutomatingProject{
 	 * @return
 	 */
 	private static File getMetaproduct(File projectDir){
-		File[] metaproduct = (new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"src")).listFiles();
+		File[] metaproduct = (new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir)).listFiles();
 		for(File m :metaproduct){
 			if(m.getName().endsWith(".java")){
 				return m;
@@ -306,8 +342,8 @@ public class AutomatingProject{
 	 * @param projectDir
 	 * @return
 	 */
-	private static List<File> getAllFeatureStubProofs(File projectDir){
-		File featurestub = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"Partial Proofs for Metaproduct");
+	private static List<File> getAllPartialProofs(File projectDir, File evalPath){
+		File featurestub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		File[] featurestubs = featurestub.listFiles();
 		List<File> proofs = new LinkedList<File>();
 		for(File f : featurestubs){

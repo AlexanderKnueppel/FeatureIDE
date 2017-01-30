@@ -25,25 +25,31 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
 public class MetaProductBuilder {
 	
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
 	
+	public static void prepareMetaProduct(File metaproductLocation){
+		File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");
+		BuilderUtil.removeBracketsOfVar(account, "lock");
+		BuilderUtil.removeBracketsOfVar(account, "result");
+	}
+	
 	/**
 	 * Performs the proof transformation for all partial proofs if necessary
 	 * @param projectDir Directory of the Project contains Directory "Partial Proofs for Metaproduct" with proofs of the featurestub
 	 */
-	public static void preparePartialProofs(File projectDir){
-		File partialProofs = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"Partial Proofs for Metaproduct");
+	public static void preparePartialProofs(File projectDir, File evalPath){
+		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		File[] featurestubs = partialProofs.listFiles();
 		for(File f : featurestubs){
 			if(f.isDirectory()){
 				File[] proofs = f.listFiles();
 				for(File proof: proofs){
 					String methodname = getMethodName(proof);
-					File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+"src"+FILE_SEPERATOR+getClassName(proof)+".java");
+					File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proof)+".java");
 					if(checkForOriginal(proof,f.getName())||checkForMethod(methodname+"_"+f.getName(),metaproduct)){
 						replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
 						renameProof(proof,f,methodname+"_"+f.getName());
@@ -101,7 +107,6 @@ public class MetaProductBuilder {
             String line = bReader.readLine();
             while(line != null) {           	
             	if(line.matches(".*"+method+"\\s*\\(.*\\)\\s*\\{.*")){
-            		System.out.println(line);
             		bReader.close();
             		return true;
             	}
@@ -159,6 +164,7 @@ public class MetaProductBuilder {
 					if(line.contains(methodname+"_")){
 						String[] nameParts = line.split(methodname+"\\_");
 						String[] original = nameParts[1].split("\\(");
+						bReader.close();
 						return original[0];
 					}
 				}
@@ -167,6 +173,7 @@ public class MetaProductBuilder {
 				}
 				line = bReader.readLine();
 			}
+			bReader.close();
 		}
 		catch(IOException e) {
 			e.printStackTrace();

@@ -29,7 +29,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationPhase;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationApproach;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
@@ -39,7 +39,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
  */
 public class ExcelManager {
 	
-	public static void generateAllPhasesEvaluationXLS(CompleteEvaluation c){
+	public static void generateAllApproachEvaluationXLS(CompleteEvaluation c){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
@@ -52,13 +52,13 @@ public class ExcelManager {
 	    secondRow.createCell(4).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    secondRow.createCell(5).setCellValue(crHelper.createRichTextString("Proof Time"));
 	    int rowcounter = 2;
-	    for(EvaluationPhase e: c.getAllPhases()){
-	    	Row phaseRow = total.createRow(rowcounter);
-	    	phaseRow.createCell(1).setCellValue(crHelper.createRichTextString(e.toEvaluate.getName()));
-	    	phaseRow.createCell(2).setCellValue(e.nodeSum);
-	    	phaseRow.createCell(3).setCellValue(e.branchesSum);
-	    	phaseRow.createCell(4).setCellValue(e.appliedRulesSum);
-	    	phaseRow.createCell(5).setCellValue(e.automodeTimeSum);
+	    for(EvaluationApproach e: c.getAllApproaches()){
+	    	Row approachRow = total.createRow(rowcounter);
+	    	approachRow.createCell(1).setCellValue(crHelper.createRichTextString(e.toEvaluate.getName()));
+	    	approachRow.createCell(2).setCellValue(e.nodeSum);
+	    	approachRow.createCell(3).setCellValue(e.branchesSum);
+	    	approachRow.createCell(4).setCellValue(e.appliedRulesSum);
+	    	approachRow.createCell(5).setCellValue(e.automodeTimeSum);
 	    	rowcounter++;
 	    }
 	    total.autoSizeColumn(0);
@@ -83,7 +83,7 @@ public class ExcelManager {
 		}
 	}
 	
-	public static void generateSinglePhaseEvaluationXLS(EvaluationPhase ep){
+	public static void generateSingleApproachEvaluationXLS(EvaluationApproach ep){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
@@ -94,25 +94,25 @@ public class ExcelManager {
 	    firstRow.createCell(4).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    firstRow.createCell(5).setCellValue(crHelper.createRichTextString("Proof Time"));
 	    int rowcounter = 1;
-	    for(SingleProject s: ep.getBankAccountVersion()){
+	    for(SingleProject s: ep.getProjectVersion()){
 	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.toEvaluate.getName()));
-	    	Row phasefirstRow = currentProject.createRow(0);
-	    	phasefirstRow.createCell(0).setCellValue(crHelper.createRichTextString("Class"));
-	    	phasefirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Method"));
-	    	phasefirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Proof Steps"));
-	    	phasefirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Branches"));
-	    	phasefirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Applied Rules"));
-	    	phasefirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Proof Time"));
-	    	int phaseRowCount = 1;
+	    	Row appraochfirstRow = currentProject.createRow(0);
+	    	appraochfirstRow.createCell(0).setCellValue(crHelper.createRichTextString("Class"));
+	    	appraochfirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Method"));
+	    	appraochfirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Proof Steps"));
+	    	appraochfirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Branches"));
+	    	appraochfirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Applied Rules"));
+	    	appraochfirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    	int approachRowCount = 1;
 		    for(AutomatingProof a: s.getProofList()){
-		    	Row phaseRows = currentProject.createRow(phaseRowCount);
-		    	phaseRows.createCell(0).setCellValue(crHelper.createRichTextString(a.getTypeName()));
-		    	phaseRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTargetName()));
-		    	phaseRows.createCell(2).setCellValue(a.getNodes());
-		    	phaseRows.createCell(3).setCellValue(a.getBranches());
-		    	phaseRows.createCell(4).setCellValue(a.getAppliedRules());
-		    	phaseRows.createCell(5).setCellValue(a.getTime());
-		    	phaseRowCount++;
+		    	Row appraochRows = currentProject.createRow(approachRowCount);
+		    	appraochRows.createCell(0).setCellValue(crHelper.createRichTextString(a.getTypeName()));
+		    	appraochRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTargetName()));
+		    	appraochRows.createCell(2).setCellValue(a.getNodes());
+		    	appraochRows.createCell(3).setCellValue(a.getBranches());
+		    	appraochRows.createCell(4).setCellValue(a.getAppliedRules());
+		    	appraochRows.createCell(5).setCellValue(a.getTime());
+		    	approachRowCount++;
 		    }
 		    currentProject.autoSizeColumn(0);
 		    currentProject.autoSizeColumn(1);
@@ -120,12 +120,12 @@ public class ExcelManager {
 		    currentProject.autoSizeColumn(3);
 		    currentProject.autoSizeColumn(4);
 		    currentProject.autoSizeColumn(5);
-	    	Row phaseRow = total.createRow(rowcounter);
-	    	phaseRow.createCell(1).setCellValue(crHelper.createRichTextString(s.toEvaluate.getName()));
-	    	phaseRow.createCell(2).setCellValue(s.nodeSum);
-	    	phaseRow.createCell(3).setCellValue(s.branchesSum);
-	    	phaseRow.createCell(4).setCellValue(s.appliedRulesSum);
-	    	phaseRow.createCell(5).setCellValue(s.automodeTimeSum);
+	    	Row appraochRow = total.createRow(rowcounter);
+	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.toEvaluate.getName()));
+	    	appraochRow.createCell(2).setCellValue(s.nodeSum);
+	    	appraochRow.createCell(3).setCellValue(s.branchesSum);
+	    	appraochRow.createCell(4).setCellValue(s.appliedRulesSum);
+	    	appraochRow.createCell(5).setCellValue(s.automodeTimeSum);
 	    	rowcounter++;
 	    }
 	    Row lastRow = total.createRow(rowcounter);
@@ -160,22 +160,22 @@ public class ExcelManager {
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
-	    Row phasefirstRow = total.createRow(0); 
-	    phasefirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Class"));
-    	phasefirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Method"));
-    	phasefirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Proof Steps"));
-    	phasefirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Branches"));
-    	phasefirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Applied Rules"));
-    	phasefirstRow.createCell(6).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    Row appraochfirstRow = total.createRow(0); 
+	    appraochfirstRow.createCell(1).setCellValue(crHelper.createRichTextString("Class"));
+    	appraochfirstRow.createCell(2).setCellValue(crHelper.createRichTextString("Method"));
+    	appraochfirstRow.createCell(3).setCellValue(crHelper.createRichTextString("Proof Steps"));
+    	appraochfirstRow.createCell(4).setCellValue(crHelper.createRichTextString("Branches"));
+    	appraochfirstRow.createCell(5).setCellValue(crHelper.createRichTextString("Applied Rules"));
+    	appraochfirstRow.createCell(6).setCellValue(crHelper.createRichTextString("Proof Time"));
 	    int rowcounter = 1;
 	    for(AutomatingProof a: s.getProofList()){
-	    	Row phaseRows = total.createRow(rowcounter);
-	    	phaseRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTypeName()));
-	    	phaseRows.createCell(2).setCellValue(crHelper.createRichTextString(a.getTargetName()));
-	    	phaseRows.createCell(3).setCellValue(a.getNodes());
-	    	phaseRows.createCell(4).setCellValue(a.getBranches());
-	    	phaseRows.createCell(5).setCellValue(a.getAppliedRules());
-	    	phaseRows.createCell(6).setCellValue(a.getTime());
+	    	Row approachRows = total.createRow(rowcounter);
+	    	approachRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTypeName()));
+	    	approachRows.createCell(2).setCellValue(crHelper.createRichTextString(a.getTargetName()));
+	    	approachRows.createCell(3).setCellValue(a.getNodes());
+	    	approachRows.createCell(4).setCellValue(a.getBranches());
+	    	approachRows.createCell(5).setCellValue(a.getAppliedRules());
+	    	approachRows.createCell(6).setCellValue(a.getTime());
 	    	rowcounter++;
 	    }
 	    Row lastRow = total.createRow(rowcounter);
