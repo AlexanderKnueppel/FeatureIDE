@@ -62,7 +62,7 @@ public class SingleProject extends Evaluation{
 	public void performEvaluation(){
 		FileManager.initFolders(evaluatePath, evalVersion);
 		MetaProductBuilder.prepareMetaProduct(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
-		AutomatingProject aproj = new AutomatingProject();
+		AutomatingProject aproj = AutomatingProject.getInstance();
 		switch(evalVersion){
 			case 1 :aproj.performVa1(toEvaluate,evaluatePath);
 					break;
@@ -79,6 +79,10 @@ public class SingleProject extends Evaluation{
 		updateSum();
 		createXLS();
 		aproj.relaseMemoryOfProject();
+		aproj = null;
+		proofList = null;
+		System.gc();
+		System.out.println();
 	}
 	
 	/**

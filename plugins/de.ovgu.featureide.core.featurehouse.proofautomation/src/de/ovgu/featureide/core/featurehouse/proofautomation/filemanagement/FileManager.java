@@ -157,10 +157,24 @@ public class FileManager {
 		}
 	}
 	
+	public static void reuseFeaturestub(File evalPath, File project){
+		File firstProject = getProjectv1Path(project);
+		File firstProjectEvalPath = new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
+		List<File> equalFiles = compareFeatureStubs(new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir),new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+featureStubDir));
+		for(File f: equalFiles){
+			List<File> reusableProofs= getProofsForFeatureStubClass(f,firstProjectEvalPath);
+			for(File r: reusableProofs){
+				createDir(new File(getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
+				copyFile(r.getAbsolutePath(),getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
+			}
+		}
+	}
+	
 	public static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
 		File featurestub = featureStubClass.getParentFile();
 		String featureStubClassName = featureStubClass.getName().replace(".java", "");
-		File[] savedProofsOfFeatureStub = (new File(versionA.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName())).listFiles();
+		File previousFS = new File(getCurrentEvaluationPath(versionA.getParentFile())+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName());
+		File[] savedProofsOfFeatureStub = previousFS.listFiles();
 		List<File> relatedProofs = new LinkedList<File>();
 		for(File f : savedProofsOfFeatureStub){
 			if(f.getName().contains(featureStubClassName)){
@@ -197,7 +211,7 @@ public class FileManager {
 		for(File a : dirAFiles){
 			for(File b : dirBFiles){
 				if(a.getName().equals(b.getName())){
-					if(a.compareTo(b)==0){
+					if(filesAreEqual(a,b)){
 						equalFiles.add(a);
 					}
 				}
@@ -206,4 +220,41 @@ public class FileManager {
 		return equalFiles;
 	}
 	
+	private static boolean filesAreEqual(File a, File b){
+		try {
+			byte[] aBytes = Files.readAllBytes(a.toPath());
+			byte[] bBytes = Files.readAllBytes(b.toPath());
+			if(aBytes.length!=bBytes.length){
+				return false;
+			}
+			for(int i = 0; i< aBytes.length;i++){
+				if(aBytes[i]!=bBytes[i]){
+					return false;
+				}
+			}
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * Returns the Path of BankAccountv1 of the current approach
+	 * @param location
+	 * @return
+	 */
+	public static File getProjectv1Path(File location){
+		File parentPath = location.getParentFile();
+		File[] allProjects = parentPath.listFiles();
+		File firstProject = null;
+		for(File project : allProjects){
+			if(project.getName().contains("1")&&project.isDirectory()){
+				firstProject = project;
+			}
+		}
+		return firstProject;
+	}
 }

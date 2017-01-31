@@ -56,18 +56,24 @@ import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
  * @author Stefanie
  */
 public class AutomatingProject{
+	public static final AutomatingProject automatingProject = new AutomatingProject();
+	
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private List<AutomatingProof> proofList; //contains all proofs of the current project
 	private int maxRuleApplication = 10000; // sets the maximal number of rules to be applicated on one proof
 	
+	public static AutomatingProject getInstance(){
+		return automatingProject;
+	}
+	
 	public void relaseMemoryOfProject(){
 		for(AutomatingProof a: proofList){
-			if (a.getProof() != null) {
-		      ProofUserManager.getInstance().removeUserAndDispose(a.getProof(), a);
-		      a.getProof().dispose();
-		    }
-		}	
+			a.deleteProof();
+		}
+		MainWindow.getInstance().dispose();
+		proofList = null;
 	}
+	
 	public List<AutomatingProof> getProofList(){
 		return proofList;
 	}
@@ -84,7 +90,11 @@ public class AutomatingProject{
 		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
 		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
 		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-		performFeaturestubVerification(loc,evalPath);
+		boolean firstVersion =loc.getName().contains("1");
+		if(!firstVersion){
+			FileManager.reuseFeaturestub(evalPath, loc);
+		}
+		performFeaturestubVerification(loc,evalPath,firstVersion);
 		FileManager.copySavedProofsToPartialProofs(evalPath);
 		MetaProductBuilder.preparePartialProofs(loc,evalPath);
 		performMetaproductVerification(loc,evalPath);
@@ -194,7 +204,7 @@ public class AutomatingProject{
 	 * @return
 	 */
 	private File reuseFullProof(File location, AutomatingProof a){
-		File projectv1 = FileManager.getCurrentEvaluationPath(getProjectv1Path(location));
+		File projectv1 = FileManager.getCurrentEvaluationPath(FileManager.getProjectv1Path(location));
 		File reuseProofDir = new File (projectv1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir);
 		if(!reuseProofDir.exists()){
 			return null;
@@ -210,28 +220,12 @@ public class AutomatingProject{
 		return null;		
 	}
 	
-	/**
-	 * Returns the Path of BankAccountv1 of the current approach
-	 * @param location
-	 * @return
-	 */
-	private File getProjectv1Path(File location){
-		File parentPath = location.getParentFile();
-		File[] allProjects = parentPath.listFiles();
-		File firstProject = null;
-		for(File project : allProjects){
-			if(project.getName().contains("1")){
-				firstProject = project;
-			}
-		}
-		return firstProject;
-	}
 	
 	/**
 	 * Performs the featurestub phase of the verification
 	 * @param projectDir
 	 */
-	private void performFeaturestubVerification(File projectDir, File evalPath){
+	private void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion){
 		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
 		String currentFeatureStub;
 		String saveFeatureStubPath;
@@ -242,17 +236,33 @@ public class AutomatingProject{
 			FileManager.createDir(new File (saveFeatureStubPath));
 			List<AutomatingProof> ap = loadInKeY(f);
 			for(AutomatingProof a : ap){
-				try {
-					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-					a.saveProof(saveFeatureStubPath);
-				} catch (Exception e) {
-					e.printStackTrace();
+				if(firstVersion||!proofAlreadyExists(a,evalPath,f.getParentFile())){
+					try {
+						a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+						a.saveProof(saveFeatureStubPath);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
 		MainWindow.getInstance().dispose();
-//		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
-//		exit.exitMainWithoutInteraction();
+	}
+	
+	public static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
+		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+featurestub.getName());
+		File[] proofs = savedProofsPath.listFiles();
+		String defaultName= a.getTypeName()+"__"+a.getTargetName();
+		if(proofs!=null){
+			for(File f : proofs){
+				if(!f.isDirectory()){
+					if(f.getName().endsWith(".proof") && f.getName().contains(defaultName)){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**

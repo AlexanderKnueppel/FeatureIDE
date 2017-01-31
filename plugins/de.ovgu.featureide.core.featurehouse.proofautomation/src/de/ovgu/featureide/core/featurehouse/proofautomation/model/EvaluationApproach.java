@@ -108,7 +108,9 @@ public class EvaluationApproach extends Evaluation{
 		for(SingleProject s : projectVersions){
 			s.performEvaluation();
 			this.updateStatistics(s);
+			s = null;
 		}
+		projectVersions = null;
 		createXLS();
 	}
 	

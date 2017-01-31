@@ -76,6 +76,19 @@ public class AutomatingProof {
 		this.contract = contract;
 	}
 	
+	public void deleteProof(){
+		if (this.proof != null) {
+		      ProofUserManager.getInstance().removeUserAndDispose(this.proof, this);
+		      this.proof.dispose();
+		}
+		this.environment=null;
+		this.contract=null;
+		this.typeName=null;
+		this.targetName=null;
+		this.contractName=null;
+		this.proof=null;
+	}
+	
 	/**
 	 * Starts a Proof for the FeatureStub in KeY with prepared Settings 
 	 * and with the "Finish abstract proof part" macro
