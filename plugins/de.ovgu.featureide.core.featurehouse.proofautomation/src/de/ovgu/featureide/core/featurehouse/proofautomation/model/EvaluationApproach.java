@@ -24,6 +24,11 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
@@ -47,8 +52,20 @@ public class EvaluationApproach extends Evaluation{
 		super(f);
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
+		generateCode();
 	}
 	
+	private void generateCode(){
+		LinkedList<IProject> projects = BuilderUtil.getProjectsByApproach(toEvaluate.getName());
+		boolean newMetaproduct = true;
+		if(getVersionNumber() == 5){
+			newMetaproduct = false;
+		}
+		MetaProductBuilder.generateAllMetaproductsForApproach(projects, newMetaproduct);
+		if(getVersionNumber()==1){
+			FeatureStubBuilder.generateAllFeatureStubsForApproach(projects);
+		}
+	}
 	/**
 	 * Returns the Approach number of the evaluation Approach
 	 * @return int [1,5]

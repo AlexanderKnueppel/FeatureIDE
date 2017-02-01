@@ -20,15 +20,46 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.builder;
 
+import static de.ovgu.featureide.fm.core.localization.StringTable.FEATURE_STUBS_GENERATION_STARTED_;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+
+import de.ovgu.featureide.core.CorePlugin;
+import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.featurehouse.FeatureHouseComposer;
+import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
+import de.ovgu.featureide.featurehouse.contracts.ContractProcessor;
+import de.ovgu.featureide.featurehouse.meta.FeatureStubsGenerator;
+
 public class BuilderUtil {
+	
+	public static LinkedList<IProject> getProjectsByApproach(String approachName){
+		IWorkspaceRoot myWorkspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] allProjects = myWorkspaceRoot.getProjects();
+		LinkedList<IProject> allProjectsForApproach = new LinkedList<IProject>();
+		for(IProject p: allProjects){
+			File f = p.getLocation().toFile();
+			if(f.getParentFile().getName().equals(approachName)){
+				allProjectsForApproach.add(p);
+			}
+		}
+		return allProjectsForApproach;
+	}
+	
 	/**
 	 * Writes a StringBuffer into File f
 	 * @param sbuffer
