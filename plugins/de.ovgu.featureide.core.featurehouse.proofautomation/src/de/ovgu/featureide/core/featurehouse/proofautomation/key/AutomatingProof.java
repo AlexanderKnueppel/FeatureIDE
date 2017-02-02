@@ -123,7 +123,8 @@ public class AutomatingProof {
 	 * Starts a Proof for the Metaproduct Verification with reuseProof for reuse and prepared Settings
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
-	public void startMetaProductProof(File reuseProof, StrategyProperties s, int maxRuleApplication){
+	public boolean startMetaProductProof(File reuseProof, StrategyProperties s, int maxRuleApplication){
+		boolean reusedAProof = false;
 		try{
 		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 		    Assert.isNotNull(input);
@@ -143,6 +144,7 @@ public class AutomatingProof {
 	        	threadsBefore =Thread.getAllStackTraces().keySet();
 	        	MainWindow.getInstance().reuseProof(reuseProof);
 	        	waitForNewThread(threadsBefore);
+	        	reusedAProof = true;
 	        }
 	    }
         StrategyProperties sp = s;
@@ -157,38 +159,10 @@ public class AutomatingProof {
         MainWindow.getInstance().getMediator().startAutoMode();
         waitForNewThread(threadsBefore);
         setStatistics();
+        return reusedAProof;
 	 }
-	
-/*	public void startVA5Proof(){
-		try{
-		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-		    Assert.isNotNull(input);
-		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
-		    Assert.isNotNull(proof);
-		    ProofUserManager.getInstance().addUser(proof, environment, this);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
-        choices.put("assertions", "assertions:safe");
-        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
-		Set<Thread>  threadsBefore;
-        StrategyProperties sp = prepareSettingsForVA5();
-        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-        ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplications);
-        ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-        proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplications);
-        proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
-        MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
-        deactivateResultDialog();
-        threadsBefore =Thread.getAllStackTraces().keySet();
-        MainWindow.getInstance().getMediator().startAutoMode();
-        waitForNewThread(threadsBefore);
-        setStatistics();
-	 }*/
-	
-	private void waitForNewThread(Set<Thread> threadsBefore){
+
+	public void waitForNewThread(Set<Thread> threadsBefore){
 		Set<Thread> mafter =Thread.getAllStackTraces().keySet();
     	for(Thread t1: mafter){
     		if(!threadsBefore.contains(t1)){
@@ -208,7 +182,7 @@ public class AutomatingProof {
 	/**
 	 * Sets the needed statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
 	 */
-	private void setStatistics() {
+	public void setStatistics() {
 		Statistics s = proof.statistics();
 		setTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
 		setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
@@ -313,5 +287,9 @@ public class AutomatingProof {
 	
 	public Proof getProof(){
 		return proof;
+	}
+	
+	public void setProof(Proof proof) {
+		this.proof = proof;
 	}
 }

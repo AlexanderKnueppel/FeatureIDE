@@ -50,6 +50,7 @@ import de.uka.ilkd.key.logic.op.IObserverFunction;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
+import de.uka.ilkd.key.util.MiscTools;
 /**
  * This class performs the proofs for a complete project
  * 
@@ -277,9 +278,26 @@ public class AutomatingProject{
 		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		for(AutomatingProof a : ap){
 			try {
+				Set<Thread> threadsBefore;
 				File reuse = getFeatureStubProof(a,featurestubs);
-				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
+				boolean reusedAProof = a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
+				threadsBefore =Thread.getAllStackTraces().keySet();
 				a.saveProof(metaproductPath);
+				a.waitForNewThread(threadsBefore);
+				/*This step is necessary because the statistics are wrong if a proof was reused
+				 *to avoid wrong statistics the proof is reloaded and then the statistics are right
+				 */
+				if(reusedAProof){
+					threadsBefore =Thread.getAllStackTraces().keySet();
+					MainWindow.getInstance().loadProblem(new File(metaproductPath+FILE_SEPERATOR+
+					    	MiscTools.toValidFileName(
+					    			MainWindow.getInstance().getMediator().getSelectedProof().name().toString())+".proof"));
+					a.waitForNewThread(threadsBefore);
+					threadsBefore =Thread.getAllStackTraces().keySet();
+					a.setProof(MainWindow.getInstance().getMediator().getSelectedProof());
+					a.setStatistics();
+					a.waitForNewThread(threadsBefore);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
