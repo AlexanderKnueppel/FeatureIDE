@@ -130,7 +130,9 @@ public class FileManager {
 		Path source = Paths.get(src);
 	    Path destination = Paths.get(target);
 	    try {
-			Files.copy(source, destination);
+	    	if(!destination.toFile().exists()){
+	    		Files.copy(source, destination);
+	    	}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

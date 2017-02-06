@@ -24,29 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.resources.IProject;
-
-import de.ovgu.featureide.core.CorePlugin;
-import de.ovgu.featureide.core.IFeatureProject;
-import de.ovgu.featureide.featurehouse.meta.FeatureStubsGenerator;
-
 public class FeatureStubBuilder {
-	
-	public static void generateAllFeatureStubsForApproach(LinkedList<IProject> projects){
-		for(IProject p: projects){
-			try{
-			IFeatureProject f = CorePlugin.getFeatureProject(p);
-			FeatureStubsGenerator fsg = new FeatureStubsGenerator(f);
-			fsg.generate();
-			}catch (Exception e){
-				System.out.println("Error creating featurestub for project "+p.getName());
-				e.printStackTrace();
-			}
-		}
-	}
 	
 	public static void prepareForVerification(File transactionAccount, File lockAccount){
 		addField("int","balance",null,transactionAccount);

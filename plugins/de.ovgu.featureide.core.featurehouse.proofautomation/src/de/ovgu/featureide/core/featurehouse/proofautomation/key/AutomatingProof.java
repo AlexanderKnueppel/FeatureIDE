@@ -25,8 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.eclipse.core.runtime.Assert;
-import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
+//import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.gui.macros.FinishAbstractProofMacro;
@@ -67,8 +66,6 @@ public class AutomatingProof {
 	 */
 	public AutomatingProof(String typeName, String targetName,String contractName,
              KeYEnvironment<?> environment,Contract contract) {
-		Assert.isNotNull(environment);
-		Assert.isNotNull(contract);
 		this.typeName = typeName;
 		this.targetName = targetName;
 		this.contractName = contractName;
@@ -77,7 +74,7 @@ public class AutomatingProof {
 	}
 	
 	public void deleteProof(){
-		if (this.proof != null) {
+/*		if (this.proof != null) {
 		      ProofUserManager.getInstance().removeUserAndDispose(this.proof, this);
 		      this.proof.dispose();
 		}
@@ -86,7 +83,7 @@ public class AutomatingProof {
 		this.typeName=null;
 		this.targetName=null;
 		this.contractName=null;
-		this.proof=null;
+		this.proof=null;*/
 	}
 	
 	/**
@@ -97,10 +94,8 @@ public class AutomatingProof {
 	public void startAbstractProof(int maxRuleApplication, StrategyProperties s) throws Exception{
 		try {
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-			Assert.isNotNull(input);
 			proof = environment.getUi().createProof(environment.getInitConfig(), input);
-			Assert.isNotNull(proof);
-			ProofUserManager.getInstance().addUser(proof, environment, this);
+//			ProofUserManager.getInstance().addUser(proof, environment, this);
 		} 
 		catch (Exception e) {
 			 	//ToDo
@@ -127,10 +122,8 @@ public class AutomatingProof {
 		boolean reusedAProof = false;
 		try{
 		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-		    Assert.isNotNull(input);
 		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
-		    Assert.isNotNull(proof);
-		    ProofUserManager.getInstance().addUser(proof, environment, this);
+//		    ProofUserManager.getInstance().addUser(proof, environment, this);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

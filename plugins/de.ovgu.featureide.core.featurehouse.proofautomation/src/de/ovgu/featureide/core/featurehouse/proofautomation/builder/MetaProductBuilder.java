@@ -24,40 +24,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-
-import de.ovgu.featureide.core.CorePlugin;
-import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.featurehouse.FeatureHouseComposer;
 
 public class MetaProductBuilder {
 	
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
-	
-	public static void generateAllMetaproductsForApproach(LinkedList<IProject> projects, boolean newMetaproduct){
-		for(IProject p: projects){
-			try{
-				IFeatureProject f = CorePlugin.getFeatureProject(p);
-				FeatureHouseComposer featureHouseComposer = (FeatureHouseComposer) f.getComposer();
-				featureHouseComposer.setBuildMetaProduct(true);
-				IFile config = f.getCurrentConfiguration();
-				if(newMetaproduct){
-					f.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING_DISP);
-				}
-				else{
-					f.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING);
-				}
-				featureHouseComposer.performFullBuild(config);
-			} catch(Exception e){
-				System.out.println("Error building Metaproduct "+p.getName());
-				e.printStackTrace();
-			}
-		}
-	}
 	
 	public static void prepareMetaProduct(File metaproductLocation){
 		File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");

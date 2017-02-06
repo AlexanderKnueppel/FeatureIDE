@@ -23,6 +23,7 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -44,6 +45,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationApproach;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
@@ -150,8 +152,7 @@ public class ProofAutomationComposite extends Composite{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				File f = new File(source.getText());
-				SingleProject sp = new SingleProject(f,1);
-				sp.performEvaluation();
+				startNewJVM.startNewProcess(f);
 			}
 		} );
 		loadPhaseDir.addSelectionListener( new SelectionListener() {

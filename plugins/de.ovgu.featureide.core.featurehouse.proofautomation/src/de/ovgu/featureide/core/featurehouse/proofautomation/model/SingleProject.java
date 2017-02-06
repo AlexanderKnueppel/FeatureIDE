@@ -23,9 +23,6 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-
-import org.eclipse.core.resources.IProject;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
@@ -50,12 +47,28 @@ public class SingleProject extends Evaluation{
 	 */
 	public SingleProject(File f, int evalVersion){
 		super(f);
-		this.evalVersion = evalVersion;
+		if(evalVersion>0){
+			this.evalVersion = evalVersion;
+		}
+		else{
+			this.evalVersion = getApproachVersion();
+		}
 		this.statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 	}
 	
 	public List<AutomatingProof> getProofList(){
 		return proofList;
+	}
+	
+	private int getApproachVersion(){
+		String name = toEvaluate.getParentFile().getName();
+		for(int i = 1; i<=15; i++){
+			String number = String.valueOf(i);
+			if(name.contains(number)){
+				return i;
+			}
+		}
+		return 0;
 	}
 	
 	/**

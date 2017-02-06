@@ -28,11 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
-import org.key_project.monkey.product.ui.model.MonKeYProof;
-import org.key_project.monkey.product.ui.util.MonKeYUtil;
-import org.key_project.util.java.SwingUtil;
-
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
@@ -40,7 +35,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 import de.uka.ilkd.key.collection.ImmutableSet;
 import de.uka.ilkd.key.gui.ClassTree;
 import de.uka.ilkd.key.gui.MainWindow;
-import de.uka.ilkd.key.gui.actions.ExitMainAction;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
@@ -68,11 +62,10 @@ public class AutomatingProject{
 	}
 	
 	public void relaseMemoryOfProject(){
-		for(AutomatingProof a: proofList){
+/*		for(AutomatingProof a: proofList){
 			a.deleteProof();
 		}
-		MainWindow.getInstance().dispose();
-		proofList = null;
+		proofList = null;*/
 	}
 	
 	public List<AutomatingProof> getProofList(){
@@ -247,7 +240,6 @@ public class AutomatingProject{
 				}
 			}
 		}
-		MainWindow.getInstance().dispose();
 	}
 	
 	public static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
@@ -302,7 +294,6 @@ public class AutomatingProject{
 				e.printStackTrace();
 			}
 		}
-		MainWindow.getInstance().dispose();
 //		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
 //		exit.exitMainWithoutInteraction();
 	}

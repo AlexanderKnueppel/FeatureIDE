@@ -21,8 +21,6 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
