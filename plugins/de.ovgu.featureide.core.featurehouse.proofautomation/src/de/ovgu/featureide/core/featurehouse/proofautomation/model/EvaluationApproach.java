@@ -34,6 +34,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 
 /**
  * This class represents a single Evaluation approach 
@@ -124,11 +125,12 @@ public class EvaluationApproach extends Evaluation{
 	 */
 	public void performEvaluation(){
 		for(SingleProject s : projectVersions){
-			s.performEvaluation();
-			this.updateStatistics(s);
-			s = null;
+			startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
 		}
-		projectVersions = null;
+		for(SingleProject s: projectVersions){
+			ExcelManager.updateSingleProjects(s);
+			this.updateStatistics(s);
+		}
 		createXLS();
 	}
 	

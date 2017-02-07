@@ -56,6 +56,17 @@ public class SingleProject extends Evaluation{
 		this.statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 	}
 	
+	public SingleProject(File f, int evalVersion, String evaluatePath){
+		super(f);
+		if(evalVersion>0){
+			this.evalVersion = evalVersion;
+		}
+		else{
+			this.evalVersion = getApproachVersion();
+		}
+		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results.xlsx");
+	}
+	
 	public List<AutomatingProof> getProofList(){
 		return proofList;
 	}

@@ -79,4 +79,20 @@ public abstract class Evaluation {
 		this.appliedRulesSum+=ev.appliedRulesSum;
 		this.automodeTimeSum+=ev.automodeTimeSum;
 	}
+
+	public void setNodeSum(int nodeSum) {
+		this.nodeSum = nodeSum;
+	}
+
+	public void setBranchesSum(int branchesSum) {
+		this.branchesSum = branchesSum;
+	}
+
+	public void setAppliedRulesSum(int appliedRulesSum) {
+		this.appliedRulesSum = appliedRulesSum;
+	}
+
+	public void setAutomodeTimeSum(long automodeTimeSum) {
+		this.automodeTimeSum = automodeTimeSum;
+	}
 }

@@ -152,7 +152,9 @@ public class ProofAutomationComposite extends Composite{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				File f = new File(source.getText());
-				startNewJVM.startNewProcess(f);
+				SingleProject s = new SingleProject(f,0);
+				startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
+				//s.performEvaluation();
 			}
 		} );
 		loadPhaseDir.addSelectionListener( new SelectionListener() {

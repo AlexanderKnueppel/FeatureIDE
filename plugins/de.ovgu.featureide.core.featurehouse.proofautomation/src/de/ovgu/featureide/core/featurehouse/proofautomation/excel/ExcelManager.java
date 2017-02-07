@@ -20,11 +20,18 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.excel;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.WorkbookUtil;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
@@ -114,6 +121,12 @@ public class ExcelManager {
 		    	appraochRows.createCell(5).setCellValue(a.getTime());
 		    	approachRowCount++;
 		    }
+		    Row totalRow = currentProject.createRow(approachRowCount);
+		    totalRow.createCell(0).setCellValue("Total");
+		    totalRow.createCell(2).setCellValue(s.nodeSum);
+		    totalRow.createCell(3).setCellValue(s.branchesSum);
+		    totalRow.createCell(4).setCellValue(s.appliedRulesSum);
+		    totalRow.createCell(5).setCellValue(s.automodeTimeSum);
 		    currentProject.autoSizeColumn(0);
 		    currentProject.autoSizeColumn(1);
 		    currentProject.autoSizeColumn(2);
@@ -154,6 +167,37 @@ public class ExcelManager {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+	}
+	
+	public static void updateSingleProjects(SingleProject s){
+		try{
+			FileInputStream fis = new FileInputStream(s.statistics);
+		    XSSFWorkbook xssfworkbook = new XSSFWorkbook(fis);
+		    XSSFSheet sheet = xssfworkbook.getSheetAt(0);
+		    int lastRowNo = sheet.getLastRowNum();
+		    XSSFRow currentRow;
+		    for(int i = 1; i<lastRowNo; i++){
+		    	currentRow = sheet.getRow(i);
+		    	String type = currentRow.getCell(1).getStringCellValue();
+		    	String target = currentRow.getCell(2).getStringCellValue();
+		    	int nodes = (int)(currentRow.getCell(3).getNumericCellValue());
+		    	int branches = (int)(currentRow.getCell(4).getNumericCellValue());
+		    	int appliedRules = (int)(currentRow.getCell(5).getNumericCellValue());
+		    	long time = (long)(currentRow.getCell(6).getNumericCellValue());
+		    	AutomatingProof a = new AutomatingProof(type,target,nodes,branches,appliedRules,time);
+		    	s.getProofList().add(a);
+		    }
+		    s.updateSum();
+		    XSSFRow lastRow = sheet.getRow(lastRowNo);
+/*		    s.setNodeSum((int)(lastRow.getCell(3).getNumericCellValue()));
+		    s.setBranchesSum((int)(lastRow.getCell(4).getNumericCellValue()));
+		    s.setAppliedRulesSum((int)(lastRow.getCell(5).getNumericCellValue()));
+		    s.setAutomodeTimeSum((int)(lastRow.getCell(6).getNumericCellValue()));*/
+		    xssfworkbook.close();
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		 
 	}
 	
 	public static void generateSingleProjectXLS(SingleProject s){

@@ -73,6 +73,18 @@ public class AutomatingProof {
 		this.contract = contract;
 	}
 	
+	/**
+	 * 
+	 */
+	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, long time) {
+		this.typeName = type;
+		this.targetName = target;
+		this.nodes= nodes;
+		this.branches = branches;
+		this.appliedRules = appliedRules;
+		this.time = time;
+	}
+
 	public void deleteProof(){
 /*		if (this.proof != null) {
 		      ProofUserManager.getInstance().removeUserAndDispose(this.proof, this);
@@ -91,26 +103,34 @@ public class AutomatingProof {
 	 * and with the "Finish abstract proof part" macro
 	 * @throws Exception
 	 */
-	public void startAbstractProof(int maxRuleApplication, StrategyProperties s) throws Exception{
+	public void startAbstractProof(int maxRuleApplication, StrategyProperties sp) throws Exception{
 		try {
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 			proof = environment.getUi().createProof(environment.getInitConfig(), input);
-//			ProofUserManager.getInstance().addUser(proof, environment, this);
+			waitForNewThread(threadsBefore);
 		} 
 		catch (Exception e) {
 			 	//ToDo
 		}
 		// Set proof strategy options
-		StrategyProperties sp = s;
+		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+		waitForNewThread(threadsBefore);
 		// Make sure that the new options are used
+		threadsBefore = Thread.getAllStackTraces().keySet();
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+		waitForNewThread(threadsBefore);
+		threadsBefore = Thread.getAllStackTraces().keySet();
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+		waitForNewThread(threadsBefore);
 		proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
 		proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
 		//Apply Macro "Finish abstract proof part"
 		FinishAbstractProofMacro fapm = new FinishAbstractProofMacro();
+		threadsBefore = Thread.getAllStackTraces().keySet();
 		fapm.applyTo(environment.getMediator(), null, null);
+		waitForNewThread(threadsBefore);
 		setStatistics();
 	}
 	
@@ -118,20 +138,29 @@ public class AutomatingProof {
 	 * Starts a Proof for the Metaproduct Verification with reuseProof for reuse and prepared Settings
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
-	public boolean startMetaProductProof(File reuseProof, StrategyProperties s, int maxRuleApplication){
+	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication){
 		boolean reusedAProof = false;
+		Set<Thread> threadsBeforeStart = Thread.getAllStackTraces().keySet();
 		try{
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
 //		    ProofUserManager.getInstance().addUser(proof, environment, this);
+		    waitForNewThread(threadsBefore);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		waitForNewThread(threadsBeforeStart);
+		Set<Thread>threadsBefore = Thread.getAllStackTraces().keySet();
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+		waitForNewThread(threadsBefore);
+	    threadsBefore = Thread.getAllStackTraces().keySet();
         choices.put("assertions", "assertions:safe");
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
-		Set<Thread>  threadsBefore;
+        waitForNewThread(threadsBefore);
         if(reuseProof!=null){
 	        if(reuseProof.getName().endsWith(".proof")){
 	        	threadsBefore =Thread.getAllStackTraces().keySet();
@@ -140,15 +169,34 @@ public class AutomatingProof {
 	        	reusedAProof = true;
 	        }
 	    }
-        StrategyProperties sp = s;
+        waitForNewThread(threadsBeforeStart);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        try{
         MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+        }
+        catch(Exception e){
+        	e.printStackTrace();
+        }
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         deactivateResultDialog();
-        threadsBefore =Thread.getAllStackTraces().keySet();
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         MainWindow.getInstance().getMediator().startAutoMode();
         waitForNewThread(threadsBefore);
         setStatistics();
@@ -194,7 +242,9 @@ public class AutomatingProof {
             .toString());
 		File proofFile = new File (path+System.getProperty("file.separator")+defaultName+".proof");
 		MainWindow w = MainWindow.getInstance();
+		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		w.saveProof(proofFile);
+		waitForNewThread(threadsBefore);
 		return proofFile;
 	}
 	
