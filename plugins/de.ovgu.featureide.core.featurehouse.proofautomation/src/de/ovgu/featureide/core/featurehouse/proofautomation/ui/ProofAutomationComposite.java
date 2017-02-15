@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
@@ -60,6 +61,11 @@ public class ProofAutomationComposite extends Composite{
 	private File evaluationDir;
 	private List<EvaluationApproach> evaluationPhaseList;
 	private File currentProject;
+	
+	private Text key;
+	private Label keyLabel;
+	private Text keyLibs;
+	private Label keyLibsLabel;
 	
 	private Text source;
 	private Label loadLabel;
@@ -103,8 +109,30 @@ public class ProofAutomationComposite extends Composite{
 	public ProofAutomationComposite(Composite parent, int style) {
 		super(parent, style);
 		setLayout(new GridLayout(1,false));
+		generateConfigPart();
 		generateLoadPart();
 		generateEvaluationPart(style);
+	}
+	
+	private void generateConfigPart(){
+		Group config = new Group(this, 1);
+		config.setText("Configuration");
+		config.setLayout(new GridLayout(1,false));
+		config.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Composite configComposite = new Composite(config, SWT.NONE);
+		configComposite.setLayout(new GridLayout(2,false));
+		configComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		keyLabel = new Label(configComposite, SWT.NONE);
+		keyLabel.setText("Key binary Path:");
+		key = new Text(configComposite, SWT.BORDER);
+		key.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Composite configComposite2 = new Composite(config, SWT.NONE);
+		configComposite2.setLayout(new GridLayout(2,false));
+		configComposite2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		keyLibsLabel = new Label(configComposite2, SWT.NONE);
+		keyLibsLabel.setText("Key Library Path:");
+		keyLibs = new Text(configComposite2, SWT.BORDER);
+		keyLibs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
 	
 	private Group generateLoadPart(){
@@ -138,6 +166,7 @@ public class ProofAutomationComposite extends Composite{
 			}
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				setKey();
 				File f = new File(source.getText());
 				CompleteEvaluation ce = new CompleteEvaluation(f);
 				ce.performEvaluation();
@@ -151,6 +180,7 @@ public class ProofAutomationComposite extends Composite{
 			}
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				setKey();
 				File f = new File(source.getText());
 				SingleProject s = new SingleProject(f,0);
 				startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
@@ -165,6 +195,7 @@ public class ProofAutomationComposite extends Composite{
 			}
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				setKey();
 				File f = new File(source.getText());
 				EvaluationApproach ep = new EvaluationApproach(f);
 				ep.performEvaluation();
@@ -182,6 +213,11 @@ public class ProofAutomationComposite extends Composite{
 		tableCreator(tables,style);
 		
 		return tables;
+	}
+	
+	private void setKey(){
+		Configuration.keyBinPath = key.getText();
+		Configuration.keyLibsPath = keyLibs.getText();
 	}
 	
 	private void tableCreator(Composite parent, int style){

@@ -28,7 +28,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.jobs.Job;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
@@ -41,6 +40,7 @@ import de.ovgu.featureide.fm.ui.handlers.base.SelectionWrapper;
  * 
  * @author Stefanie
  */
+@SuppressWarnings("restriction")
 public class projectWorker {
 	
 	public static LinkedList<IProject> getProjectsByApproach(String approachName){
@@ -59,38 +59,24 @@ public class projectWorker {
 	public static void generateAllFeatureStubsForApproach(LinkedList<IProject> projects){
 		for(IProject p: projects){
 			try{
+				System.out.println(p.toString());
 				final IResource res = (IResource) SelectionWrapper.checkClass(p, IResource.class);
 				final IFeatureProject featureProject = CorePlugin.getFeatureProject(res);
 				if (featureProject != null) {
 					FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
-					Job[] previousJobs =Job.getJobManager().find(null);
 					fsg.generate();
-					Thread.sleep(300);
-//					waitForJobs(previousJobs);
+					while(true){
+						Thread.sleep(100);
+						if(fsg.finished){
+							break;
+						}
+					}
 				}
 			} catch(Exception e){
 				System.out.println("Error building featurestub:");
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
-	}
-	
-	private static void waitForJobs(Job[] previousJobs){
-		Job[] currentJobs =Job.getJobManager().find(null);
-		for(Job j1: currentJobs){
-			if(isNewJob(j1,previousJobs)){
-				while((j1.getState()==Job.RUNNING || j1.getState()==Job.WAITING) && j1.getName().equals("Update Progress"));
-			}
-		}
-	}
-	
-	private static boolean isNewJob(Job j, Job[] previousJobs){
-		for(Job previousJob: previousJobs){
-			if(j.equals(previousJob)){
-				return false;
-			}
-		}
-		return true;
 	}
 	
 	public static void generateAllMetaproductsForApproach(LinkedList<IProject> projects, boolean newMetaproduct){
@@ -107,6 +93,8 @@ public class projectWorker {
 					f.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING);
 				}
 				featureHouseComposer.performFullBuild(config);
+				MetaProductBuilder.prepareMetaProduct(new File(f.getBuildPath()));
+				p.refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch(Exception e){
 				System.out.println("Error building Metaproduct "+p.getName());
 				e.printStackTrace();

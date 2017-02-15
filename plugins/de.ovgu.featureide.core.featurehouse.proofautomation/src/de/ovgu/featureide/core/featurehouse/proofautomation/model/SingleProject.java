@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
@@ -87,7 +86,6 @@ public class SingleProject extends Evaluation{
 	 */
 	public void performEvaluation(){
 		FileManager.initFolders(evaluatePath, evalVersion);
-		MetaProductBuilder.prepareMetaProduct(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 		AutomatingProject aproj = AutomatingProject.getInstance();
 		switch(evalVersion){
 			case 1 :aproj.performVa1(toEvaluate,evaluatePath);
@@ -104,11 +102,6 @@ public class SingleProject extends Evaluation{
 		proofList = aproj.getProofList();
 		updateSum();
 		createXLS();
-		aproj.relaseMemoryOfProject();
-		aproj = null;
-		proofList = null;
-		System.gc();
-		System.out.println();
 	}
 	
 	/**

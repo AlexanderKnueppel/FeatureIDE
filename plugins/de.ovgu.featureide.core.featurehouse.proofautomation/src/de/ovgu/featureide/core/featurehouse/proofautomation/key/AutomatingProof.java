@@ -50,7 +50,6 @@ public class AutomatingProof {
 	private Contract contract;
 	private String typeName;
 	private String targetName;
-	private String contractName;
 	private Proof proof;
 	private int nodes;
 	private int branches;
@@ -68,7 +67,6 @@ public class AutomatingProof {
              KeYEnvironment<?> environment,Contract contract) {
 		this.typeName = typeName;
 		this.targetName = targetName;
-		this.contractName = contractName;
 		this.environment = environment;
 		this.contract = contract;
 	}

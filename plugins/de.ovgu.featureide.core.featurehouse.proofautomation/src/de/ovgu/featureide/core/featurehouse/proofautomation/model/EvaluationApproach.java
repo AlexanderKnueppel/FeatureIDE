@@ -26,14 +26,9 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
-import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 
 /**
@@ -42,6 +37,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
  * 
  * @author Stefanie
  */
+@SuppressWarnings("restriction")
 public class EvaluationApproach extends Evaluation{
 	private List<SingleProject> projectVersions = new LinkedList<SingleProject>(); //contains all project versions
 	
@@ -54,16 +50,16 @@ public class EvaluationApproach extends Evaluation{
 		super(f);
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
-//		generateCode();
+		generateCode();
 	}
 	
 	private void generateCode(){
 		LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
-/*		boolean newMetaproduct = true;
+		boolean newMetaproduct = true;
 		if(getVersionNumber() == 5){
 			newMetaproduct = false;
 		}
-		MetaProductBuilder.generateAllMetaproductsForApproach(projects, newMetaproduct);*/
+		projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
 		if(getVersionNumber()==1){
 			projectWorker.generateAllFeatureStubsForApproach(projects);
 		}

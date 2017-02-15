@@ -24,10 +24,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -188,11 +184,6 @@ public class ExcelManager {
 		    	s.getProofList().add(a);
 		    }
 		    s.updateSum();
-		    XSSFRow lastRow = sheet.getRow(lastRowNo);
-/*		    s.setNodeSum((int)(lastRow.getCell(3).getNumericCellValue()));
-		    s.setBranchesSum((int)(lastRow.getCell(4).getNumericCellValue()));
-		    s.setAppliedRulesSum((int)(lastRow.getCell(5).getNumericCellValue()));
-		    s.setAutomodeTimeSum((int)(lastRow.getCell(6).getNumericCellValue()));*/
 		    xssfworkbook.close();
 		} catch(Exception e){
 			e.printStackTrace();

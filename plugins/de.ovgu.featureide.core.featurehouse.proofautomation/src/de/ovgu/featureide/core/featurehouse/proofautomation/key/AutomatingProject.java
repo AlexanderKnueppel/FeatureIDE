@@ -160,12 +160,12 @@ public class AutomatingProject{
 	 * @param loc
 	 */
 	public void performVa5(File loc, File evalPath){
-/*		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		for(AutomatingProof aproof: proofList){
 			aproof.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication);
 			aproof.saveProof(savePath);
-		}*/
+		}
 	}
 	
 	/**
@@ -294,8 +294,6 @@ public class AutomatingProject{
 				e.printStackTrace();
 			}
 		}
-//		ExitMainAction exit = new ExitMainAction(MainWindow.getInstance());
-//		exit.exitMainWithoutInteraction();
 	}
 	
 	/**

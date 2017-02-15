@@ -70,6 +70,7 @@ public class FeatureStubsGenerator {
 	
 	private String PATH;
 	private IFeatureProject featureProject = null;
+	public boolean finished = false;
 
 	KeYWrapper keyWrapper = null;
 	public FeatureStubsGenerator(IFeatureProject fProject) {
@@ -78,6 +79,7 @@ public class FeatureStubsGenerator {
 	}
 	
 	public boolean generate() {
+		finished = false;
 		featureProject.getComposer().buildFSTModel();
 	
 //		String fhc = FeatureHouseComposer.getClassPaths(featureProject);
@@ -106,11 +108,11 @@ public class FeatureStubsGenerator {
 			@Override
 			public void jobFinished(IJob<ProjectSignatures> finishedJob) {
 				getFeatures(featureProject.getFSTModel().getProjectSignatures());
+				finished = true;
 			}
 			
 		});
 		efsj.schedule();
-		
 		
 		return true;
 	}

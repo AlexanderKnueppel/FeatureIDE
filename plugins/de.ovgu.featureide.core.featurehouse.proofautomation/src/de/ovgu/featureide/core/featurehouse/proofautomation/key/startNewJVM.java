@@ -21,6 +21,8 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
+
+import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.actions.ExitMainAction;
@@ -45,16 +47,16 @@ public class startNewJVM {
 	}
 	
 	public static void startNewProcess(File projectForEvaluation, File evalPath){
-	    String path = "java";
-	    String binPath = "D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\FeatureIDE\\plugins\\de.ovgu.featureide.core.featurehouse.proofautomation\\bin";
-	    String keyPath = "D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\system\\binary";
-	    String keyLibs = "D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\antlr.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\javacc.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\jcoverage.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\junit.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\recoderKey.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\javacc.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\jcoverage.jar;D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars\\junit";
-	    String excelLibs = getDirContent(new File("D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\FeatureIDE\\plugins\\de.ovgu.featureide.core.featurehouse.proofautomation\\lib"));
+		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String binPath = projectPath +"\\bin";
+		String excelLibs = getDirContent(new File(projectPath+"\\lib"));
+	    String keyPath = Configuration.keyBinPath;
+	    String keyLibs = getDirContent(new File(Configuration.keyLibsPath));
 	    String classname = startNewJVM.class.getName();
 	    ProcessBuilder processBuilder = 
-	                new ProcessBuilder(path, "-cp",excelLibs+keyLibs+";"+keyPath+";"+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());
-	    processBuilder.redirectError(new File("Error.txt"));
-	    processBuilder.redirectOutput(new File("Output.txt"));
+	                new ProcessBuilder("java", "-cp",excelLibs+keyLibs+";"+keyPath+";"+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());
+	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+"\\Error.txt"));
+	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+"\\Output.txt"));
 	    try{
 	    	Process process = processBuilder.start();
 	    	process.waitFor();

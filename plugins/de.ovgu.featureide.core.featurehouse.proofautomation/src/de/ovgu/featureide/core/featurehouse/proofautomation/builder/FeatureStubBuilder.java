@@ -53,6 +53,7 @@ public class FeatureStubBuilder {
 			String line = bReader.readLine();
 			while (line != null){     
 				if(Pattern.matches(fieldPattern, line)){
+					bReader.close();
 					return true;
 			    }
 			    line = bReader.readLine();
