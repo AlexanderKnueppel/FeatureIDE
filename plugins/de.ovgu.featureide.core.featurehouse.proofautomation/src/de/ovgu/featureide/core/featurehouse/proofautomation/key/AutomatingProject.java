@@ -30,6 +30,7 @@ import java.util.Set;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
+import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
 import de.uka.ilkd.key.collection.ImmutableSet;
@@ -55,17 +56,10 @@ public class AutomatingProject{
 	
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private List<AutomatingProof> proofList; //contains all proofs of the current project
-	private int maxRuleApplication = 10000; // sets the maximal number of rules to be applicated on one proof
+	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
 	
 	public static AutomatingProject getInstance(){
 		return automatingProject;
-	}
-	
-	public void relaseMemoryOfProject(){
-/*		for(AutomatingProof a: proofList){
-			a.deleteProof();
-		}
-		proofList = null;*/
 	}
 	
 	public List<AutomatingProof> getProofList(){
@@ -242,6 +236,13 @@ public class AutomatingProject{
 		}
 	}
 	
+	/**
+	 * Checks if the proof was already copied from a previous version
+	 * @param a
+	 * @param evalPath
+	 * @param featurestub
+	 * @return
+	 */
 	public static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
 		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+featurestub.getName());
 		File[] proofs = savedProofsPath.listFiles();

@@ -92,9 +92,7 @@ public class CompleteEvaluation extends Evaluation{
 		for(EvaluationApproach e: allApproaches){
 			e.performEvaluation();
 			this.updateStatistics(e);
-			e = null;
 		}
-		allApproaches = null;
 		createXLS();
 	}
 }

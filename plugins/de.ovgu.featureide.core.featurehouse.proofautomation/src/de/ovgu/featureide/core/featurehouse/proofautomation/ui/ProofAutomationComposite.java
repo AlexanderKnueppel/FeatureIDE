@@ -52,7 +52,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationAppr
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
- * TODO description
+ * Prepares the view for eclipse
  * 
  * @author Stefanie
  */

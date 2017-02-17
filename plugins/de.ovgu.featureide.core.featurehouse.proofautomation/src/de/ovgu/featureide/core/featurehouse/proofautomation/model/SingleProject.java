@@ -55,6 +55,13 @@ public class SingleProject extends Evaluation{
 		this.statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 	}
 	
+	/**
+	 * Constructor
+	 * Uses a given evaluatePath instead of a new
+	 * @param f
+	 * @param evalVersion
+	 * @param evaluatePath
+	 */
 	public SingleProject(File f, int evalVersion, String evaluatePath){
 		super(f);
 		if(evalVersion>0){
@@ -70,6 +77,10 @@ public class SingleProject extends Evaluation{
 		return proofList;
 	}
 	
+	/**
+	 * Returns the apporach version according to the directory
+	 * @return
+	 */
 	private int getApproachVersion(){
 		String name = toEvaluate.getParentFile().getName();
 		for(int i = 1; i<=15; i++){

@@ -28,14 +28,17 @@ import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.actions.ExitMainAction;
 
 /**
- * TODO description
+ * This class starts a new JVM to avoid the key memory leak
+ * therefor it needs the key library and the key binary path to start a new program instance correct
+ * for correct usage the eclipse part of the program is not used in the JVM
  * 
  * @author Stefanie
  */
 public class startNewJVM {
 
 	/**
-	 * @param args
+	 * Starts the evaluation for a single project
+	 * @param args [0] contains project path [1] contains the evaluation path
 	 */
 	public static void main(String[] args) {
 		if(args.length >=2 && args[0]!=null && args[1]!=null){
@@ -46,6 +49,12 @@ public class startNewJVM {
 		ema.exitMainWithoutInteraction();
 	}
 	
+	/**
+	 * Starts a new JVM for the evaluation of a single project
+	 * Redirects the Error and Output to the evaluation directory
+	 * @param projectForEvaluation
+	 * @param evalPath
+	 */
 	public static void startNewProcess(File projectForEvaluation, File evalPath){
 		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String binPath = projectPath +"\\bin";
@@ -65,6 +74,11 @@ public class startNewJVM {
 	    }
 	}
 	
+	/**
+	 * Searches a directory for all libraries 
+	 * @param dir
+	 * @return
+	 */
 	private static String getDirContent(File dir){
 		String paths = "";
 		File[] dirContent = dir.listFiles();

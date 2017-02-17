@@ -36,12 +36,16 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationAppr
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
- * TODO description
+ * Saves the evaluation in excel files 
  * 
  * @author Stefanie
  */
 public class ExcelManager {
 	
+	/**
+	 * Generates a summary of all approaches in an xlsx file
+	 * @param c
+	 */
 	public static void generateAllApproachEvaluationXLS(CompleteEvaluation c){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
@@ -75,17 +79,19 @@ public class ExcelManager {
 			wb.write(fOut);
 			fOut.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    try {
 			wb.close();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Generates a summary for a single approach in a xlsx file
+	 * @param ep
+	 */
 	public static void generateSingleApproachEvaluationXLS(EvaluationApproach ep){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
@@ -154,17 +160,20 @@ public class ExcelManager {
 			wb.write(fOut);
 			fOut.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    try {
 			wb.close();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Used to read the results of a single project,
+	 * because the evaluation is executed in an own jvm
+	 * @param s
+	 */
 	public static void updateSingleProjects(SingleProject s){
 		try{
 			FileInputStream fis = new FileInputStream(s.statistics);
@@ -191,6 +200,10 @@ public class ExcelManager {
 		 
 	}
 	
+	/**
+	 * Generates a evaluation summary for a single project
+	 * @param s
+	 */
 	public static void generateSingleProjectXLS(SingleProject s){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
@@ -231,13 +244,11 @@ public class ExcelManager {
 			wb.write(fOut);
 			fOut.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    try {
 			wb.close();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}

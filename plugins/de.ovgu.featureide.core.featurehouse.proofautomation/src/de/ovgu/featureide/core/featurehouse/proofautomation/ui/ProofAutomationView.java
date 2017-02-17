@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
 /**
- * TODO description
+ * Provides the view for the evaluation
  * 
  * @author Stefanie
  */

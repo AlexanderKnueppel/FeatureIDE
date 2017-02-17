@@ -36,13 +36,18 @@ import de.ovgu.featureide.featurehouse.meta.FeatureStubsGenerator;
 import de.ovgu.featureide.fm.ui.handlers.base.SelectionWrapper;
 
 /**
- * TODO description
+ * Works with the projects in the workspace and generates featurestubs and metaproducts
  * 
  * @author Stefanie
  */
 @SuppressWarnings("restriction")
 public class projectWorker {
 	
+	/**
+	 * 
+	 * @param approachName
+	 * @return all projects which belongs to the given approach
+	 */
 	public static LinkedList<IProject> getProjectsByApproach(String approachName){
 		IWorkspaceRoot myWorkspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] allProjects = myWorkspaceRoot.getProjects();
@@ -56,6 +61,10 @@ public class projectWorker {
 		return allProjectsForApproach;
 	}
 	
+	/**
+	 * Generates featurestubs for the given projects
+	 * @param projects
+	 */
 	public static void generateAllFeatureStubsForApproach(LinkedList<IProject> projects){
 		for(IProject p: projects){
 			try{
@@ -66,7 +75,7 @@ public class projectWorker {
 					FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
 					fsg.generate();
 					while(true){
-						Thread.sleep(100);
+						Thread.sleep(100); //necessary because of timing problems 
 						if(fsg.finished){
 							break;
 						}
@@ -79,6 +88,11 @@ public class projectWorker {
 		}
 	}
 	
+	/**
+	 * Generates metaproducts for the given projects
+	 * @param projects
+	 * @param newMetaproduct
+	 */
 	public static void generateAllMetaproductsForApproach(LinkedList<IProject> projects, boolean newMetaproduct){
 		for(IProject p: projects){
 			try{

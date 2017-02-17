@@ -42,7 +42,7 @@ import de.uka.ilkd.key.util.MiscTools;
 /**
  * An AutomatingProof is used to access the key proof and environment 
  * for FeatureStub and Metaproduct Verification
- * @author Stefanie Bolle
+ * @author Stefanie
  *
  */
 public class AutomatingProof {
@@ -72,7 +72,7 @@ public class AutomatingProof {
 	}
 	
 	/**
-	 * 
+	 * Initalizes a proof just to get all evaluation information
 	 */
 	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, long time) {
 		this.typeName = type;
@@ -81,19 +81,6 @@ public class AutomatingProof {
 		this.branches = branches;
 		this.appliedRules = appliedRules;
 		this.time = time;
-	}
-
-	public void deleteProof(){
-/*		if (this.proof != null) {
-		      ProofUserManager.getInstance().removeUserAndDispose(this.proof, this);
-		      this.proof.dispose();
-		}
-		this.environment=null;
-		this.contract=null;
-		this.typeName=null;
-		this.targetName=null;
-		this.contractName=null;
-		this.proof=null;*/
 	}
 	
 	/**
@@ -201,6 +188,11 @@ public class AutomatingProof {
         return reusedAProof;
 	 }
 
+	/**
+	 * Waits for termination of all threads, which were started after threadsBefore
+	 * necessary in key to avoid concurrent modification exception
+	 * @param threadsBefore
+	 */
 	public void waitForNewThread(Set<Thread> threadsBefore){
 		Set<Thread> mafter =Thread.getAllStackTraces().keySet();
     	for(Thread t1: mafter){
@@ -210,6 +202,9 @@ public class AutomatingProof {
     	}
 	}
 	
+	/**
+	 * Deactivates the result dialog which popups in key when a proof is finished
+	 */
 	private void deactivateResultDialog(){
 		NotificationTask task= null;
 		task = MainWindow.getInstance().getNotificationManager().getNotificationTask(NotificationEventID.PROOF_CLOSED);

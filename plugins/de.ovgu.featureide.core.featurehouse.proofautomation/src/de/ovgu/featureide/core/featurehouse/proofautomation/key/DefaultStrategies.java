@@ -24,7 +24,7 @@ import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**
- * TODO description
+ * Contains the strategy sets for the different approaches in key
  * 
  * @author Stefanie
  */

@@ -53,6 +53,9 @@ public class EvaluationApproach extends Evaluation{
 		generateCode();
 	}
 	
+	/**
+	 * Generates the metaproduct and if necessary the featurestub for all projects of the approach
+	 */
 	private void generateCode(){
 		LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 		boolean newMetaproduct = true;

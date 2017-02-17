@@ -47,6 +47,11 @@ public class BuilderUtil {
         }
 	}
 	
+	/**
+	 * Removes the brackets of a variable, so that key gets no error
+	 * @param f java file which contains the variable
+	 * @param var variable which has brackets surrounding it
+	 */
 	public static void removeBracketsOfVar(File f,String var){
 		StringBuffer sbuffer = new StringBuffer();
 		String varPattern = ".*\\(\\s*"+var+"\\s*\\).*";

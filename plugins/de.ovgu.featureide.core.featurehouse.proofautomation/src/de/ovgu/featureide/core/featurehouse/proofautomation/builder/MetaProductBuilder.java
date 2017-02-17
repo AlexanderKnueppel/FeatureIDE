@@ -26,10 +26,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
+/**
+ * 
+ * Contains the methods which works on the metaproduct to adapte the code for key
+ * 
+ * @author Stefanie
+ */
 public class MetaProductBuilder {
 	
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
 	
+	/**
+	 * Prepares the metaproduct for verification
+	 * @param metaproductLocation src folder which contains the metaproduct
+	 */
 	public static void prepareMetaProduct(File metaproductLocation){
 		File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");
 		BuilderUtil.removeBracketsOfVar(account, "lock");
@@ -100,6 +110,12 @@ public class MetaProductBuilder {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param method
+	 * @param metaproductClass
+	 * @return true if the given file contains the given method
+	 */
 	public static boolean checkForMethod(String method, File metaproductClass){
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(metaproductClass));

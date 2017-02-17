@@ -26,8 +26,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+/**
+ * 
+ * Contains the methods which works on the featurestub to adapte the code for key
+ * 
+ * @author Stefanie
+ */
 public class FeatureStubBuilder {
 	
+	/**
+	 * Adding the necessary fields, replaces doubled lock variables in contracts
+	 * and removes superfluous brackets 
+	 * @param transactionAccount Account.java file of the Transaction featurestub
+	 * @param lockAccount Account.java file of the Lock featurestub
+	 */
 	public static void prepareForVerification(File transactionAccount, File lockAccount){
 		addField("int","balance",null,transactionAccount);
 		addField("int","OVERDRAFT_LIMIT",null,transactionAccount);
@@ -38,12 +50,26 @@ public class FeatureStubBuilder {
 		BuilderUtil.removeBracketsOfVar(lockAccount, "lock");
 	}
 	
+	/**
+	 * Adds a field to the code, if it doesn't exist
+	 * @param type type of the field
+	 * @param name name of the field
+	 * @param init declaration of field
+	 * @param f file with java code
+	 */
 	public static void addField(String type, String name,String init,File f){
 		if(!checkForField(type,name,f)){
 			insertField(type,name,init,f);
 		}
 	}
-
+	
+	/**
+	 * Checks if the field already exists in file f
+	 * @param type
+	 * @param name
+	 * @param f
+	 * @return true if it exists
+	 */
 	public static boolean checkForField(String type,String name,File f){
 		type = type.replaceAll("\\[", "\\\\[");
 		type = type.replaceAll("\\]", "\\\\]");
@@ -65,6 +91,13 @@ public class FeatureStubBuilder {
 		return false;
 	}
 	
+	/**
+	 * Adds a field to file f
+	 * @param type
+	 * @param name
+	 * @param init
+	 * @param f
+	 */
 	public static void insertField(String type, String name,String init, File f){
 		String field;
 		if(init==null){
@@ -94,6 +127,10 @@ public class FeatureStubBuilder {
 		
 	}
 	
+	/**
+	 * Replaces lock R E A in the Account.java file of the Transaction featurestub 
+	 * @param f
+	 */
 	public static void replaceLockREA(File f){
 		StringBuffer sbuffer = new StringBuffer();
 		String lockPattern = "\\s*@\\s*(requires_abs|ensures_abs|assignable_abs)\\s*lock(R|E|A)\\s*;.*";

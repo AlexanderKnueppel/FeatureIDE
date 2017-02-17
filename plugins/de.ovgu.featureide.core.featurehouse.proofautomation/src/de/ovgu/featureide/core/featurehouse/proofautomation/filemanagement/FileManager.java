@@ -32,6 +32,12 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 
+ * Contains methods for file organisation
+ * 
+ * @author Stefanie
+ */
 public class FileManager {
 	//Needed directories for verification
 	public final static String evaluationDir = "Evaluation"; //directory that contains all generated files for evaluation
@@ -42,8 +48,14 @@ public class FileManager {
 	public final static String savedProofsDir = "Saved Proofs";  // directory that contains the finished abstract proof part
 	public final static String projectName = "BankAccount"; //Name of the projects, to check wether a directory is a project for evaluation
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
-	public static DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
+	public static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 	
+	/**
+	 * Creates a time stamp directory
+	 * @param d
+	 * @param location
+	 * @return
+	 */
 	public static File createDateDir(Date d, File location){
 		String dirName = dateFormat.format(d);
 		File newDir = new File(location.getAbsolutePath()+FILE_SEPERATOR+dirName);
@@ -51,6 +63,11 @@ public class FileManager {
 		return newDir;
 	}
 	
+	/**
+	 * Returns the directory which was created last
+	 * @param project
+	 * @return
+	 */
 	public static File getCurrentEvaluationPath(File project){
 		File evalPath = new File(project.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
 		File[] subDirs = evalPath.listFiles();
@@ -66,11 +83,23 @@ public class FileManager {
 		return currentEvalPath;
 	}
 	
+	/**
+	 * Returns the first java file of the metaproduct
+	 * needed as parameter for key
+	 * 
+	 * @param projectDir
+	 * @return
+	 */
 	public static File getFirstMetaproductElement(File projectDir){
 		File metaproductPath = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+metaproductDir);
 		return getFirstJavaFile(metaproductPath,metaproductPath.list());
 	}
 	
+	/**
+	 * Returns a list with one java file for each featurestub
+	 * @param projectDir directory of the project
+	 * @return
+	 */
 	public static List<File> getAllFeatureStubFilesOfAProject(File projectDir){
 		File featurestubPath = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
 		String[] featurestubDir = featurestubPath.list();
@@ -88,6 +117,13 @@ public class FileManager {
 		return featureStubFirstFile;
 	}
 	
+	/**
+	 * Returns the first java file of the directory
+	 * needed as parameter for key
+	 * @param path
+	 * @param srcDir
+	 * @return
+	 */
 	private static File getFirstJavaFile(File path,String[] srcDir){
 		for(String file : srcDir){
 			if(file.matches(".*\\.java")){
@@ -97,6 +133,11 @@ public class FileManager {
 		return null;
 	}
 	
+	/**
+	 * Initializes the necessary folders for the verification
+	 * @param evaluateDir
+	 * @param version
+	 */
 	public static void initFolders(File evaluateDir, int version){
 		if(version ==1 || version == 2){
 			createDir(new File(evaluateDir+FILE_SEPERATOR+savedProofsDir));
@@ -105,6 +146,11 @@ public class FileManager {
 		createDir(new File(evaluateDir+FILE_SEPERATOR+finishedProofsDir));
 	}
 	
+	/**
+	 * Creates the directory if it doesn't exist
+	 * @param dir
+	 * @return
+	 */
 	public static File createDir(File dir){
 		if(!dir.exists()){
 			dir.mkdir();
@@ -112,6 +158,10 @@ public class FileManager {
 		return dir;
 	}
 	
+	/**
+	 * Copys the directory with saved proofs from the first phase to the partial proofs for metaproduct directory
+	 * @param evalDir
+	 */
 	public static void copySavedProofsToPartialProofs(File evalDir){
 		File savedProofs = new File(evalDir.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir);
 		File[] saved = savedProofs.listFiles();
@@ -126,6 +176,12 @@ public class FileManager {
 			}
 		}
 	}
+	
+	/**
+	 * Copys a single file from src to target
+	 * @param src
+	 * @param target
+	 */
 	public static void copyFile(String src, String target){
 		Path source = Paths.get(src);
 	    Path destination = Paths.get(target);
@@ -138,6 +194,11 @@ public class FileManager {
 		}
 	}
 	
+	/**
+	 * Copies the partial proofs from a previous version, which can be reused by the current version
+	 * @param versionA
+	 * @param versionB
+	 */
 	public static void copyReusablePartialProofs (File versionA, File versionB){
 		if(versionA.isDirectory()&&versionB.isDirectory()){
 			File featureStubA = new File(versionA.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
@@ -159,6 +220,11 @@ public class FileManager {
 		}
 	}
 	
+	/**
+	 * Copies the reusable proofs for featurestubs of previous versions
+	 * @param evalPath
+	 * @param project
+	 */
 	public static void reuseFeaturestub(File evalPath, File project){
 		File firstProject = getProjectv1Path(project);
 		File firstProjectEvalPath = new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
@@ -172,6 +238,12 @@ public class FileManager {
 		}
 	}
 	
+	/**
+	 * Returns a filelist which contains all proofs which belongs to the given featurestub class
+	 * @param featureStubClass
+	 * @param versionA
+	 * @return
+	 */
 	public static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
 		File featurestub = featureStubClass.getParentFile();
 		String featureStubClassName = featureStubClass.getName().replace(".java", "");
@@ -186,6 +258,12 @@ public class FileManager {
 		return relatedProofs;
 	}
 	
+	/**
+	 * Returns all featurestub files which are equal 
+	 * @param fstubA
+	 * @param fstubB
+	 * @return
+	 */
 	public static List<File> compareFeatureStubs(File fstubA, File fstubB){
 		if(!fstubA.isDirectory()||!fstubB.isDirectory()){
 			return null;
@@ -203,6 +281,12 @@ public class FileManager {
 		return equalFiles;
 	}
 	
+	/**
+	 * Returns the equal files of both directories
+	 * @param dirA
+	 * @param dirB
+	 * @return
+	 */
 	public static List<File> compareDirectory(File dirA, File dirB){
 		if(!dirA.isDirectory()||!dirB.isDirectory()){
 			return null;
@@ -222,6 +306,12 @@ public class FileManager {
 		return equalFiles;
 	}
 	
+	/**
+	 * Compares two files 
+	 * @param a
+	 * @param b
+	 * @return true if the files are equal
+	 */
 	private static boolean filesAreEqual(File a, File b){
 		try {
 			byte[] aBytes = Files.readAllBytes(a.toPath());
@@ -236,7 +326,6 @@ public class FileManager {
 			}
 			return true;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
