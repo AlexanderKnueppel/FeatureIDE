@@ -21,6 +21,7 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
 import java.io.File;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -47,6 +48,9 @@ public class CompleteEvaluation extends Evaluation{
 	 */
 	public CompleteEvaluation(File f){
 		super(f);
+		date = new Date();
+		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
+		evaluatePath = FileManager.createDateDir(date, evalDir);
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
 		setEvaluationApproach();
 	}
@@ -58,7 +62,7 @@ public class CompleteEvaluation extends Evaluation{
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isEvaluationApproach(f) &&!f.getName().equals(FileManager.evaluationDir)){
-				allApproaches.add(new EvaluationApproach(f));
+				allApproaches.add(new EvaluationApproach(f,date));
 			}
 		}
 	}
@@ -82,7 +86,7 @@ public class CompleteEvaluation extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateAllApproachEvaluationXLS(this);;
+		ExcelManager.generateAllApproachEvaluationWithReuseXLS(this);;
 	}
 	
 	/**

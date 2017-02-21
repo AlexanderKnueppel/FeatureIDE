@@ -57,7 +57,7 @@ public class FeatureStubBuilder {
 	 * @param init declaration of field
 	 * @param f file with java code
 	 */
-	public static void addField(String type, String name,String init,File f){
+	private static void addField(String type, String name,String init,File f){
 		if(!checkForField(type,name,f)){
 			insertField(type,name,init,f);
 		}
@@ -70,7 +70,7 @@ public class FeatureStubBuilder {
 	 * @param f
 	 * @return true if it exists
 	 */
-	public static boolean checkForField(String type,String name,File f){
+	private static boolean checkForField(String type,String name,File f){
 		type = type.replaceAll("\\[", "\\\\[");
 		type = type.replaceAll("\\]", "\\\\]");
 		String fieldPattern ="\\s*(public|private|protected)\\s*"+type+"\\s*"+name+".*";
@@ -98,7 +98,7 @@ public class FeatureStubBuilder {
 	 * @param init
 	 * @param f
 	 */
-	public static void insertField(String type, String name,String init, File f){
+	private static void insertField(String type, String name,String init, File f){
 		String field;
 		if(init==null){
 			field = "public "+type+" "+name+"; //Auto-generated field for key verification";
@@ -131,7 +131,7 @@ public class FeatureStubBuilder {
 	 * Replaces lock R E A in the Account.java file of the Transaction featurestub 
 	 * @param f
 	 */
-	public static void replaceLockREA(File f){
+	private static void replaceLockREA(File f){
 		StringBuffer sbuffer = new StringBuffer();
 		String lockPattern = "\\s*@\\s*(requires_abs|ensures_abs|assignable_abs)\\s*lock(R|E|A)\\s*;.*";
 		try {

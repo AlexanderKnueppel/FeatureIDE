@@ -55,6 +55,10 @@ public class AutomatingProof {
 	private int branches;
 	private int appliedRules;
 	private long time;
+	private int reusedNodes;
+	private int reusedBranches;
+	private int reusedAppliedRules;
+	private long reusedTime;
 	/**
 	 * Constructs a new AutomatingProof 
 	 * @param typeName
@@ -72,7 +76,7 @@ public class AutomatingProof {
 	}
 	
 	/**
-	 * Initalizes a proof just to get all evaluation information
+	 * Initializes a proof just to get all evaluation information
 	 */
 	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, long time) {
 		this.typeName = type;
@@ -123,7 +127,7 @@ public class AutomatingProof {
 	 * Starts a Proof for the Metaproduct Verification with reuseProof for reuse and prepared Settings
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
-	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication){
+	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath){
 		boolean reusedAProof = false;
 		Set<Thread> threadsBeforeStart = Thread.getAllStackTraces().keySet();
 		try{
@@ -152,6 +156,15 @@ public class AutomatingProof {
 	        	MainWindow.getInstance().reuseProof(reuseProof);
 	        	waitForNewThread(threadsBefore);
 	        	reusedAProof = true;
+	        	File reusedProof = saveProof(savePath);
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+				MainWindow.getInstance().loadProblem(reusedProof);
+				waitForNewThread(threadsBefore);
+				reusedProof.delete();
+				threadsBefore =Thread.getAllStackTraces().keySet();
+				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
+				setReusedStatistics();
+				waitForNewThread(threadsBefore);
 	        }
 	    }
         waitForNewThread(threadsBeforeStart);
@@ -222,6 +235,17 @@ public class AutomatingProof {
 		setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
 		setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
 		setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
+	}
+	
+	/**
+	 * Sets the needed reused statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
+	 */
+	public void setReusedStatistics() {
+		Statistics s = proof.statistics();
+		setReusedTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
+		setReusedNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
+		setReusedBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
+		setReusedAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
 	}
 	
 	/**
@@ -327,5 +351,61 @@ public class AutomatingProof {
 	
 	public void setProof(Proof proof) {
 		this.proof = proof;
+	}
+
+	/**
+	 * @return the reusedNodes
+	 */
+	public int getReusedNodes() {
+		return reusedNodes;
+	}
+
+	/**
+	 * @param reusedNodes the reusedNodes to set
+	 */
+	public void setReusedNodes(int reusedNodes) {
+		this.reusedNodes = reusedNodes;
+	}
+
+	/**
+	 * @return the reusedBranches
+	 */
+	public int getReusedBranches() {
+		return reusedBranches;
+	}
+
+	/**
+	 * @param reusedBranches the reusedBranches to set
+	 */
+	public void setReusedBranches(int reusedBranches) {
+		this.reusedBranches = reusedBranches;
+	}
+
+	/**
+	 * @return the reusedAppliedRules
+	 */
+	public int getReusedAppliedRules() {
+		return reusedAppliedRules;
+	}
+
+	/**
+	 * @param reusedAppliedRules the reusedAppliedRules to set
+	 */
+	public void setReusedAppliedRules(int reusedAppliedRules) {
+		this.reusedAppliedRules = reusedAppliedRules;
+	}
+
+	/**
+	 * @return the reusedTime
+	 */
+	public long getReusedTime() {
+		return reusedTime;
+	}
+
+	/**
+	 * @param reusedTime the reusedTime to set
+	 */
+	public void setReusedTime(long reusedTime) {
+		this.reusedTime = reusedTime;
 	}
 }

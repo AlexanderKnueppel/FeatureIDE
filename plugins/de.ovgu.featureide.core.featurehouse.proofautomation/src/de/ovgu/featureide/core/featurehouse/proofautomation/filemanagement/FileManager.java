@@ -182,7 +182,7 @@ public class FileManager {
 	 * @param src
 	 * @param target
 	 */
-	public static void copyFile(String src, String target){
+	private static void copyFile(String src, String target){
 		Path source = Paths.get(src);
 	    Path destination = Paths.get(target);
 	    try {
@@ -244,7 +244,7 @@ public class FileManager {
 	 * @param versionA
 	 * @return
 	 */
-	public static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
+	private static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
 		File featurestub = featureStubClass.getParentFile();
 		String featureStubClassName = featureStubClass.getName().replace(".java", "");
 		File previousFS = new File(getCurrentEvaluationPath(versionA.getParentFile())+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName());
@@ -264,7 +264,7 @@ public class FileManager {
 	 * @param fstubB
 	 * @return
 	 */
-	public static List<File> compareFeatureStubs(File fstubA, File fstubB){
+	private static List<File> compareFeatureStubs(File fstubA, File fstubB){
 		if(!fstubA.isDirectory()||!fstubB.isDirectory()){
 			return null;
 		}
@@ -287,7 +287,7 @@ public class FileManager {
 	 * @param dirB
 	 * @return
 	 */
-	public static List<File> compareDirectory(File dirA, File dirB){
+	private static List<File> compareDirectory(File dirA, File dirB){
 		if(!dirA.isDirectory()||!dirB.isDirectory()){
 			return null;
 		}

@@ -77,7 +77,7 @@ public class MetaProductBuilder {
 	 * @param featurestub
 	 * @param methodname
 	 */
-	public static void renameProof(File proof, File featurestub, String methodname){
+	private static void renameProof(File proof, File featurestub, String methodname){
 		File newName = new File(featurestub.getAbsolutePath()+FILE_SEPERATOR+getClassName(proof)+"_"+methodname+".proof");
 		proof.renameTo(newName);
 	}
@@ -88,7 +88,7 @@ public class MetaProductBuilder {
 	 * @param featurestub
 	 * @return
 	 */
-	public static boolean checkForOriginal(File f, String featurestub){
+	private static boolean checkForOriginal(File f, String featurestub){
 		if(f.getAbsolutePath().endsWith(".proof")&!f.getAbsolutePath().contains("inv")){
 			try {
 				BufferedReader bReader = new BufferedReader(new FileReader(f));
@@ -116,7 +116,7 @@ public class MetaProductBuilder {
 	 * @param metaproductClass
 	 * @return true if the given file contains the given method
 	 */
-	public static boolean checkForMethod(String method, File metaproductClass){
+	private static boolean checkForMethod(String method, File metaproductClass){
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(metaproductClass));
             String line = bReader.readLine();
@@ -139,7 +139,7 @@ public class MetaProductBuilder {
 	 * @param f
 	 * @return
 	 */
-	public static String getMethodName(File f){
+	private static String getMethodName(File f){
 		String filename = f.getName();
 		String[] filenameParts = filename.split("\\.");
 		if(filenameParts[0].contains("java")){
@@ -156,7 +156,7 @@ public class MetaProductBuilder {
 	 * @param f
 	 * @return
 	 */
-	public static String getClassName(File f){
+	private static String getClassName(File f){
 		String filename = f.getName();
 		String[] filenameParts = filename.split("\\(");
 		return filenameParts[0];
@@ -169,7 +169,7 @@ public class MetaProductBuilder {
 	 * @param metaproduct
 	 * @return
 	 */
-	public static String getOriginalMethod(String methodname, String featurestub, File metaproduct){
+	private static String getOriginalMethod(String methodname, String featurestub, File metaproduct){
 		try{
 			BufferedReader bReader = new BufferedReader(new FileReader(metaproduct));
 			String line = bReader.readLine();
@@ -203,7 +203,7 @@ public class MetaProductBuilder {
 	 * @param featurestub 
 	 * @param proof
 	 */
-	public static void replaceMethodNamesInPartialProofs(String currentMethodName,String originalMethod
+	private static void replaceMethodNamesInPartialProofs(String currentMethodName,String originalMethod
 			,String featurestub, File proof){
 		StringBuffer sbuffer = new StringBuffer();
 		String originalCall = currentMethodName+"_original_"+featurestub;

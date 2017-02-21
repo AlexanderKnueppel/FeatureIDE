@@ -21,6 +21,7 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
 import java.io.File;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,8 +45,14 @@ public class SingleProject extends Evaluation{
 	 * and sets the statistic file
 	 * @param f
 	 */
-	public SingleProject(File f, int evalVersion){
+	public SingleProject(File f,Date d,int evalVersion){
 		super(f);
+		date = d;
+		if(d == null){
+			date = new Date();
+		}
+		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
+		evaluatePath = FileManager.createDateDir(date, evalDir);
 		if(evalVersion>0){
 			this.evalVersion = evalVersion;
 		}
@@ -64,6 +71,7 @@ public class SingleProject extends Evaluation{
 	 */
 	public SingleProject(File f, int evalVersion, String evaluatePath){
 		super(f);
+		this.evaluatePath = new File(evaluatePath);
 		if(evalVersion>0){
 			this.evalVersion = evalVersion;
 		}
@@ -124,6 +132,10 @@ public class SingleProject extends Evaluation{
 			branchesSum+=ap.getBranches();
 			appliedRulesSum+=ap.getAppliedRules();
 			automodeTimeSum+=ap.getTime();
+			reusedNodeSum+=ap.getReusedNodes();
+			reusedBranchesSum+=ap.getReusedBranches();
+			reusedAppliedRulesSum+=ap.getReusedAppliedRules();
+			reusedAutomodeTimeSum+=ap.getReusedTime();
 		}
 	}
 	
@@ -131,7 +143,7 @@ public class SingleProject extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateSingleProjectXLS(this);;
+		ExcelManager.generateSingleProjectWithReuseXLS(this);;;
 	}
 	
 }

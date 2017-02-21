@@ -35,7 +35,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 
 import de.uka.ilkd.key.collection.ImmutableSet;
 import de.uka.ilkd.key.gui.ClassTree;
-import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
@@ -45,7 +44,6 @@ import de.uka.ilkd.key.logic.op.IObserverFunction;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
-import de.uka.ilkd.key.util.MiscTools;
 /**
  * This class performs the proofs for a complete project
  * 
@@ -119,7 +117,7 @@ public class AutomatingProject{
 				}			
 			}
 			try {
-				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
+				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 				a.saveProof(metaproductPath);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -157,7 +155,7 @@ public class AutomatingProject{
 		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		for(AutomatingProof aproof: proofList){
-			aproof.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication);
+			aproof.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication,savePath);
 			aproof.saveProof(savePath);
 		}
 	}
@@ -173,13 +171,13 @@ public class AutomatingProject{
 	private void fullProofReuse(File location, List<AutomatingProof> a, StrategyProperties s, boolean firstVersion, String savePath){
 		if(firstVersion){
 			for(AutomatingProof aproof: a){
-				aproof.startMetaProductProof(null, s, maxRuleApplication);
+				aproof.startMetaProductProof(null, s, maxRuleApplication,savePath);
 				aproof.saveProof(savePath);
 			}
 		}
 		else{
 			for(AutomatingProof aproof: a){
-				aproof.startMetaProductProof(reuseFullProof(location,aproof), s, maxRuleApplication);
+				aproof.startMetaProductProof(reuseFullProof(location,aproof), s, maxRuleApplication,savePath);
 				aproof.saveProof(savePath);
 			}
 		}
@@ -243,7 +241,7 @@ public class AutomatingProject{
 	 * @param featurestub
 	 * @return
 	 */
-	public static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
+	private static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
 		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+featurestub.getName());
 		File[] proofs = savedProofsPath.listFiles();
 		String defaultName= a.getTypeName()+"__"+a.getTargetName();
@@ -273,24 +271,10 @@ public class AutomatingProject{
 			try {
 				Set<Thread> threadsBefore;
 				File reuse = getFeatureStubProof(a,featurestubs);
-				boolean reusedAProof = a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication);
+				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 				threadsBefore =Thread.getAllStackTraces().keySet();
 				a.saveProof(metaproductPath);
 				a.waitForNewThread(threadsBefore);
-				/*This step is necessary because the statistics are wrong if a proof was reused
-				 *to avoid wrong statistics the proof is reloaded and then the statistics are right
-				 */
-				if(reusedAProof){
-					threadsBefore =Thread.getAllStackTraces().keySet();
-					MainWindow.getInstance().loadProblem(new File(metaproductPath+FILE_SEPERATOR+
-					    	MiscTools.toValidFileName(
-					    			MainWindow.getInstance().getMediator().getSelectedProof().name().toString())+".proof"));
-					a.waitForNewThread(threadsBefore);
-					threadsBefore =Thread.getAllStackTraces().keySet();
-					a.setProof(MainWindow.getInstance().getMediator().getSelectedProof());
-					a.setStatistics();
-					a.waitForNewThread(threadsBefore);
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

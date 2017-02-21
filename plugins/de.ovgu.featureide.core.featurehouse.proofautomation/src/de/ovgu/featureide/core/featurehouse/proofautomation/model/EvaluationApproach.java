@@ -21,6 +21,7 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 
 import java.io.File;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,8 +47,14 @@ public class EvaluationApproach extends Evaluation{
 	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
-	public EvaluationApproach(File f){
+	public EvaluationApproach(File f, Date d){
 		super(f);
+		date = d;
+		if(d== null){
+			date = new Date();
+		}
+		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
+		evaluatePath = FileManager.createDateDir(date, evalDir);
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
 		generateCode();
@@ -93,7 +100,7 @@ public class EvaluationApproach extends Evaluation{
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				projectVersions.add(new SingleProject(f,getVersionNumber()));
+				projectVersions.add(new SingleProject(f,date,getVersionNumber()));
 			}
 		}
 	}
@@ -116,7 +123,7 @@ public class EvaluationApproach extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateSingleApproachEvaluationXLS(this);
+		ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
 	}
 	
 	/**
@@ -127,7 +134,7 @@ public class EvaluationApproach extends Evaluation{
 			startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
 		}
 		for(SingleProject s: projectVersions){
-			ExcelManager.updateSingleProjects(s);
+			ExcelManager.updateSingleProjectsWithReuse(s);
 			this.updateStatistics(s);
 		}
 		createXLS();
