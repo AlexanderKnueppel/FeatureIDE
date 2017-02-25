@@ -28,5 +28,5 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.configuration;
 public class Configuration {
 	public static String keyBinPath; //contains the key binary path (usually system\binary)
 	public static String keyLibsPath; //contains the key library path (usually key-ext-jars)
-	public static int maxRuleApplication = 10000;
+	public static int maxRuleApplication = 100000;
 }

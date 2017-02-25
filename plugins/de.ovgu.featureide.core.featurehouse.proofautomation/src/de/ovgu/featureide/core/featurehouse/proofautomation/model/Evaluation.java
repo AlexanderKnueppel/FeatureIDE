@@ -37,14 +37,10 @@ public abstract class Evaluation {
 	//File where the result of the evaluation is saved
 	public File statistics;
 	//Statistics used for Evaluation
-	public int nodeSum=0;
-	public int branchesSum=0;
-	public int appliedRulesSum=0;
-	public long automodeTimeSum=0;
-	public int reusedNodeSum=0;
-	public int reusedBranchesSum=0;
-	public int reusedAppliedRulesSum=0;
-	public long reusedAutomodeTimeSum=0;
+	public ProofStatistics firstPhase = new ProofStatistics();
+	public ProofStatistics secondPhase = new ProofStatistics(); 
+	public ProofStatistics firstPhaseReuse = new ProofStatistics(); 
+	public ProofStatistics secondPhaseReuse = new ProofStatistics();
 	
 	public Evaluation(File f){
 		toEvaluate = f;
@@ -73,85 +69,9 @@ public abstract class Evaluation {
 	 * @param ev
 	 */
 	public void updateStatistics(Evaluation ev){
-		this.nodeSum+=ev.nodeSum;
-		this.branchesSum+=ev.branchesSum;
-		this.appliedRulesSum+=ev.appliedRulesSum;
-		this.automodeTimeSum+=ev.automodeTimeSum;
-		this.reusedNodeSum+=ev.reusedNodeSum;
-		this.reusedBranchesSum+=ev.reusedBranchesSum;
-		this.reusedAppliedRulesSum+=ev.reusedAppliedRulesSum;
-		this.reusedAutomodeTimeSum+=ev.reusedAutomodeTimeSum;
-	}
-
-	public void setNodeSum(int nodeSum) {
-		this.nodeSum = nodeSum;
-	}
-
-	public void setBranchesSum(int branchesSum) {
-		this.branchesSum = branchesSum;
-	}
-
-	public void setAppliedRulesSum(int appliedRulesSum) {
-		this.appliedRulesSum = appliedRulesSum;
-	}
-
-	public void setAutomodeTimeSum(long automodeTimeSum) {
-		this.automodeTimeSum = automodeTimeSum;
-	}
-
-	/**
-	 * @return the reusedNodeSum
-	 */
-	public int getReusedNodeSum() {
-		return reusedNodeSum;
-	}
-
-	/**
-	 * @param reusedNodeSum the reusedNodeSum to set
-	 */
-	public void setReusedNodeSum(int reusedNodeSum) {
-		this.reusedNodeSum = reusedNodeSum;
-	}
-
-	/**
-	 * @return the reusedBranchesSum
-	 */
-	public int getReusedBranchesSum() {
-		return reusedBranchesSum;
-	}
-
-	/**
-	 * @param reusedBranchesSum the reusedBranchesSum to set
-	 */
-	public void setReusedBranchesSum(int reusedBranchesSum) {
-		this.reusedBranchesSum = reusedBranchesSum;
-	}
-
-	/**
-	 * @return the reusedAppliedRulesSum
-	 */
-	public int getReusedAppliedRulesSum() {
-		return reusedAppliedRulesSum;
-	}
-
-	/**
-	 * @param reusedAppliedRulesSum the reusedAppliedRulesSum to set
-	 */
-	public void setReusedAppliedRulesSum(int reusedAppliedRulesSum) {
-		this.reusedAppliedRulesSum = reusedAppliedRulesSum;
-	}
-
-	/**
-	 * @return the reusedAutomodeTimeSum
-	 */
-	public long getReusedAutomodeTimeSum() {
-		return reusedAutomodeTimeSum;
-	}
-
-	/**
-	 * @param reusedAutomodeTimeSum the reusedAutomodeTimeSum to set
-	 */
-	public void setReusedAutomodeTimeSum(long reusedAutomodeTimeSum) {
-		this.reusedAutomodeTimeSum = reusedAutomodeTimeSum;
+		this.firstPhase.addStatistics(ev.firstPhase);
+		this.secondPhase.addStatistics(ev.secondPhase);
+		this.firstPhaseReuse.addStatistics(ev.firstPhaseReuse);
+		this.secondPhaseReuse.addStatistics(ev.secondPhaseReuse);
 	}
 }

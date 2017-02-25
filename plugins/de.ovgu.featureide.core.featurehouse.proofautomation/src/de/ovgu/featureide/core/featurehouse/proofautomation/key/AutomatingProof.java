@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
 //import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
@@ -51,14 +52,8 @@ public class AutomatingProof {
 	private String typeName;
 	private String targetName;
 	private Proof proof;
-	private int nodes;
-	private int branches;
-	private int appliedRules;
-	private long time;
-	private int reusedNodes;
-	private int reusedBranches;
-	private int reusedAppliedRules;
-	private long reusedTime;
+	private ProofStatistics stat = new ProofStatistics();
+	private ProofStatistics reusedStat = new ProofStatistics();
 	/**
 	 * Constructs a new AutomatingProof 
 	 * @param typeName
@@ -78,13 +73,12 @@ public class AutomatingProof {
 	/**
 	 * Initializes a proof just to get all evaluation information
 	 */
-	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, long time) {
+	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, 
+			long time,int reusedNodes, int reusedBranches, int reusedAppliedRules, long reusedTime) {
 		this.typeName = type;
 		this.targetName = target;
-		this.nodes= nodes;
-		this.branches = branches;
-		this.appliedRules = appliedRules;
-		this.time = time;
+		this.stat = new ProofStatistics(nodes,branches,appliedRules,time);
+		this.reusedStat = new ProofStatistics(reusedNodes,reusedBranches,reusedAppliedRules,reusedTime);
 	}
 	
 	/**
@@ -231,10 +225,10 @@ public class AutomatingProof {
 	 */
 	public void setStatistics() {
 		Statistics s = proof.statistics();
-		setTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
-		setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
-		setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
-		setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
+		stat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
+		stat.setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
+		stat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
+		stat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
 	}
 	
 	/**
@@ -242,10 +236,10 @@ public class AutomatingProof {
 	 */
 	public void setReusedStatistics() {
 		Statistics s = proof.statistics();
-		setReusedTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
-		setReusedNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
-		setReusedBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
-		setReusedAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
+		reusedStat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
+		reusedStat.setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
+		reusedStat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
+		reusedStat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
 	}
 	
 	/**
@@ -281,70 +275,6 @@ public class AutomatingProof {
 		return targetName;
 	}
 	
-	/**
-	 * Returns the Number of Nodes 
-	 * @return nodes
-	 */
-	public int getNodes() {
-		return nodes;
-	}
-	
-	/**
-	 * Sets the Number of Nodes
-	 * @param nodes
-	 */
-	private void setNodes(int nodes) {
-		this.nodes = nodes;
-	}
-	
-	/**
-	 * Returns the Number of Branches
-	 * @return branches
-	 */
-	public int getBranches() {
-		return branches;
-	}
-	
-	/**
-	 * Sets the Number of Branches
-	 * @param branches
-	 */
-	private void setBranches(int branches) {
-		this.branches = branches;
-	}
-	
-	/**
-	 * Returns the Automode time of the proof
-	 * @return time
-	 */
-	public long getTime() {
-		return time;
-	}
-	
-	/**
-	 * Sets the Automode time of the proof
-	 * @param time
-	 */
-	private void setTime(long time) {
-		this.time = time;
-	}
-	
-	/**
-	 * Returns the applied Rules of the Proof
-	 * @return appliedRules
-	 */
-	public int getAppliedRules(){
-		return appliedRules;
-	}
-	
-	/**
-	 * Sets the applied Rules
-	 * @param appliedRules
-	 */
-	private void setAppliedRules(int appliedRules){
-		this.appliedRules = appliedRules;
-	}
-	
 	public Proof getProof(){
 		return proof;
 	}
@@ -354,58 +284,16 @@ public class AutomatingProof {
 	}
 
 	/**
-	 * @return the reusedNodes
+	 * @return the stat
 	 */
-	public int getReusedNodes() {
-		return reusedNodes;
+	public ProofStatistics getStat() {
+		return stat;
 	}
 
 	/**
-	 * @param reusedNodes the reusedNodes to set
+	 * @return the reusedStat
 	 */
-	public void setReusedNodes(int reusedNodes) {
-		this.reusedNodes = reusedNodes;
-	}
-
-	/**
-	 * @return the reusedBranches
-	 */
-	public int getReusedBranches() {
-		return reusedBranches;
-	}
-
-	/**
-	 * @param reusedBranches the reusedBranches to set
-	 */
-	public void setReusedBranches(int reusedBranches) {
-		this.reusedBranches = reusedBranches;
-	}
-
-	/**
-	 * @return the reusedAppliedRules
-	 */
-	public int getReusedAppliedRules() {
-		return reusedAppliedRules;
-	}
-
-	/**
-	 * @param reusedAppliedRules the reusedAppliedRules to set
-	 */
-	public void setReusedAppliedRules(int reusedAppliedRules) {
-		this.reusedAppliedRules = reusedAppliedRules;
-	}
-
-	/**
-	 * @return the reusedTime
-	 */
-	public long getReusedTime() {
-		return reusedTime;
-	}
-
-	/**
-	 * @param reusedTime the reusedTime to set
-	 */
-	public void setReusedTime(long reusedTime) {
-		this.reusedTime = reusedTime;
+	public ProofStatistics getReusedStat() {
+		return reusedStat;
 	}
 }

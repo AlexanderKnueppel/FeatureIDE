@@ -35,6 +35,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
  * @author Stefanie
  */
 public class SingleProject extends Evaluation{
+	private List<AutomatingProof> phase1ProofList = new LinkedList<AutomatingProof>();
 	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>(); //contains all Automating proofs of this project
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private int evalVersion;
@@ -86,6 +87,13 @@ public class SingleProject extends Evaluation{
 	}
 	
 	/**
+	 * @return the phase1ProofList
+	 */
+	public List<AutomatingProof> getPhase1ProofList() {
+		return phase1ProofList;
+	}
+
+	/**
 	 * Returns the apporach version according to the directory
 	 * @return
 	 */
@@ -119,23 +127,25 @@ public class SingleProject extends Evaluation{
 					break;
 		}
 		proofList = aproj.getProofList();
+		phase1ProofList = aproj.getPhase1ProofList();
 		updateSum();
 		createXLS();
+		aproj.setPhase1ProofList(new LinkedList<AutomatingProof>());
 	}
 	
 	/**
 	 * Updates the Statistics 
 	 */
 	public void updateSum(){
+		if(phase1ProofList != null){
+			for(AutomatingProof ap : phase1ProofList){
+				firstPhase.addStatistics(ap.getStat());
+				firstPhaseReuse.addStatistics(ap.getReusedStat());
+			}
+		}
 		for(AutomatingProof ap : proofList){
-			nodeSum+=ap.getNodes();
-			branchesSum+=ap.getBranches();
-			appliedRulesSum+=ap.getAppliedRules();
-			automodeTimeSum+=ap.getTime();
-			reusedNodeSum+=ap.getReusedNodes();
-			reusedBranchesSum+=ap.getReusedBranches();
-			reusedAppliedRulesSum+=ap.getReusedAppliedRules();
-			reusedAutomodeTimeSum+=ap.getReusedTime();
+			secondPhase.addStatistics(ap.getStat());
+			secondPhaseReuse.addStatistics(ap.getReusedStat());
 		}
 	}
 	
@@ -143,7 +153,7 @@ public class SingleProject extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateSingleProjectWithReuseXLS(this);;;
+		ExcelManager.generateSingleProjectWithReuseXLS(this);
 	}
 	
 }

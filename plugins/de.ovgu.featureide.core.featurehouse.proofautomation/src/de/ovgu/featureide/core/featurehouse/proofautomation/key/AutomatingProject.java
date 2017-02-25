@@ -54,6 +54,7 @@ public class AutomatingProject{
 	
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private List<AutomatingProof> proofList; //contains all proofs of the current project
+	private List<AutomatingProof> phase1ProofList = new LinkedList<AutomatingProof>();
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
 	
 	public static AutomatingProject getInstance(){
@@ -64,6 +65,20 @@ public class AutomatingProject{
 		return proofList;
 	}
 	
+	/**
+	 * @return the phase1ProofList
+	 */
+	public List<AutomatingProof> getPhase1ProofList() {
+		return phase1ProofList;
+	}
+
+	/**
+	 * @param phase1ProofList the phase1ProofList to set
+	 */
+	public void setPhase1ProofList(List<AutomatingProof> phase1ProofList) {
+		this.phase1ProofList = phase1ProofList;
+	}
+
 	public void setMaxRuleApplication(int mra){
 		this.maxRuleApplication = mra;
 	}
@@ -95,6 +110,7 @@ public class AutomatingProject{
 		String savePartialProofsPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;
 		File metaproduct = getMetaproduct(loc);
 		List<AutomatingProof> abstractProofs = loadInKeY(metaproduct);
+		phase1ProofList.addAll(abstractProofs);
 		List<File> abstractProofPart = new LinkedList<File>();
 		for(AutomatingProof a : abstractProofs){
 			try {
@@ -221,6 +237,7 @@ public class AutomatingProject{
 			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
 			FileManager.createDir(new File (saveFeatureStubPath));
 			List<AutomatingProof> ap = loadInKeY(f);
+			phase1ProofList.addAll(ap);
 			for(AutomatingProof a : ap){
 				if(firstVersion||!proofAlreadyExists(a,evalPath,f.getParentFile())){
 					try {

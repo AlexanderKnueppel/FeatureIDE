@@ -123,7 +123,12 @@ public class EvaluationApproach extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
+		if(getVersionNumber() >2){
+			ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
+		}
+		else{
+			ExcelManager.generateSingleApproachTwoPhaseEvaluationWithReuseXLS(this);
+		}
 	}
 	
 	/**
