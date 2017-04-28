@@ -23,21 +23,25 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
+import de.uka.ilkd.key.collection.ImmutableList;
 //import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.gui.macros.FinishAbstractProofMacro;
 import de.uka.ilkd.key.gui.notification.NotificationEventID;
 import de.uka.ilkd.key.gui.notification.NotificationTask;
+import de.uka.ilkd.key.proof.Goal;
 import de.uka.ilkd.key.proof.Proof;
 import de.uka.ilkd.key.proof.Proof.Statistics;
 import de.uka.ilkd.key.proof.init.ProofOblInput;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
+import de.uka.ilkd.key.symbolic_execution.util.SymbolicExecutionUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
 /**
@@ -189,11 +193,28 @@ public class AutomatingProof {
         deactivateResultDialog();
         waitForNewThread(threadsBefore);
         threadsBefore = Thread.getAllStackTraces().keySet();
-        MainWindow.getInstance().getMediator().startAutoMode();
+        while(!proof.openEnabledGoals().isEmpty()&&goalHasApplicableRules()){
+        	threadsBefore = Thread.getAllStackTraces().keySet();
+        	MainWindow.getInstance().getMediator().startAutoMode();
+        	waitForNewThread(threadsBefore);
+        }
+        if(!proof.openGoals().isEmpty()){
+        	System.out.println(this.targetName+this.typeName+" was not closed");
+        }
         waitForNewThread(threadsBefore);
         setStatistics();
         return reusedAProof;
 	 }
+	
+	public boolean goalHasApplicableRules(){
+		ImmutableList<Goal> goals = proof.openGoals();
+		for(Goal g: goals){
+			if(SymbolicExecutionUtil.hasApplicableRules(g)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Waits for termination of all threads, which were started after threadsBefore

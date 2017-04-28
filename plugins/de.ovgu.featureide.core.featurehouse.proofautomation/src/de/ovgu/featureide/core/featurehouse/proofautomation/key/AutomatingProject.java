@@ -177,6 +177,17 @@ public class AutomatingProject{
 	}
 	
 	/**
+	 * Performs the evaluation of approach 6 Thuem et al with Reuse
+	 * @param loc
+	 */
+	public void performVa6(File loc, File evalPath){
+		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		boolean firstVersion = loc.getName().contains("1");
+		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+	}
+	
+	/**
 	 * Performs a Verification where the proofs of the first version are reused for the other versions
 	 * @param location : path of the current project 
 	 * @param a : list of all proofs of the current project
@@ -412,7 +423,9 @@ public class AutomatingProject{
             for (IObserverFunction target : targets) {
                 ImmutableSet<Contract> contracts = environment.getSpecificationRepository().getContracts(type, target);
                 for (Contract contract : contracts) {
+                	if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
                     proofs.add(new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract));
+                	}
                 }
             }
         }
