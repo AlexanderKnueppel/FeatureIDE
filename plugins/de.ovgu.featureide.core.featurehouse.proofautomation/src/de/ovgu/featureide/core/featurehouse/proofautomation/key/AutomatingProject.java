@@ -162,7 +162,6 @@ public class AutomatingProject{
 		boolean firstVersion = loc.getName().contains("1");
 		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
 	}
-	
 	/**
 	 * Performs the evaluation of approach 5 Thuem et al
 	 * @param loc

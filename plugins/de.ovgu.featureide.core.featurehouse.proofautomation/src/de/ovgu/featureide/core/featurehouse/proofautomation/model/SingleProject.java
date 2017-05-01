@@ -127,6 +127,13 @@ public class SingleProject extends Evaluation{
 			case 5 :aproj.performVa5(toEvaluate,evaluatePath);
 					break;
 			case 6 :aproj.performVa6(toEvaluate,evaluatePath);
+					break;
+			case 7 :aproj.performVa2(toEvaluate,evaluatePath);
+					break;
+			case 8 :aproj.performVa3(toEvaluate,evaluatePath);
+					break;
+			case 9 :aproj.performVa5(toEvaluate,evaluatePath);
+					break;
 		}
 		proofList = aproj.getProofList();
 		phase1ProofList = aproj.getPhase1ProofList();

@@ -66,7 +66,8 @@ public class EvaluationApproach extends Evaluation{
 	private void generateCode(){
 		LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 		boolean newMetaproduct = true;
-		if(getVersionNumber() == 5){
+		int version = getVersionNumber();
+		if(version == 5||version == 6||version == 7||version == 8){
 			newMetaproduct = false;
 		}
 		projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
