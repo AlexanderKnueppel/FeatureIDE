@@ -388,6 +388,26 @@ public class AutomatingProject{
 		}
 		return proofs;
 	}
+	/**
+	 * 
+	 */
+	public void warmUp(File location){
+		AutomatingProof account = getAccountConstructor(location);
+		if(account!=null){
+			account.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication, null);
+			account.getProof().pruneProof(account.getProof().root());
+		}
+	}
+	
+	public AutomatingProof getAccountConstructor(File location){
+		List<AutomatingProof> proofs = loadInKeY(location);
+		for(AutomatingProof ap: proofs){
+			if(ap.getTypeName().contains("Account")&&ap.getTargetName().contains("Account")){
+				return ap;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Loads the selected File location in KeY and returns the list of AutomatingProofs

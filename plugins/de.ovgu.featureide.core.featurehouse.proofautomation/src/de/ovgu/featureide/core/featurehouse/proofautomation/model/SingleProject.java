@@ -114,6 +114,7 @@ public class SingleProject extends Evaluation{
 	public void performEvaluation(){
 		FileManager.initFolders(evaluatePath, evalVersion);
 		AutomatingProject aproj = AutomatingProject.getInstance();
+		aproj.warmUp(FileManager.getFirstMetaproductElement(toEvaluate));
 		switch(evalVersion){
 			case 1 :aproj.performVa1(toEvaluate,evaluatePath);
 					break;
