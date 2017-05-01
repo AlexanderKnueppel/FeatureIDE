@@ -52,11 +52,12 @@ public class ExcelManager {
 		Workbook wb = new XSSFWorkbook();
 		CreationHelper crHelper = wb.getCreationHelper();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
-	    fullEvaluationTitles(total,crHelper);
+	    Row curRow = fullEvaluationTitles(total,crHelper,8);
+	    fullOptionTitles(curRow,crHelper,1);
 	    Sheet phaseOne = wb.createSheet(WorkbookUtil.createSafeSheetName("First Phase"));
-	    fullEvaluationTitles(phaseOne,crHelper);
+	    fullEvaluationTitles(phaseOne,crHelper,1);
 	    Sheet phaseTwo = wb.createSheet(WorkbookUtil.createSafeSheetName("Second Phase"));
-	    fullEvaluationTitles(phaseTwo,crHelper);	    
+	    fullEvaluationTitles(phaseTwo,crHelper,1);	    
 	    int rowcounter = 2;
 	    for(EvaluationApproach e: c.getAllApproaches()){
 	    	ProofStatistics reuse = new ProofStatistics();
@@ -65,9 +66,10 @@ public class ExcelManager {
 		    ProofStatistics stat = new ProofStatistics();
 		    stat.addStatistics(e.firstPhase);
 		    stat.addStatistics(e.secondPhase);
-	    	proofLists(total,crHelper, e.toEvaluate.getName(),reuse,stat, rowcounter);
-	    	proofLists(phaseOne,crHelper, e.toEvaluate.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter);
-	    	proofLists(phaseTwo,crHelper, e.toEvaluate.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter);
+	    	Row totalCurRow = proofLists(8,total,crHelper, e.toEvaluate.getName(),reuse,stat, rowcounter);
+	    	addOptions(1,crHelper, totalCurRow,e);
+	    	proofLists(1,phaseOne,crHelper, e.toEvaluate.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter);
+	    	proofLists(1,phaseTwo,crHelper, e.toEvaluate.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter);
 	    	rowcounter++;
 	    }
 	    autosizeColumns(total,9);
@@ -87,32 +89,98 @@ public class ExcelManager {
 		}
 	}
 	
-	private static void proofLists(Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter){
-		Row approachRow = s.createRow(rowcounter);
-    	approachRow.createCell(1).setCellValue(crHelper.createRichTextString(name));
-    	approachRow.createCell(2).setCellValue(reuse.getNodes());
-    	approachRow.createCell(3).setCellValue(reuse.getBranches());
-    	approachRow.createCell(4).setCellValue(reuse.getAppliedRules());
-    	approachRow.createCell(5).setCellValue(reuse.getAutomodeTime());
-    	approachRow.createCell(6).setCellValue(stat.getNodes());
-    	approachRow.createCell(7).setCellValue(stat.getBranches());
-    	approachRow.createCell(8).setCellValue(stat.getAppliedRules());
-    	approachRow.createCell(9).setCellValue(stat.getAutomodeTime());
+	private static void addOptions(int firstColumn,CreationHelper crHelper, Row curRow,EvaluationApproach e){
+		int version = e.getVersionNumber();
+		//Feature-based Phase
+		if(version==1){
+			curRow.createCell(firstColumn).setCellValue(1);
+		}
+		else{
+			curRow.createCell(firstColumn).setCellValue(0);
+		}
+		//Abstract Contracts
+		if(version==1||version==2||version==7){
+			curRow.createCell(firstColumn+1).setCellValue(1);
+		}
+		else{
+			curRow.createCell(firstColumn+1).setCellValue(0);
+		}
+		//Method Call Treatment
+		if(version==1||version==2||version==3||version==7||version==8){
+			curRow.createCell(firstColumn+2).setCellValue(crHelper.createRichTextString("Contracting"));;
+		}
+		else{
+			curRow.createCell(firstColumn+2).setCellValue(crHelper.createRichTextString("Inlining"));;
+		}
+		//MetaProduct Generation
+		if(version==1||version==2||version==3||version==4||version==9){
+			curRow.createCell(firstColumn+3).setCellValue(crHelper.createRichTextString("With Dispatcher"));
+		}
+		else{
+			curRow.createCell(firstColumn+3).setCellValue(crHelper.createRichTextString("Without Dispatcher"));
+		}
+		//Proof Replay Feature Phase
+		if(version==1){
+			curRow.createCell(firstColumn+4).setCellValue(1);
+		}
+		else{
+			curRow.createCell(firstColumn+4).setCellValue(0);
+		}
+		//Proof Replay FAM Phase
+		if(version==2||version==3||version==4||version==6||version==7||version==8){
+			curRow.createCell(firstColumn+5).setCellValue(1);
+		}
+		else{
+			curRow.createCell(firstColumn+5).setCellValue(0);
+		}
+		//Assignable
+		if(version==1||version==2||version==3||version==4||version==5||version==6||version==7||version==8||version==9){
+			curRow.createCell(firstColumn+6).setCellValue(1);
+		}
+		else{
+			curRow.createCell(firstColumn+6).setCellValue(0);
+		}
 	}
-	private static void fullEvaluationTitles(Sheet s, CreationHelper crHelper){
+	
+	private static Row proofLists(int firstColumn, Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter){
+		Row approachRow = s.createRow(rowcounter);
+    	approachRow.createCell(firstColumn).setCellValue(crHelper.createRichTextString(name));
+    	approachRow.createCell(firstColumn+1).setCellValue(reuse.getNodes());
+    	approachRow.createCell(firstColumn+2).setCellValue(reuse.getBranches());
+    	approachRow.createCell(firstColumn+3).setCellValue(reuse.getAppliedRules());
+    	approachRow.createCell(firstColumn+4).setCellValue(reuse.getAutomodeTime());
+    	approachRow.createCell(firstColumn+5).setCellValue(stat.getNodes());
+    	approachRow.createCell(firstColumn+6).setCellValue(stat.getBranches());
+    	approachRow.createCell(firstColumn+7).setCellValue(stat.getAppliedRules());
+    	approachRow.createCell(firstColumn+8).setCellValue(stat.getAutomodeTime());
+    	return approachRow;
+	}
+	private static Row fullEvaluationTitles(Sheet s, CreationHelper crHelper, int start){
 		Row firstRow = s.createRow(0);
 	    firstRow.createCell(0).setCellValue(crHelper.createRichTextString("Evolution"));
 		Row secondRow = s.createRow(1);
-	    secondRow.createCell(1).setCellValue(crHelper.createRichTextString("Approach"));
-	    secondRow.createCell(2).setCellValue(crHelper.createRichTextString("Reused Proof Steps"));
-	    secondRow.createCell(3).setCellValue(crHelper.createRichTextString("Reused Branches"));
-	    secondRow.createCell(4).setCellValue(crHelper.createRichTextString("Reused Applied Rules"));
-	    secondRow.createCell(5).setCellValue(crHelper.createRichTextString("ReusedProof Time"));
-	    secondRow.createCell(6).setCellValue(crHelper.createRichTextString("Proof Steps"));
-	    secondRow.createCell(7).setCellValue(crHelper.createRichTextString("Branches"));
-	    secondRow.createCell(8).setCellValue(crHelper.createRichTextString("Applied Rules"));
-	    secondRow.createCell(9).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    secondRow.createCell(start).setCellValue(crHelper.createRichTextString("Approach"));
+	    secondRow.createCell(start+1).setCellValue(crHelper.createRichTextString("Reused Proof Steps"));
+	    secondRow.createCell(start+2).setCellValue(crHelper.createRichTextString("Reused Branches"));
+	    secondRow.createCell(start+3).setCellValue(crHelper.createRichTextString("Reused Applied Rules"));
+	    secondRow.createCell(start+4).setCellValue(crHelper.createRichTextString("ReusedProof Time"));
+	    secondRow.createCell(start+5).setCellValue(crHelper.createRichTextString("Proof Steps"));
+	    secondRow.createCell(start+6).setCellValue(crHelper.createRichTextString("Branches"));
+	    secondRow.createCell(start+7).setCellValue(crHelper.createRichTextString("Applied Rules"));
+	    secondRow.createCell(start+8).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    return secondRow;
 	}
+	
+	private static void fullOptionTitles(Row secondRow, CreationHelper crHelper,int start){
+	    secondRow.createCell(start).setCellValue(crHelper.createRichTextString("Feature-based Phase"));
+	    secondRow.createCell(start+1).setCellValue(crHelper.createRichTextString("Abstract Contracts"));
+	    secondRow.createCell(start+2).setCellValue(crHelper.createRichTextString("Method Call Treatment"));
+	    secondRow.createCell(start+3).setCellValue(crHelper.createRichTextString("Meta-Product Generation"));
+	    secondRow.createCell(start+4).setCellValue(crHelper.createRichTextString("Proof Replay FEATURE"));
+	    secondRow.createCell(start+5).setCellValue(crHelper.createRichTextString("Proof Replay FAM"));
+	    secondRow.createCell(start+6).setCellValue(crHelper.createRichTextString("Assignable"));
+	}
+	
 	
 	public static void generateSingleApproachEvaluationWithReuseXLS(EvaluationApproach ep){
 		Workbook wb = new XSSFWorkbook();
