@@ -23,7 +23,6 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.excel;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.*;
@@ -35,6 +34,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationApproach;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
@@ -66,13 +66,13 @@ public class ExcelManager {
 		    ProofStatistics stat = new ProofStatistics();
 		    stat.addStatistics(e.firstPhase);
 		    stat.addStatistics(e.secondPhase);
-	    	Row totalCurRow = proofLists(8,total,crHelper, e.toEvaluate.getName(),reuse,stat, rowcounter);
+	    	Row totalCurRow = proofLists(8,total,crHelper, e.toEvaluate.getName(),reuse,stat, rowcounter,e);
 	    	addOptions(1,crHelper, totalCurRow,e);
-	    	proofLists(1,phaseOne,crHelper, e.toEvaluate.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter);
-	    	proofLists(1,phaseTwo,crHelper, e.toEvaluate.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter);
+	    	proofLists(1,phaseOne,crHelper, e.toEvaluate.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter,e);
+	    	proofLists(1,phaseTwo,crHelper, e.toEvaluate.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter,e);
 	    	rowcounter++;
 	    }
-	    autosizeColumns(total,9);
+	    autosizeColumns(total,20);
 	    autosizeColumns(phaseOne,9);
 	    autosizeColumns(phaseTwo,9);
 	    try {
@@ -88,6 +88,7 @@ public class ExcelManager {
 			e1.printStackTrace();
 		}
 	}
+	
 	
 	private static void addOptions(int firstColumn,CreationHelper crHelper, Row curRow,EvaluationApproach e){
 		int version = e.getVersionNumber();
@@ -142,7 +143,7 @@ public class ExcelManager {
 		}
 	}
 	
-	private static Row proofLists(int firstColumn, Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter){
+	private static Row proofLists(int firstColumn, Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter,EvaluationApproach e){
 		Row approachRow = s.createRow(rowcounter);
     	approachRow.createCell(firstColumn).setCellValue(crHelper.createRichTextString(name));
     	approachRow.createCell(firstColumn+1).setCellValue(reuse.getNodes());
@@ -153,6 +154,9 @@ public class ExcelManager {
     	approachRow.createCell(firstColumn+6).setCellValue(stat.getBranches());
     	approachRow.createCell(firstColumn+7).setCellValue(stat.getAppliedRules());
     	approachRow.createCell(firstColumn+8).setCellValue(stat.getAutomodeTime());
+    	if(s.getSheetName().equals("Total")){
+    		approachRow.createCell(firstColumn+9).setCellValue(crHelper.createRichTextString((e.proofs-e.failedProofs)+"\\"+e.proofs));
+    	}
     	return approachRow;
 	}
 	private static Row fullEvaluationTitles(Sheet s, CreationHelper crHelper, int start){
@@ -168,6 +172,9 @@ public class ExcelManager {
 	    secondRow.createCell(start+6).setCellValue(crHelper.createRichTextString("Branches"));
 	    secondRow.createCell(start+7).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    secondRow.createCell(start+8).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    if(s.getSheetName().equals("Total")){
+	    	secondRow.createCell(start+9).setCellValue(crHelper.createRichTextString("Closed Proofs"));
+	    }
 	    return secondRow;
 	}
 	
@@ -186,6 +193,7 @@ public class ExcelManager {
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
+	    createMethodSheet(wb,crHelper,ep.getAllDisjointProofs());
 	    Row firstRow = total.createRow(0);
 	    firstRow.createCell(0).setCellValue(crHelper.createRichTextString("Evolution"));
 	    firstRow.createCell(2).setCellValue(crHelper.createRichTextString("Reused Proof Steps"));
@@ -196,14 +204,15 @@ public class ExcelManager {
 	    firstRow.createCell(7).setCellValue(crHelper.createRichTextString("Branches"));
 	    firstRow.createCell(8).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    firstRow.createCell(9).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Closed"));
 	    int rowcounter = 1;
 	    for(SingleProject s: ep.getProjectVersion()){
 	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.toEvaluate.getName()));
 	    	createColumnTitles(currentProject,crHelper);
 	    	int rowcount = 1;
 		    rowcount = createProofListsForApproach(s.getProofList(),currentProject,crHelper,rowcount);
-		    createLastRowForApproach(s.secondPhaseReuse,s.secondPhase,currentProject,crHelper,rowcount,"Total");
-		    autosizeColumns(currentProject,10);
+		    createLastRowForApproach(s.secondPhaseReuse,s.secondPhase,currentProject,crHelper,rowcount,"Total",s);
+		    autosizeColumns(currentProject,11);
 	    }
 	    for(SingleProject s : ep.getProjectVersion()){
 	    	Row appraochRow = total.createRow(rowcounter);
@@ -216,6 +225,7 @@ public class ExcelManager {
 	    	appraochRow.createCell(7).setCellValue(s.secondPhase.getBranches());
 	    	appraochRow.createCell(8).setCellValue(s.secondPhase.getAppliedRules());
 	    	appraochRow.createCell(9).setCellValue(s.secondPhase.getAutomodeTime());
+	    	appraochRow.createCell(10).setCellValue(crHelper.createRichTextString((s.proofs-s.failedProofs)+"\\"+s.proofs));
 	    	rowcounter++;
 	    }
 	    Row totalTwoRow = total.createRow(rowcounter);
@@ -228,7 +238,8 @@ public class ExcelManager {
 	    totalTwoRow.createCell(7).setCellValue(ep.secondPhase.getBranches());
 	    totalTwoRow.createCell(8).setCellValue(ep.secondPhase.getAppliedRules());
 	    totalTwoRow.createCell(9).setCellValue(ep.secondPhase.getAutomodeTime());
-	    autosizeColumns(total,9);
+	    totalTwoRow.createCell(10).setCellValue(crHelper.createRichTextString((ep.proofs-ep.failedProofs)+"\\"+ep.proofs));
+	    autosizeColumns(total,10);
 	    try {
 	    	FileOutputStream fOut = new FileOutputStream(ep.statistics);
 			wb.write(fOut);
@@ -247,6 +258,7 @@ public class ExcelManager {
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
+	    createMethodSheet(wb,crHelper,ep.getAllDisjointProofs());
 	    Row firstRow = total.createRow(0);
 	    firstRow.createCell(0).setCellValue(crHelper.createRichTextString("Evolution"));
 	    firstRow.createCell(2).setCellValue(crHelper.createRichTextString("Reused Proof Steps"));
@@ -257,6 +269,7 @@ public class ExcelManager {
 	    firstRow.createCell(7).setCellValue(crHelper.createRichTextString("Branches"));
 	    firstRow.createCell(8).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    firstRow.createCell(9).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Closed"));
 	    Row secondRow = total.createRow(1);
 	    secondRow.createCell(0).setCellValue(crHelper.createRichTextString("First Phase"));
 	    int rowcounter = 2;
@@ -269,13 +282,13 @@ public class ExcelManager {
     		phaseRow.createCell(0).setCellValue(crHelper.createRichTextString("First Phase"));
     		rowcount++;
     		rowcount = createProofListsForApproach(s.getPhase1ProofList(),currentProject,crHelper,rowcount);
-    		createLastRowForApproach(s.firstPhaseReuse,s.firstPhase,currentProject,crHelper,rowcount,"First Phase Total");
+    		createLastRowForApproach(s.firstPhaseReuse,s.firstPhase,currentProject,crHelper,rowcount,"First Phase Total",s);
     		rowcount++;
     		phaseRow = currentProject.createRow(rowcount);
     		phaseRow.createCell(0).setCellValue(crHelper.createRichTextString("Second Phase"));
     		rowcount++;
 		    rowcount = createProofListsForApproach(s.getProofList(),currentProject,crHelper,rowcount);
-		    createLastRowForApproach(s.secondPhaseReuse,s.secondPhase,currentProject,crHelper,rowcount,"Second Phase Total");
+		    createLastRowForApproach(s.secondPhaseReuse,s.secondPhase,currentProject,crHelper,rowcount,"Second Phase Total",s);
 		    rowcount++;
 		    ProofStatistics reuseSum = new ProofStatistics();
 		    reuseSum.addStatistics(s.firstPhaseReuse);
@@ -283,8 +296,8 @@ public class ExcelManager {
 		    ProofStatistics sum = new ProofStatistics();
 		    sum.addStatistics(s.firstPhase);
 		    sum.addStatistics(s.secondPhase);
-		    createLastRowForApproach(reuseSum,sum,currentProject,crHelper,rowcount,"Total");
-		    autosizeColumns(currentProject,10);
+		    createLastRowForApproach(reuseSum,sum,currentProject,crHelper,rowcount,"Total",s);
+		    autosizeColumns(currentProject,11);
 		    countProjects++;
 	    }
 	    Row totalOneRow = total.createRow(rowcounter+countProjects);
@@ -320,6 +333,7 @@ public class ExcelManager {
 	    	appraochRow.createCell(7).setCellValue(s.secondPhase.getBranches());
 	    	appraochRow.createCell(8).setCellValue(s.secondPhase.getAppliedRules());
 	    	appraochRow.createCell(9).setCellValue(s.secondPhase.getAutomodeTime());
+	    	appraochRow.createCell(10).setCellValue(crHelper.createRichTextString((s.proofs-s.failedProofs)+"\\"+s.proofs));
 	    	rowcounter++;
 	    }
 	    Row totalTwoRow = total.createRow(rowcounter+countProjects+2);
@@ -348,7 +362,8 @@ public class ExcelManager {
 	    lastRow.createCell(7).setCellValue(stat.getBranches());
 	    lastRow.createCell(8).setCellValue(stat.getAppliedRules());
 	    lastRow.createCell(9).setCellValue(stat.getAutomodeTime());
-	    autosizeColumns(total,9);
+	    lastRow.createCell(10).setCellValue(crHelper.createRichTextString((ep.proofs-ep.failedProofs)+"\\"+ep.proofs));
+	    autosizeColumns(total,10);
 	    try {
 	    	FileOutputStream fOut = new FileOutputStream(ep.statistics);
 			wb.write(fOut);
@@ -363,6 +378,27 @@ public class ExcelManager {
 		}
 	}
 	
+	private static void createMethodSheet(Workbook wb, CreationHelper crHelper,List<EvaluationProof> ep){
+		Sheet s = wb.createSheet(WorkbookUtil.createSafeSheetName("Method Proof Statistics"));
+		createColumnTitles(s,crHelper);
+		int rowcounter = 1;
+		for(EvaluationProof e: ep){
+	    	Row approachRows = s.createRow(rowcounter);
+	    	approachRows.createCell(1).setCellValue(crHelper.createRichTextString(e.getType()));
+	    	approachRows.createCell(2).setCellValue(crHelper.createRichTextString(e.getTarget()));
+	    	approachRows.createCell(3).setCellValue(e.getReusedSum().getNodes());
+	    	approachRows.createCell(4).setCellValue(e.getReusedSum().getBranches());
+	    	approachRows.createCell(5).setCellValue(e.getReusedSum().getAppliedRules());
+	    	approachRows.createCell(6).setCellValue(e.getReusedSum().getAutomodeTime());
+	    	approachRows.createCell(7).setCellValue(e.getSum().getNodes());
+	    	approachRows.createCell(8).setCellValue(e.getSum().getBranches());
+	    	approachRows.createCell(9).setCellValue(e.getSum().getAppliedRules());
+	    	approachRows.createCell(10).setCellValue(e.getSum().getAutomodeTime());
+	    	approachRows.createCell(11).setCellValue(e.isClosed()? "Yes":"No");
+	    	rowcounter++;
+	    }
+		autosizeColumns(s,12);
+	}
 	
 	/**
 	 * Used to read the results of a single project,
@@ -389,7 +425,7 @@ public class ExcelManager {
 			    	int reusedBranches = (int)(currentRow.getCell(4).getNumericCellValue());
 			    	int reusedAppliedRules = (int)(currentRow.getCell(5).getNumericCellValue());
 			    	long reusedTime = (long)(currentRow.getCell(6).getNumericCellValue());
-			    	AutomatingProof a = new AutomatingProof(type,target,nodes,branches,appliedRules,time,reusedNodes,reusedBranches,reusedAppliedRules,reusedTime);
+			    	AutomatingProof a = new AutomatingProof(type,target,nodes,branches,appliedRules,time,reusedNodes,reusedBranches,reusedAppliedRules,reusedTime,false);
 			    	s.getPhase1ProofList().add(a);
 			    }
 			    sheet = xssfworkbook.getSheetAt(2);
@@ -407,10 +443,21 @@ public class ExcelManager {
 		    	int reusedBranches = (int)(currentRow.getCell(4).getNumericCellValue());
 		    	int reusedAppliedRules = (int)(currentRow.getCell(5).getNumericCellValue());
 		    	long reusedTime = (long)(currentRow.getCell(6).getNumericCellValue());
-		    	AutomatingProof a = new AutomatingProof(type,target,nodes,branches,appliedRules,time,reusedNodes,reusedBranches,reusedAppliedRules,reusedTime);
+		    	String closedValue = currentRow.getCell(11).getStringCellValue();
+		    	boolean closed;
+		    	if(closedValue.equals("Yes")){
+		    		closed = true;
+		    	}
+		    	else{
+		    		closed = false;
+		    	}
+		    	AutomatingProof a = new AutomatingProof(type,target,nodes,branches,appliedRules,time,reusedNodes,reusedBranches,reusedAppliedRules,reusedTime,closed);
 		    	s.getProofList().add(a);
 		    }
 		    s.updateSum();
+		    s.updateFailedProofs();
+		    s.updateProofCount();
+		    
 		    xssfworkbook.close();
 		} catch(Exception e){
 			e.printStackTrace();
@@ -438,26 +485,27 @@ public class ExcelManager {
 	    	firstRow.createCell(8).setCellValue(crHelper.createRichTextString("Branches"));
 	    	firstRow.createCell(9).setCellValue(crHelper.createRichTextString("Applied Rules"));
 	    	firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Time"));
+	    	firstRow.createCell(11).setCellValue(crHelper.createRichTextString("Closed Proofs"));
 		    ProofStatistics reuseSum = new ProofStatistics();
 		    reuseSum.addStatistics(s.firstPhaseReuse);
 		    reuseSum.addStatistics(s.secondPhaseReuse);
 		    ProofStatistics sum = new ProofStatistics();
 		    sum.addStatistics(s.firstPhase);
 		    sum.addStatistics(s.secondPhase);
-		    createLastRowSingleProject(reuseSum,sum,total,crHelper,1);
-		    autosizeColumns(total,10);
+		    createLastRowSingleProject(reuseSum,sum,total,crHelper,1,s);
+		    autosizeColumns(total,11);
 		    Sheet phaseOne = wb.createSheet(WorkbookUtil.createSafeSheetName("First Phase"));
 		    createColumnTitles(phaseOne,crHelper);
 		    rowcount = createProofLists(s.getPhase1ProofList(),phaseOne,crHelper,1);
-		    createLastRowSingleProject(s.firstPhaseReuse,s.firstPhase,phaseOne,crHelper,rowcount);
+		    createLastRowSingleProject(s.firstPhaseReuse,s.firstPhase,phaseOne,crHelper,rowcount,s);
 		    autosizeColumns(phaseOne,10);
 		    name = "Second Phase";
 	    }
 	    Sheet phaseTwo = wb.createSheet(WorkbookUtil.createSafeSheetName(name));
 	    createColumnTitles(phaseTwo,crHelper);
 	    rowcount = createProofLists(s.getProofList(),phaseTwo,crHelper,1);
-	    createLastRowSingleProject(s.secondPhaseReuse,s.secondPhase,phaseTwo,crHelper,rowcount);
-	    autosizeColumns(phaseTwo,10);
+	    createLastRowSingleProject(s.secondPhaseReuse,s.secondPhase,phaseTwo,crHelper,rowcount,s);
+	    autosizeColumns(phaseTwo,11);
 	    try {
 	    	FileOutputStream fOut = new FileOutputStream(s.statistics);
 			wb.write(fOut);
@@ -484,6 +532,7 @@ public class ExcelManager {
     	firstRow.createCell(8).setCellValue(crHelper.createRichTextString("Branches"));
     	firstRow.createCell(9).setCellValue(crHelper.createRichTextString("Applied Rules"));
     	firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Time"));
+    	firstRow.createCell(11).setCellValue(crHelper.createRichTextString("Proof Closed"));
 	}
 	
 	private static int createProofLists(List<AutomatingProof> ap, Sheet s, CreationHelper crHelper,int start){
@@ -500,6 +549,9 @@ public class ExcelManager {
 	    	approachRows.createCell(8).setCellValue(a.getStat().getBranches()-a.getReusedStat().getBranches());
 	    	approachRows.createCell(9).setCellValue(a.getStat().getAppliedRules()-a.getReusedStat().getAppliedRules());
 	    	approachRows.createCell(10).setCellValue(a.getStat().getAutomodeTime()-a.getReusedStat().getAutomodeTime());
+	    	if(s.getSheetName().equals("Total")||s.getSheetName().equals("Second Phase")){
+	    		approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
+	    	}
 	    	rowcounter++;
 	    }
 		return rowcounter;
@@ -519,12 +571,13 @@ public class ExcelManager {
 	    	approachRows.createCell(8).setCellValue(a.getStat().getBranches());
 	    	approachRows.createCell(9).setCellValue(a.getStat().getAppliedRules());
 	    	approachRows.createCell(10).setCellValue(a.getStat().getAutomodeTime());
+	    	approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
 	    	rowcounter++;
 	    }
 		return rowcounter;
 	}
 	
-	private static void createLastRowSingleProject(ProofStatistics reused,ProofStatistics stat, Sheet s, CreationHelper crHelper, int rowcounter){
+	private static void createLastRowSingleProject(ProofStatistics reused,ProofStatistics stat, Sheet s, CreationHelper crHelper, int rowcounter,SingleProject sp){
 		Row lastRow = s.createRow(rowcounter);
 	    lastRow.createCell(0).setCellValue(crHelper.createRichTextString("Total"));
     	lastRow.createCell(3).setCellValue(reused.getNodes());
@@ -535,9 +588,12 @@ public class ExcelManager {
     	lastRow.createCell(8).setCellValue(stat.getBranches()-reused.getBranches());
     	lastRow.createCell(9).setCellValue(stat.getAppliedRules()-reused.getAppliedRules());
     	lastRow.createCell(10).setCellValue(stat.getAutomodeTime()-reused.getAutomodeTime());
+    	if(s.getSheetName().equals("Total")||s.getSheetName().equals("Second Phase")){
+    		lastRow.createCell(11).setCellValue(crHelper.createRichTextString((sp.proofs-sp.failedProofs)+"\\"+sp.proofs));
+    	}
 	}
 	
-	private static void createLastRowForApproach(ProofStatistics reused,ProofStatistics stat, Sheet s, CreationHelper crHelper, int rowcounter,String rowName){
+	private static void createLastRowForApproach(ProofStatistics reused,ProofStatistics stat, Sheet s, CreationHelper crHelper, int rowcounter,String rowName,SingleProject sp){
 		Row lastRow = s.createRow(rowcounter);
 	    lastRow.createCell(0).setCellValue(crHelper.createRichTextString(rowName));
     	lastRow.createCell(3).setCellValue(reused.getNodes());
@@ -548,6 +604,9 @@ public class ExcelManager {
     	lastRow.createCell(8).setCellValue(stat.getBranches());
     	lastRow.createCell(9).setCellValue(stat.getAppliedRules());
     	lastRow.createCell(10).setCellValue(stat.getAutomodeTime());
+    	if(rowName.equals("Total")){
+    	lastRow.createCell(11).setCellValue(crHelper.createRichTextString((sp.proofs-sp.failedProofs)+"\\"+sp.proofs));
+    	}
 	}
 	
 	private static void autosizeColumns(Sheet s, int columnCount){

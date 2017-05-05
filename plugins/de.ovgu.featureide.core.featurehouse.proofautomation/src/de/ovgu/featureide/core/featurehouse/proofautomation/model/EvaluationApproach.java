@@ -30,6 +30,7 @@ import org.eclipse.core.resources.IProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 
 /**
@@ -142,8 +143,52 @@ public class EvaluationApproach extends Evaluation{
 		for(SingleProject s: projectVersions){
 			ExcelManager.updateSingleProjectsWithReuse(s);
 			this.updateStatistics(s);
+			this.addFailedProofs(s);
+			this.addProofsCount(s);
 		}
 		createXLS();
+	}
+	
+	public List<EvaluationProof> getAllDisjointProofs(){
+		List<EvaluationProof> evaluationProofs = new LinkedList<EvaluationProof>();
+		for(SingleProject s: projectVersions){
+			List<AutomatingProof> first = s.getPhase1ProofList();
+			List<AutomatingProof> second = s.getProofList();
+			if(first!=null){
+				for(AutomatingProof a: first){
+					EvaluationProof ep = getListElement(a.getTargetName(),a.getTypeName(),evaluationProofs);
+					if(ep == null){
+						ep = new EvaluationProof(a.getTargetName(),a.getTypeName());
+						evaluationProofs.add(ep);
+					}
+					ep.addSum(a.getStat(),a.getReusedStat());
+					if(!a.isClosed()){
+						ep.setClosed(false);
+					}
+				}
+			}
+			for(AutomatingProof a: second){
+				EvaluationProof ep = getListElement(a.getTargetName(),a.getTypeName(),evaluationProofs);
+				if(ep == null){
+					ep = new EvaluationProof(a.getTargetName(),a.getTypeName());
+					evaluationProofs.add(ep);
+				}
+				ep.addSum(a.getStat(),a.getReusedStat());
+				if(!a.isClosed()){
+					ep.setClosed(false);
+				}
+			}
+		}
+		return evaluationProofs;
+	}
+	
+	public EvaluationProof getListElement(String target, String type,List<EvaluationProof> ep){
+		for(EvaluationProof e: ep){
+			if(e.getTarget().equals(target)&&e.getType().equals(type)){
+				return e;
+			}
+		}
+		return null;
 	}
 	
 }

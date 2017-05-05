@@ -58,6 +58,7 @@ public class AutomatingProof {
 	private Proof proof;
 	private ProofStatistics stat = new ProofStatistics();
 	private ProofStatistics reusedStat = new ProofStatistics();
+	private boolean closed = false;
 	/**
 	 * Constructs a new AutomatingProof 
 	 * @param typeName
@@ -78,11 +79,12 @@ public class AutomatingProof {
 	 * Initializes a proof just to get all evaluation information
 	 */
 	public AutomatingProof(String type, String target,int nodes, int branches, int appliedRules, 
-			long time,int reusedNodes, int reusedBranches, int reusedAppliedRules, long reusedTime) {
+			long time,int reusedNodes, int reusedBranches, int reusedAppliedRules, long reusedTime,boolean closed) {
 		this.typeName = type;
 		this.targetName = target;
 		this.stat = new ProofStatistics(nodes,branches,appliedRules,time);
 		this.reusedStat = new ProofStatistics(reusedNodes,reusedBranches,reusedAppliedRules,reusedTime);
+		this.closed = closed;
 	}
 	
 	/**
@@ -198,8 +200,10 @@ public class AutomatingProof {
         	MainWindow.getInstance().getMediator().startAutoMode();
         	waitForNewThread(threadsBefore);
         }
+        closed = true;
         if(!proof.openGoals().isEmpty()){
         	System.out.println(this.targetName+this.typeName+" was not closed");
+        	closed = false;
         }
         waitForNewThread(threadsBefore);
         setStatistics();
@@ -316,5 +320,12 @@ public class AutomatingProof {
 	 */
 	public ProofStatistics getReusedStat() {
 		return reusedStat;
+	}
+
+	/**
+	 * @return the closed
+	 */
+	public boolean isClosed() {
+		return closed;
 	}
 }

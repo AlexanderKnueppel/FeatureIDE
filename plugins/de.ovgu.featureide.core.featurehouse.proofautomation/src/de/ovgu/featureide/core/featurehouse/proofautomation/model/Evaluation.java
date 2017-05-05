@@ -41,6 +41,8 @@ public abstract class Evaluation {
 	public ProofStatistics secondPhase = new ProofStatistics(); 
 	public ProofStatistics firstPhaseReuse = new ProofStatistics(); 
 	public ProofStatistics secondPhaseReuse = new ProofStatistics();
+	public int failedProofs = 0;
+	public int proofs = 0;
 	
 	public Evaluation(File f){
 		toEvaluate = f;
@@ -73,5 +75,13 @@ public abstract class Evaluation {
 		this.secondPhase.addStatistics(ev.secondPhase);
 		this.firstPhaseReuse.addStatistics(ev.firstPhaseReuse);
 		this.secondPhaseReuse.addStatistics(ev.secondPhaseReuse);
+	}
+	
+	public void addFailedProofs(Evaluation e){
+		this.failedProofs += e.failedProofs;
+	}
+	
+	public void addProofsCount(Evaluation e){
+		this.proofs += e.proofs;
 	}
 }

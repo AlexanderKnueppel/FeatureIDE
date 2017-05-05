@@ -137,6 +137,8 @@ public class SingleProject extends Evaluation{
 		}
 		proofList = aproj.getProofList();
 		phase1ProofList = aproj.getPhase1ProofList();
+		updateFailedProofs();
+		updateProofCount();
 		updateSum();
 		createXLS();
 		aproj.setPhase1ProofList(new LinkedList<AutomatingProof>());
@@ -156,6 +158,18 @@ public class SingleProject extends Evaluation{
 			secondPhase.addStatistics(ap.getStat());
 			secondPhaseReuse.addStatistics(ap.getReusedStat());
 		}
+	}
+	
+	public void updateFailedProofs(){
+		for(AutomatingProof ap : proofList){
+			if(!ap.isClosed()){
+				failedProofs++;
+			}
+		}
+	}
+	
+	public void updateProofCount(){
+		proofs += proofList.size();
 	}
 	
 	/**

@@ -96,6 +96,8 @@ public class CompleteEvaluation extends Evaluation{
 		for(EvaluationApproach e: allApproaches){
 			e.performEvaluation();
 			this.updateStatistics(e);
+			this.addFailedProofs(e);
+			this.addProofsCount(e);
 		}
 		createXLS();
 	}
