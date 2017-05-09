@@ -41,6 +41,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
  */
 @SuppressWarnings("restriction")
 public class EvaluationApproach extends Evaluation{
+	public boolean singleExecution = true;
 	private List<SingleProject> projectVersions = new LinkedList<SingleProject>(); //contains all project versions
 	
 	/**
@@ -48,7 +49,7 @@ public class EvaluationApproach extends Evaluation{
 	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
-	public EvaluationApproach(File f, Date d){
+	public EvaluationApproach(File f, Date d,boolean singleExecution){
 		super(f);
 		date = d;
 		if(d== null){
@@ -59,6 +60,7 @@ public class EvaluationApproach extends Evaluation{
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
 		generateCode();
+		this.singleExecution = singleExecution;
 	}
 	
 	/**
@@ -125,7 +127,7 @@ public class EvaluationApproach extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		if(getVersionNumber() >2){
+		if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==9){
 			ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
 		}
 		else{
@@ -142,11 +144,15 @@ public class EvaluationApproach extends Evaluation{
 		}
 		for(SingleProject s: projectVersions){
 			ExcelManager.updateSingleProjectsWithReuse(s);
-			this.updateStatistics(s);
+			if(this.singleExecution){
+				this.updateStatistics(s);
+			}
 			this.addFailedProofs(s);
 			this.addProofsCount(s);
 		}
-		createXLS();
+		if(this.singleExecution){
+			createXLS();
+		}
 	}
 	
 	public List<EvaluationProof> getAllDisjointProofs(){
@@ -162,9 +168,6 @@ public class EvaluationApproach extends Evaluation{
 						evaluationProofs.add(ep);
 					}
 					ep.addSum(a.getStat(),a.getReusedStat());
-					if(!a.isClosed()){
-						ep.setClosed(false);
-					}
 				}
 			}
 			for(AutomatingProof a: second){
@@ -191,4 +194,13 @@ public class EvaluationApproach extends Evaluation{
 		return null;
 	}
 	
+	public void removeFailedProofs(List<EvaluationProof> ep){
+		for(SingleProject s: projectVersions){
+			for(EvaluationProof e: ep){
+				s.removeProofFromSum(e.getTarget(), e.getType());
+			}
+			s.updateSum();
+			this.updateStatistics(s);
+		}
+	}
 }

@@ -31,4 +31,5 @@ public class Configuration {
 	public static int maxRuleApplication = 100000;
 	public static boolean excludeMain = true; //excludes the proofs of class main
 	public static String excludedClass ="Main";
+	public static boolean excludeFailedProofs = true; //if true the failed Proofs are removed from the total results
 }

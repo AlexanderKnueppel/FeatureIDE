@@ -148,6 +148,10 @@ public class SingleProject extends Evaluation{
 	 * Updates the Statistics 
 	 */
 	public void updateSum(){
+		firstPhase.reset();
+		firstPhaseReuse.reset();
+		secondPhase.reset();
+		secondPhaseReuse.reset();
 		if(phase1ProofList != null){
 			for(AutomatingProof ap : phase1ProofList){
 				firstPhase.addStatistics(ap.getStat());
@@ -157,6 +161,23 @@ public class SingleProject extends Evaluation{
 		for(AutomatingProof ap : proofList){
 			secondPhase.addStatistics(ap.getStat());
 			secondPhaseReuse.addStatistics(ap.getReusedStat());
+		}
+	}
+	
+	public void removeProofFromSum(String target, String type){
+		if(phase1ProofList != null){
+			for(AutomatingProof ap : phase1ProofList){
+				if(ap.getTargetName().equals(target)&&ap.getTypeName().equals(type)){
+					firstPhase.removeStatistics(ap.getStat());
+					firstPhaseReuse.removeStatistics(ap.getReusedStat());
+				}
+			}
+		}
+		for(AutomatingProof ap : proofList){
+			if(ap.getTargetName().equals(target)&&ap.getTypeName().equals(type)){
+				secondPhase.removeStatistics(ap.getStat());
+				secondPhaseReuse.removeStatistics(ap.getReusedStat());
+			}
 		}
 	}
 	

@@ -47,12 +47,26 @@ public class ProofStatistics {
 		this.appliedRules = 0;
 		this.automodeTime = 0;
 	}
+	
+	public void reset(){
+		this.nodes= 0;
+		this.branches = 0;
+		this.appliedRules = 0;
+		this.automodeTime = 0;
+	}
 
 	public void addStatistics(ProofStatistics toAdd){
 		this.nodes+=toAdd.nodes;
 		this.branches+=toAdd.branches;
 		this.appliedRules+=toAdd.appliedRules;
 		this.automodeTime+=toAdd.automodeTime;
+	}
+	
+	public void removeStatistics(ProofStatistics toAdd){
+		this.nodes-=toAdd.nodes;
+		this.branches-=toAdd.branches;
+		this.appliedRules-=toAdd.appliedRules;
+		this.automodeTime-=toAdd.automodeTime;
 	}
 	/**
 	 * @return the nodeSum

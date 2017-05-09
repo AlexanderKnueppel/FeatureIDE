@@ -196,7 +196,7 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				EvaluationApproach ep = new EvaluationApproach(f,null);
+				EvaluationApproach ep = new EvaluationApproach(f,null,true);
 				ep.performEvaluation();
 			}
 		} );

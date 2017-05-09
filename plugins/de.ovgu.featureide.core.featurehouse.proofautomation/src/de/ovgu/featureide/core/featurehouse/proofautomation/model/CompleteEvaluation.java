@@ -62,7 +62,7 @@ public class CompleteEvaluation extends Evaluation{
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isEvaluationApproach(f) &&!f.getName().equals(FileManager.evaluationDir)){
-				allApproaches.add(new EvaluationApproach(f,date));
+				allApproaches.add(new EvaluationApproach(f,date,false));
 			}
 		}
 	}
@@ -95,10 +95,38 @@ public class CompleteEvaluation extends Evaluation{
 	public void performEvaluation(){
 		for(EvaluationApproach e: allApproaches){
 			e.performEvaluation();
-			this.updateStatistics(e);
 			this.addFailedProofs(e);
 			this.addProofsCount(e);
 		}
+		List<EvaluationProof> failedProofs = getListOfAllFailedProofs();
+		for(EvaluationApproach e: allApproaches){
+			e.removeFailedProofs(failedProofs);
+			e.createXLS();
+			this.updateStatistics(e);
+		}
 		createXLS();
+	}
+	
+	public List<EvaluationProof> getListOfAllFailedProofs(){
+		List<EvaluationProof> failed = new LinkedList<EvaluationProof>();
+		for(EvaluationApproach ea: allApproaches){
+			for(EvaluationProof ep :ea.getAllDisjointProofs()){
+				if(!ep.isClosed()){
+					if(!isInList(failed,ep.getTarget(),ep.getType())){
+						failed.add(ep);
+					}
+				}
+			}
+		}
+		return failed;
+	}
+	
+	private boolean isInList(List<EvaluationProof> e, String target, String type){
+		for(EvaluationProof ep: e){
+			if(ep.getTarget().equals(target)&&ep.getType().equals(type)){
+				return true;
+			}
+		}
+		return false;
 	}
 }
