@@ -549,9 +549,7 @@ public class ExcelManager {
 	    	approachRows.createCell(8).setCellValue(a.getStat().getBranches()-a.getReusedStat().getBranches());
 	    	approachRows.createCell(9).setCellValue(a.getStat().getAppliedRules()-a.getReusedStat().getAppliedRules());
 	    	approachRows.createCell(10).setCellValue(a.getStat().getAutomodeTime()-a.getReusedStat().getAutomodeTime());
-	    	if(s.getSheetName().equals("Total")||s.getSheetName().equals("Second Phase")){
-	    		approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
-	    	}
+	    	approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
 	    	rowcounter++;
 	    }
 		return rowcounter;

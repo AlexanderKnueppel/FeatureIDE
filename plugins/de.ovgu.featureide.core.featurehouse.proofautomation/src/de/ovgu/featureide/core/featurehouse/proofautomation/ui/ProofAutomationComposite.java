@@ -215,8 +215,12 @@ public class ProofAutomationComposite extends Composite{
 	}
 	
 	private void setKey(){
-		Configuration.keyBinPath = key.getText();
-		Configuration.keyLibsPath = keyLibs.getText();
+		if(!key.getText().isEmpty()){
+			Configuration.keyBinPath = key.getText();
+		}
+		if(!keyLibs.getText().isEmpty()){
+			Configuration.keyLibsPath = keyLibs.getText();
+		}
 	}
 	
 	private void tableCreator(Composite parent, int style){

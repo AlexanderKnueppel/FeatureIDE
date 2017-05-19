@@ -106,7 +106,7 @@ public class projectWorker {
 				else{
 					f.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING);
 				}
-				featureHouseComposer.performFullBuild(config);
+//				featureHouseComposer.performFullBuild(config);
 				MetaProductBuilder.prepareMetaProduct(new File(f.getBuildPath()));
 				p.refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch(Exception e){

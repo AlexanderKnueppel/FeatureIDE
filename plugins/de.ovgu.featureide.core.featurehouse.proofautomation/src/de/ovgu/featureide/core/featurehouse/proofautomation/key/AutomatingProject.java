@@ -114,6 +114,7 @@ public class AutomatingProject{
 		List<File> abstractProofPart = new LinkedList<File>();
 		for(AutomatingProof a : abstractProofs){
 			try {
+				System.out.println(a.getTargetName()+a.getTypeName());
 				a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 				abstractProofPart.add(a.saveProof(savePartialProofsPath));
 			} catch (Exception e) {

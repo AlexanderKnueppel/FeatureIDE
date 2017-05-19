@@ -117,10 +117,17 @@ public class AutomatingProof {
 		proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
 		//Apply Macro "Finish abstract proof part"
 		FinishAbstractProofMacro fapm = new FinishAbstractProofMacro();
-		threadsBefore = Thread.getAllStackTraces().keySet();
-		fapm.applyTo(environment.getMediator(), null, null);
-		waitForNewThread(threadsBefore);
-		setStatistics();
+		int previousNodes;
+		do{
+			previousNodes = proof.countNodes();
+		    threadsBefore = Thread.getAllStackTraces().keySet();
+		    fapm.applyTo(environment.getMediator(), null, null);
+		    waitForNewThread(threadsBefore);
+		}while(proof.countNodes()==previousNodes);
+        if(proof.openGoals().isEmpty()){
+        	closed = true;
+        }
+        setStatistics();
 	}
 	
 	/**

@@ -199,7 +199,6 @@ public class EvaluationApproach extends Evaluation{
 			for(EvaluationProof e: ep){
 				s.removeProofFromSum(e.getTarget(), e.getType());
 			}
-			s.updateSum();
 			this.updateStatistics(s);
 		}
 	}

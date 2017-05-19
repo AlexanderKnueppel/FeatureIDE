@@ -46,7 +46,7 @@ public class FileManager {
 	public final static String partialProofsDir = "Partial Proofs for Metaproduct";// directory that contains the modified abstract proof part
 	public final static String finishedProofsDir = "Finished Proofs"; //directory that contains the finished proof
 	public final static String savedProofsDir = "Saved Proofs";  // directory that contains the finished abstract proof part
-	public final static String projectName = "BankAccount"; //Name of the projects, to check wether a directory is a project for evaluation
+	public final static String projectName = "BankAccount"; //Name of the projects, to check whether a directory is a project for evaluation
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
 	public static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 	
@@ -139,7 +139,7 @@ public class FileManager {
 	 * @param version
 	 */
 	public static void initFolders(File evaluateDir, int version){
-		if(version ==1 || version == 2){
+		if(version ==1 || version == 2 || version == 7 || version  == 8){
 			createDir(new File(evaluateDir+FILE_SEPERATOR+savedProofsDir));
 			createDir(new File(evaluateDir+FILE_SEPERATOR+partialProofsDir));
 		}
@@ -226,15 +226,19 @@ public class FileManager {
 	 * @param project
 	 */
 	public static void reuseFeaturestub(File evalPath, File project){
-		File firstProject = getProjectv1Path(project);
-		File firstProjectEvalPath = new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
-		List<File> equalFiles = compareFeatureStubs(new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir),new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+featureStubDir));
-		for(File f: equalFiles){
-			List<File> reusableProofs= getProofsForFeatureStubClass(f,firstProjectEvalPath);
-			for(File r: reusableProofs){
-				createDir(new File(getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
-				copyFile(r.getAbsolutePath(),getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
+		try{
+			File firstProject = getProjectv1Path(project);
+			File firstProjectEvalPath = new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
+			List<File> equalFiles = compareFeatureStubs(new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir),new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+featureStubDir));
+			for(File f: equalFiles){
+				List<File> reusableProofs= getProofsForFeatureStubClass(f,firstProjectEvalPath);
+				for(File r: reusableProofs){
+					createDir(new File(getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
+					copyFile(r.getAbsolutePath(),getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
+				}
 			}
+		} catch(Exception e){
+			System.out.println("Single Project Excecution finds no reuse");
 		}
 	}
 	
