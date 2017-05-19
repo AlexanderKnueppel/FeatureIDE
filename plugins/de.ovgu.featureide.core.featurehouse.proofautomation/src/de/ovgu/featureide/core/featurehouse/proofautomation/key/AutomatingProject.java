@@ -444,7 +444,10 @@ public class AutomatingProject{
                 ImmutableSet<Contract> contracts = environment.getSpecificationRepository().getContracts(type, target);
                 for (Contract contract : contracts) {
                 	if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
-                    proofs.add(new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract));
+                		AutomatingProof a =new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract);
+                		if(!a.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
+                			proofs.add(a);
+                		}
                 	}
                 }
             }
@@ -453,6 +456,9 @@ public class AutomatingProject{
         
 	}
 
+	private void removeDispatcher(List<AutomatingProof> proofs){
+
+	}
 	
 
 	
