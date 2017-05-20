@@ -1,0 +1,23 @@
+README:
+
+1. Install Eclipse Mars (Modeling Tool)
+2. Install KeY (Branch pelevinaAbstractContracts) and KeY4Eclipse
+3. Install FeatureIDE (https://github.com/kruegers/FeatureIDE):
+	-de.ovgu.featureide.core
+	-de.ovgu.featureide.core.featurehouse
+	-de.ovgu.featureide.fm.core
+	-de.ovgu.featureide.fm.ui
+	-de.ovgu.featureide.ui
+4. Install Featurehouse (https://github.com/kruegers/featurehouse), 
+   perform the build and add the jar file to 
+	de.ovgu.featureide.core.featurehouse/lib
+	
+5. Start an eclipse instance
+6. Add the projects to workspace
+6. Open the ProofAutomation View
+7. Add key binary path in Configuration (key\system\binary) and the key library path (key\key-ext-jars)
+(Optional: Add the path to de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration
+in keyBinPath and keyLibsPath to avoid retyping)
+8. Add the folder with the project/Verification Approach/All Verification Approaches 
+   and press the right button 
+   (Start Project Evaluation/Start Evaluation of a single Phase/Start project Evaluation)
