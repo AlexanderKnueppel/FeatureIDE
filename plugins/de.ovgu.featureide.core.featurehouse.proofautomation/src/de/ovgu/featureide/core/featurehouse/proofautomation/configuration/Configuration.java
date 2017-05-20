@@ -33,4 +33,6 @@ public class Configuration {
 	public static String excludedClass ="Main";
 	public static boolean excludeFailedProofs = true; //if true the failed Proofs are removed from the total results
 	public static boolean proveDispatcher = false; //if true, the dispatcher Methods are proven else not
+	public static boolean performVerification = true; //performs Verification only if true
+	public static boolean generateMetaproduct = true; //
 }
