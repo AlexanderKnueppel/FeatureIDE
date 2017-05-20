@@ -20,19 +20,8 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.ui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
-import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -58,10 +47,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
  */
 public class ProofAutomationComposite extends Composite{
 	
-	private File evaluationDir;
-	private List<EvaluationApproach> evaluationPhaseList;
-	private File currentProject;
-	
 	private Text key;
 	private Label keyLabel;
 	private Text keyLibs;
@@ -72,32 +57,6 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
-	private Button performVerification;
-	
-	//Table for all Phases
-	private TableViewer resultOverviewPhases;
-	private TableViewerColumn namePhases;
-	private TableViewerColumn nodesPhases;
-	private TableViewerColumn branchesPhases;
-	private TableViewerColumn automodeTimePhases;
-	private TableViewerColumn ruleApplicationPhases;
-	
-	//Table for a single Phase Verification
-	private TableViewer resultOverviewPerPhase;
-	private TableViewerColumn namePhase;
-	private TableViewerColumn nodesPhase;
-	private TableViewerColumn branchesPhase;
-	private TableViewerColumn automodeTimePhase;
-	private TableViewerColumn ruleApplicationPhase;
-	
-	//Table for single Project
-	private TableViewer resultOverviewProject;
-	private TableViewerColumn type;
-	private TableViewerColumn target;
-	private TableViewerColumn nodes;
-	private TableViewerColumn branches;
-	private TableViewerColumn automodeTime;
-	private TableViewerColumn ruleApplication;
 	
 	
 	
@@ -111,7 +70,6 @@ public class ProofAutomationComposite extends Composite{
 		setLayout(new GridLayout(1,false));
 		generateConfigPart();
 		generateLoadPart();
-		generateEvaluationPart(style);
 	}
 	
 	private void generateConfigPart(){
@@ -169,7 +127,9 @@ public class ProofAutomationComposite extends Composite{
 				setKey();
 				File f = new File(source.getText());
 				CompleteEvaluation ce = new CompleteEvaluation(f);
-				ce.performEvaluation();
+				if(Configuration.performVerification){
+					ce.performEvaluation();
+				}
 			}
 		} );
 		loadProjectDir.addSelectionListener( new SelectionListener() {
@@ -183,7 +143,9 @@ public class ProofAutomationComposite extends Composite{
 				setKey();
 				File f = new File(source.getText());
 				SingleProject s = new SingleProject(f,null,0);
-				startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
+				if(Configuration.performVerification){
+					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
+				}
 			}
 		} );
 		loadPhaseDir.addSelectionListener( new SelectionListener() {
@@ -197,21 +159,13 @@ public class ProofAutomationComposite extends Composite{
 				setKey();
 				File f = new File(source.getText());
 				EvaluationApproach ep = new EvaluationApproach(f,null,true);
-				ep.performEvaluation();
+				if(Configuration.performVerification){
+					ep.performEvaluation();
+				}
 			}
 		} );
 		
 		return load;
-	}
-
-	private Group generateEvaluationPart(int style){
-		Group tables = new Group(this,1);
-		tables.setText("Evaluation");
-		tables.setLayout(new GridLayout(1,false));
-		tables.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		tableCreator(tables,style);
-		
-		return tables;
 	}
 	
 	private void setKey(){
@@ -221,45 +175,5 @@ public class ProofAutomationComposite extends Composite{
 		if(!keyLibs.getText().isEmpty()){
 			Configuration.keyLibsPath = keyLibs.getText();
 		}
-	}
-	
-	private void tableCreator(Composite parent, int style){
-/*		Composite tableComposite = new Composite(parent, SWT.NONE);
-        tableComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-        TableColumnLayout tableLayout = new TableColumnLayout();
-        tableComposite.setLayout(tableLayout);
-		resultOverviewPhases = new TableViewer(tableComposite, SWT.MULTI | SWT.FULL_SELECTION);
-		namePhases = new TableViewerColumn(resultOverviewPhases, style);
-		nodesPhases = new TableViewerColumn(resultOverviewPhases, style);
-		branchesPhases = new TableViewerColumn(resultOverviewPhases, style);
-		automodeTimePhases = new TableViewerColumn(resultOverviewPhases, style);
-		ruleApplicationPhases = new TableViewerColumn(resultOverviewPhases, style);
-		namePhases.getColumn().setText("Name");
-		namePhases.getColumn().setMoveable(true);
-		tableLayout.setColumnData(namePhases.getColumn(), new ColumnWeightData(15));
-		nodesPhases.getColumn().setText("Nodes");
-		nodesPhases.getColumn().setMoveable(true);
-		tableLayout.setColumnData(nodesPhases.getColumn(), new ColumnWeightData(15));
-		branchesPhases.getColumn().setText("Branches");
-		branchesPhases.getColumn().setMoveable(true);
-		tableLayout.setColumnData(branchesPhases.getColumn(), new ColumnWeightData(15));
-		automodeTimePhases.getColumn().setText("Automode Time");
-		automodeTimePhases.getColumn().setMoveable(true);
-		tableLayout.setColumnData(automodeTimePhases.getColumn(), new ColumnWeightData(15));
-		ruleApplicationPhases.getColumn().setText("Rule Applications");
-		ruleApplicationPhases.getColumn().setMoveable(true);
-		tableLayout.setColumnData(ruleApplicationPhases.getColumn(), new ColumnWeightData(15));
-		
-		resultOverviewPhases.setContentProvider(ArrayContentProvider.getInstance());
-		
-		resultOverviewPhases.addSelectionChangedListener(new ISelectionChangedListener() {
-	           @Override
-	           public void selectionChanged(SelectionChangedEvent event) {
-	              
-	           }
-	        });
-		resultOverviewPhases.getTable().setHeaderVisible(true);
-		resultOverviewPhases.getTable().setLinesVisible(true);*/
-		
 	}
 }

@@ -31,6 +31,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.featurehouse.FeatureHouseComposer;
 import de.ovgu.featureide.featurehouse.meta.FeatureStubsGenerator;
 import de.ovgu.featureide.fm.ui.handlers.base.SelectionWrapper;
@@ -106,7 +107,9 @@ public class projectWorker {
 				else{
 					f.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING);
 				}
-//				featureHouseComposer.performFullBuild(config);
+				if(Configuration.generateMetaproduct){
+					featureHouseComposer.performFullBuild(config);
+				}
 				MetaProductBuilder.prepareMetaProduct(new File(f.getBuildPath()));
 				p.refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch(Exception e){
