@@ -58,13 +58,21 @@ public class CompleteEvaluation extends Evaluation{
 	/**
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
+	//todo:replace with static list of approaches
 	private void setEvaluationApproach(){
-		File[] allFiles = toEvaluate.listFiles();
+/*		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isEvaluationApproach(f) &&!f.getName().equals(FileManager.evaluationDir)){
 				allApproaches.add(new EvaluationApproach(f,date,false));
 			}
-		}
+		}*/
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA1 (EVEFI)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA2 (Metaproduct)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA3 (Concrete)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA4 (MI)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA5 (Thuem et al.)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA6",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA9",this.evaluatePath));
 	}
 	
 	/**
@@ -72,15 +80,7 @@ public class CompleteEvaluation extends Evaluation{
 	 * @param f
 	 * @return
 	 */
-	private boolean isEvaluationApproach(File f){
-		File[] content = f.listFiles();
-		for(File c: content){
-			if(c.getName().contains(FileManager.projectName)){
-				return true;
-			}
-		}
-		return false;
-	}
+	//todo: remove
 	
 	/**
 	 * Creates an XLSX File with the result of the evaluation

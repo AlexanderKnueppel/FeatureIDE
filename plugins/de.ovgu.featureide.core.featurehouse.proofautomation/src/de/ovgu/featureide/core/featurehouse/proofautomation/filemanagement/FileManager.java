@@ -68,21 +68,8 @@ public class FileManager {
 	 * @param project
 	 * @return
 	 */
-	public static File getCurrentEvaluationPath(File project){
-		File evalPath = new File(project.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
-		File[] subDirs = evalPath.listFiles();
-		File currentEvalPath = null;
-		for(File s: subDirs){
-			if(currentEvalPath == null){
-				currentEvalPath = s;
-			}
-			if(s.getName().compareTo(currentEvalPath.getName()) > 0){
-				currentEvalPath = s;
-			}
-		}
-		return currentEvalPath;
-	}
-	
+	//todo: remove method and replace with project.getAbsolutePath
+
 	/**
 	 * Returns the first java file of the metaproduct
 	 * needed as parameter for key
@@ -233,8 +220,8 @@ public class FileManager {
 			for(File f: equalFiles){
 				List<File> reusableProofs= getProofsForFeatureStubClass(f,firstProjectEvalPath);
 				for(File r: reusableProofs){
-					createDir(new File(getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
-					copyFile(r.getAbsolutePath(),getCurrentEvaluationPath(project)+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
+					createDir(new File(project.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
+					copyFile(r.getAbsolutePath(),project.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
 				}
 			}
 		} catch(Exception e){
@@ -251,7 +238,7 @@ public class FileManager {
 	private static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
 		File featurestub = featureStubClass.getParentFile();
 		String featureStubClassName = featureStubClass.getName().replace(".java", "");
-		File previousFS = new File(getCurrentEvaluationPath(versionA.getParentFile())+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName());
+		File previousFS = new File(versionA.getParentFile().getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName());
 		File[] savedProofsOfFeatureStub = previousFS.listFiles();
 		List<File> relatedProofs = new LinkedList<File>();
 		for(File f : savedProofsOfFeatureStub){

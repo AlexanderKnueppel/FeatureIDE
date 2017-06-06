@@ -44,6 +44,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
  * @author Stefanie
  */
 public class ExcelManager {	
+	//todo: replace toEvaluate.getName() with evaluationPath.getName()
 	/**
 	 * Generates a summary of all approaches in an xlsx file
 	 * @param c
@@ -66,10 +67,10 @@ public class ExcelManager {
 		    ProofStatistics stat = new ProofStatistics();
 		    stat.addStatistics(e.firstPhase);
 		    stat.addStatistics(e.secondPhase);
-	    	Row totalCurRow = proofLists(8,total,crHelper, e.toEvaluate.getName(),reuse,stat, rowcounter,e);
+	    	Row totalCurRow = proofLists(8,total,crHelper, e.evaluatePath.getName(),reuse,stat, rowcounter,e);
 	    	addOptions(1,crHelper, totalCurRow,e);
-	    	proofLists(1,phaseOne,crHelper, e.toEvaluate.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter,e);
-	    	proofLists(1,phaseTwo,crHelper, e.toEvaluate.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter,e);
+	    	proofLists(1,phaseOne,crHelper, e.evaluatePath.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter,e);
+	    	proofLists(1,phaseTwo,crHelper, e.evaluatePath.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter,e);
 	    	rowcounter++;
 	    }
 	    autosizeColumns(total,20);
@@ -207,7 +208,7 @@ public class ExcelManager {
 	    firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Closed"));
 	    int rowcounter = 1;
 	    for(SingleProject s: ep.getProjectVersion()){
-	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.toEvaluate.getName()));
+	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.evaluatePath.getName()));
 	    	createColumnTitles(currentProject,crHelper);
 	    	int rowcount = 1;
 		    rowcount = createProofListsForApproach(s.getProofList(),currentProject,crHelper,rowcount);
@@ -216,7 +217,7 @@ public class ExcelManager {
 	    }
 	    for(SingleProject s : ep.getProjectVersion()){
 	    	Row appraochRow = total.createRow(rowcounter);
-	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.toEvaluate.getName()));
+	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.evaluatePath.getName()));
 	    	appraochRow.createCell(2).setCellValue(s.secondPhaseReuse.getNodes());
 	    	appraochRow.createCell(3).setCellValue(s.secondPhaseReuse.getBranches());
 	    	appraochRow.createCell(4).setCellValue(s.secondPhaseReuse.getAppliedRules());
@@ -275,7 +276,7 @@ public class ExcelManager {
 	    int rowcounter = 2;
 	    int countProjects = 0;
 	    for(SingleProject s: ep.getProjectVersion()){
-	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.toEvaluate.getName()));
+	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.evaluatePath.getName()));
 	    	createColumnTitles(currentProject,crHelper);
 	    	int rowcount = 1;
     		Row phaseRow = currentProject.createRow(rowcount);
@@ -314,7 +315,7 @@ public class ExcelManager {
 	    afterRow.createCell(0).setCellValue(crHelper.createRichTextString("Second Phase"));
 	    for(SingleProject s : ep.getProjectVersion()){
 	    	Row appraochRow = total.createRow(rowcounter);
-	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.toEvaluate.getName()));
+	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.evaluatePath.getName()));
 	    	appraochRow.createCell(2).setCellValue(s.firstPhaseReuse.getNodes());
 	    	appraochRow.createCell(3).setCellValue(s.firstPhaseReuse.getBranches());
 	    	appraochRow.createCell(4).setCellValue(s.firstPhaseReuse.getAppliedRules());
@@ -324,7 +325,7 @@ public class ExcelManager {
 	    	appraochRow.createCell(8).setCellValue(s.firstPhase.getAppliedRules());
 	    	appraochRow.createCell(9).setCellValue(s.firstPhase.getAutomodeTime());
 	    	appraochRow = total.createRow(rowcounter+countProjects+2);
-	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.toEvaluate.getName()));
+	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.evaluatePath.getName()));
 	    	appraochRow.createCell(2).setCellValue(s.secondPhaseReuse.getNodes());
 	    	appraochRow.createCell(3).setCellValue(s.secondPhaseReuse.getBranches());
 	    	appraochRow.createCell(4).setCellValue(s.secondPhaseReuse.getAppliedRules());

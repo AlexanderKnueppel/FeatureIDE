@@ -49,6 +49,7 @@ import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
  * 
  * @author Stefanie
  */
+//todo: location for proof reuse has to be evaluationPath
 public class AutomatingProject{
 	public static final AutomatingProject automatingProject = new AutomatingProject();
 	
@@ -150,7 +151,7 @@ public class AutomatingProject{
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForMetaproduct(),firstVersion,savePath);
+		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForMetaproduct(),firstVersion,savePath);
 	}
 	
 	/**
@@ -161,7 +162,7 @@ public class AutomatingProject{
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
 	}
 	/**
 	 * Performs the evaluation of approach 5 Thuem et al
@@ -184,12 +185,12 @@ public class AutomatingProject{
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		proofList = loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(loc,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
 	}
 	
 	/**
 	 * Performs a Verification where the proofs of the first version are reused for the other versions
-	 * @param location : path of the current project 
+	 * @param location : path of the evaluation of the current project 
 	 * @param a : list of all proofs of the current project
 	 * @param s : used StrategyProperties for the verification
 	 * @param firstVersion : true if the current project is the first version in this approach
@@ -212,12 +213,12 @@ public class AutomatingProject{
 	
 	/**
 	 * Returns the needed proof file for full proof reuse
-	 * @param location
+	 * @param location has to be evalPath
 	 * @param a
 	 * @return
 	 */
 	private File reuseFullProof(File location, AutomatingProof a){
-		File projectv1 = FileManager.getCurrentEvaluationPath(FileManager.getProjectv1Path(location));
+		File projectv1 = FileManager.getProjectv1Path(location);
 		File reuseProofDir = new File (projectv1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir);
 		if(!reuseProofDir.exists()){
 			return null;

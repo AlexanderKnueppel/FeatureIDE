@@ -46,23 +46,8 @@ public class SingleProject extends Evaluation{
 	 * and sets the statistic file
 	 * @param f
 	 */
-	public SingleProject(File f,Date d,int evalVersion){
-		super(f);
-		date = d;
-		if(d == null){
-			date = new Date();
-		}
-		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
-		evaluatePath = FileManager.createDateDir(date, evalDir);
-		if(evalVersion>0){
-			this.evalVersion = evalVersion;
-		}
-		else{
-			this.evalVersion = getApproachVersion();
-		}
-		this.statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
-	}
-	
+	//todo: useless constructor
+
 	/**
 	 * Constructor
 	 * Uses a given evaluatePath instead of a new
@@ -97,8 +82,9 @@ public class SingleProject extends Evaluation{
 	 * Returns the apporach version according to the directory
 	 * @return
 	 */
+	//todo: replace toEvaluate with evaluationPath
 	private int getApproachVersion(){
-		String name = toEvaluate.getParentFile().getName();
+		String name = evaluatePath.getParentFile().getName();
 		for(int i = 1; i<=15; i++){
 			String number = String.valueOf(i);
 			if(name.contains(number)){

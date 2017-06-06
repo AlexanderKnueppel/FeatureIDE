@@ -142,10 +142,10 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				SingleProject s = new SingleProject(f,null,0);
+/*				SingleProject s = new SingleProject(f,null,0);
 				if(Configuration.performVerification){
 					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
-				}
+				}*/
 			}
 		} );
 		loadPhaseDir.addSelectionListener( new SelectionListener() {
@@ -158,10 +158,10 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				EvaluationApproach ep = new EvaluationApproach(f,null,true);
+/*				EvaluationApproach ep = new EvaluationApproach(f,null,true, toolTipText, f);
 				if(Configuration.performVerification){
 					ep.performEvaluation();
-				}
+				}*/
 			}
 		} );
 		

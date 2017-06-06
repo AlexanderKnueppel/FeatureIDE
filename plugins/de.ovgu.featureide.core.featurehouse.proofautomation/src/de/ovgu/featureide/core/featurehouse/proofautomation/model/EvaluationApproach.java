@@ -49,14 +49,14 @@ public class EvaluationApproach extends Evaluation{
 	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
-	public EvaluationApproach(File f, Date d,boolean singleExecution){
+	//todo: adjust evaluatePath
+	public EvaluationApproach(File f, Date d,boolean singleExecution,String name,File evalPathComplete){
 		super(f);
 		date = d;
 		if(d== null){
 			date = new Date();
 		}
-		File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
-		evaluatePath = FileManager.createDateDir(date, evalDir);
+		evaluatePath = new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name);
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
 		generateCode();
@@ -82,8 +82,9 @@ public class EvaluationApproach extends Evaluation{
 	 * Returns the Approach number of the evaluation Approach
 	 * @return int [1,15]
 	 */
+	//todo: name is evaluatePath
 	public int getVersionNumber(){
-		String name = toEvaluate.getName();
+		String name = evaluatePath.getName();
 		for(int i = 1; i<=15; i++){
 			String number = String.valueOf(i);
 			if(name.contains(number)){
@@ -100,11 +101,12 @@ public class EvaluationApproach extends Evaluation{
 	/**
 	 * Adds all subdirectories to the BankAccount list, if they contain a project Version
 	 */
+	//todo: adjust SingleProject Parameters date uneccessary and evaluatePath is wrong generated
 	private void setProjectVersion(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				projectVersions.add(new SingleProject(f,date,getVersionNumber()));
+				projectVersions.add(new SingleProject(f,getVersionNumber(),evaluatePath.getAbsolutePath()));
 			}
 		}
 	}
@@ -127,7 +129,7 @@ public class EvaluationApproach extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==9){
+		if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==6||getVersionNumber()==9){
 			ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
 		}
 		else{
