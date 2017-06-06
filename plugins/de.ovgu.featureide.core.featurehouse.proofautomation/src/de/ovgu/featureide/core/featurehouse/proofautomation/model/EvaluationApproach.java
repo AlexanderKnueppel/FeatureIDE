@@ -49,7 +49,7 @@ public class EvaluationApproach extends Evaluation{
 	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
-	//todo: adjust evaluatePath
+
 	public EvaluationApproach(File f, Date d,boolean singleExecution,String name,File evalPathComplete){
 		super(f);
 		date = d;
@@ -81,7 +81,6 @@ public class EvaluationApproach extends Evaluation{
 	 * Returns the Approach number of the evaluation Approach
 	 * @return int [1,15]
 	 */
-	//todo: name is evaluatePath
 	public int getVersionNumber(){
 		String name = evaluatePath.getName();
 		for(int i = 1; i<=15; i++){
@@ -100,7 +99,6 @@ public class EvaluationApproach extends Evaluation{
 	/**
 	 * Adds all subdirectories to the BankAccount list, if they contain a project Version
 	 */
-	//todo: adjust SingleProject Parameters date uneccessary and evaluatePath is wrong generated
 	private void setProjectVersion(){
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){

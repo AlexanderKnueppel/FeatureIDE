@@ -62,13 +62,6 @@ public class FileManager {
 		createDir(newDir);
 		return newDir;
 	}
-	
-	/**
-	 * Returns the directory which was created last
-	 * @param project
-	 * @return
-	 */
-	//todo: remove method and replace with project.getAbsolutePath
 
 	/**
 	 * Returns the first java file of the metaproduct

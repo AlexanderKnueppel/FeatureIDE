@@ -39,14 +39,6 @@ public class SingleProject extends Evaluation{
 	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>(); //contains all Automating proofs of this project
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private int evalVersion;
-	
-	/**
-	 * Constructor
-	 * gets a directory of a project version and the current evaluation approach
-	 * and sets the statistic file
-	 * @param f
-	 */
-	//todo: useless constructor
 
 	/**
 	 * Constructor
@@ -82,7 +74,6 @@ public class SingleProject extends Evaluation{
 	 * Returns the apporach version according to the directory
 	 * @return
 	 */
-	//todo: replace toEvaluate with evaluationPath
 	private int getApproachVersion(){
 		String name = evaluatePath.getParentFile().getName();
 		for(int i = 1; i<=15; i++){

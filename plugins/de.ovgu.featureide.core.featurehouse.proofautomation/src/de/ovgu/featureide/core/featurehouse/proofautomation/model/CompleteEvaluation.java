@@ -58,14 +58,7 @@ public class CompleteEvaluation extends Evaluation{
 	/**
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
-	//todo:replace with static list of approaches
 	private void setEvaluationApproach(){
-/*		File[] allFiles = toEvaluate.listFiles();
-		for(File f: allFiles){
-			if(f.isDirectory() && isEvaluationApproach(f) &&!f.getName().equals(FileManager.evaluationDir)){
-				allApproaches.add(new EvaluationApproach(f,date,false));
-			}
-		}*/
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA1 (EVEFI)",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA2 (Metaproduct)",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA3 (Concrete)",this.evaluatePath));
@@ -74,13 +67,6 @@ public class CompleteEvaluation extends Evaluation{
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA6",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA9",this.evaluatePath));
 	}
-	
-	/**
-	 * Returns true if the given file is a evaluation Approach
-	 * @param f
-	 * @return
-	 */
-	//todo: remove
 	
 	/**
 	 * Creates an XLSX File with the result of the evaluation

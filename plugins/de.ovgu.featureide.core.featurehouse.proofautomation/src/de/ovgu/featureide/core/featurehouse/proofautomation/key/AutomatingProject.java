@@ -49,7 +49,6 @@ import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
  * 
  * @author Stefanie
  */
-//todo: location for proof reuse has to be evaluationPath
 public class AutomatingProject{
 	public static final AutomatingProject automatingProject = new AutomatingProject();
 	
