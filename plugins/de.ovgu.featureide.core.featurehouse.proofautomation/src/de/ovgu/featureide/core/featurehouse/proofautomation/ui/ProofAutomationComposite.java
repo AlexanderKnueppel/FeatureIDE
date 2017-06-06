@@ -54,6 +54,8 @@ public class ProofAutomationComposite extends Composite{
 	
 	private Text source;
 	private Label loadLabel;
+	private Text verificationApproach;
+	private Label vaLabel;
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
@@ -105,6 +107,10 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		vaLabel = new Label(loadComposite, SWT.NONE);
+		vaLabel.setText("Verification Approach:");
+		verificationApproach = new Text(loadComposite, SWT.BORDER);
+		verificationApproach.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite buttonComposite = new Composite(load, SWT.NONE);
 		buttonComposite.setLayout(new GridLayout(3,true));
 		buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -142,10 +148,10 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-/*				SingleProject s = new SingleProject(f,null,0);
+				SingleProject s = new SingleProject(f,verificationApproach.getText());
 				if(Configuration.performVerification){
 					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
-				}*/
+				}
 			}
 		} );
 		loadPhaseDir.addSelectionListener( new SelectionListener() {
@@ -158,10 +164,10 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-/*				EvaluationApproach ep = new EvaluationApproach(f,null,true, toolTipText, f);
+				EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());
 				if(Configuration.performVerification){
 					ep.performEvaluation();
-				}*/
+				}
 			}
 		} );
 		

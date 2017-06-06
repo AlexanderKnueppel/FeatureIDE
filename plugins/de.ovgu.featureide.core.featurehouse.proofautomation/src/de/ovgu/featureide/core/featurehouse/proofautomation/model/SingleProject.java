@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
@@ -41,7 +42,7 @@ public class SingleProject extends Evaluation{
 	private int evalVersion;
 
 	/**
-	 * Constructor
+	 * Constructor for execution in an verification approach
 	 * Uses a given evaluatePath instead of a new
 	 * @param f
 	 * @param evalVersion
@@ -61,6 +62,29 @@ public class SingleProject extends Evaluation{
 	
 	public List<AutomatingProof> getProofList(){
 		return proofList;
+	}
+	
+	/**
+	 * Constructor for proofing a single project version
+	 * @param f
+	 * @param verificationApproachName
+	 */
+	public SingleProject(File f, String verificationApproachName){
+		super(f);
+		date = new Date();
+		File dateDir = FileManager.createDateDir(date, new File(f.getParent()+FILE_SEPERATOR+FileManager.evaluationDir));
+		File vaDir = FileManager.createDir(new File(dateDir+FILE_SEPERATOR+verificationApproachName));
+		this.evaluatePath = FileManager.createDir(new File(vaDir+FILE_SEPERATOR+f.getName()));
+		this.evalVersion = getApproachVersion();
+		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results.xlsx");
+		boolean newMetaproduct=true,featurestub=false;
+		if(evalVersion == 5||evalVersion == 6||evalVersion == 7||evalVersion == 8){
+			newMetaproduct = false;
+		}
+		if(evalVersion==1){
+			featurestub=true;
+		}
+		projectWorker.generateCodeForSingleProject(f.getName(), featurestub, newMetaproduct);
 	}
 	
 	/**

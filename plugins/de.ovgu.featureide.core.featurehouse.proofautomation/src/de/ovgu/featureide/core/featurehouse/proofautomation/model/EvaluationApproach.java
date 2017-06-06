@@ -45,21 +45,32 @@ public class EvaluationApproach extends Evaluation{
 	private List<SingleProject> projectVersions = new LinkedList<SingleProject>(); //contains all project versions
 	
 	/**
-	 * Constructor
+	 * Constructor for execution over all verification apporaches
 	 * gets a directory of a single approach and sets the statistics file and the BankAccount list
 	 * @param f
 	 */
 
-	public EvaluationApproach(File f, Date d,boolean singleExecution,String name,File evalPathComplete){
+	public EvaluationApproach(File f,String name,File evalPathComplete){
 		super(f);
-		date = d;
-		if(d== null){
-			date = new Date();
-		}
 		evaluatePath = FileManager.createDir(new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name));
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
-		this.singleExecution = singleExecution;
+		this.singleExecution = false;
+	}
+	
+	/**
+	 * Constructor for single execution of a verification approach
+	 * @param f
+	 * @param name
+	 */
+	public EvaluationApproach(File f,String name){
+		super(f);
+		date = new Date();
+		File dateDir = FileManager.createDateDir(date, new File(f.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
+		evaluatePath = FileManager.createDir(new File (dateDir.getAbsolutePath()+FILE_SEPERATOR+name));
+		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
+		setProjectVersion();
+		this.singleExecution = true;
 	}
 	
 	/**

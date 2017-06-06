@@ -63,6 +63,62 @@ public class projectWorker {
 		return allProjectsForApproach;
 	}
 	
+	public static void generateCodeForSingleProject(String projectName,boolean featurestub,boolean newMetaproduct){
+		IProject p = getProjectByName(projectName);
+		if(p!=null){
+			final IFeatureProject featureProject = CorePlugin.getFeatureProject(p);			
+			try{
+				FeatureHouseComposer featureHouseComposer = (FeatureHouseComposer) featureProject.getComposer();
+				featureHouseComposer.setBuildMetaProduct(true);
+				IFile config = featureProject.getCurrentConfiguration();
+				if(newMetaproduct){
+					featureProject.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING_DISP);
+				}
+				else{
+					featureProject.setMetaProductGeneration(IFeatureProject.META_THEOREM_PROVING);
+				}
+				if(Configuration.generateMetaproduct){
+					featureHouseComposer.performFullBuild(config);
+				}
+				MetaProductBuilder.prepareMetaProduct(new File(featureProject.getBuildPath()));
+				p.refreshLocal(IResource.DEPTH_INFINITE, null);
+			} catch(Exception e){
+				System.out.println("Error building Metaproduct "+p.getName());
+				e.printStackTrace();
+			}
+			if(featurestub){
+				try{
+					if (featureProject != null) {
+						FeatureStubsGenerator fsg = new FeatureStubsGenerator(featureProject);
+						fsg.generate();
+						while(true){
+							Thread.sleep(100); //necessary because of timing problems 
+							if(fsg.finished){
+								break;
+							}
+						}
+					}
+				} catch(Exception e){
+					System.out.println("Error building featurestub:");
+					e.printStackTrace();
+				}
+			}
+			
+		}
+	}
+	
+	public static IProject getProjectByName(String name){
+		IWorkspaceRoot myWorkspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] allProjects = myWorkspaceRoot.getProjects();
+		for(IProject p: allProjects){
+			File f = p.getLocation().toFile();
+			if(f.getName().equals(name)){
+				return p;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Generates featurestubs for the given projects
 	 * @param projects
@@ -70,7 +126,6 @@ public class projectWorker {
 	public static void generateAllFeatureStubsForApproach(LinkedList<IProject> projects){
 		for(IProject p: projects){
 			try{
-				System.out.println(p.toString());
 				final IResource res = (IResource) SelectionWrapper.checkClass(p, IResource.class);
 				final IFeatureProject featureProject = CorePlugin.getFeatureProject(res);
 				if (featureProject != null) {

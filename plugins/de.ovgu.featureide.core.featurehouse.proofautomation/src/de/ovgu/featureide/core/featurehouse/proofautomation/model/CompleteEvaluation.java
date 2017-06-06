@@ -59,13 +59,13 @@ public class CompleteEvaluation extends Evaluation{
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
 	private void setEvaluationApproach(){
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA1 (EVEFI)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA2 (Metaproduct)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA3 (Concrete)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA4 (MI)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA5 (Thuem et al.)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA6",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,date,false,"VA9",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA4 (MI)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA6",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA9",this.evaluatePath));
 	}
 	
 	/**
