@@ -63,9 +63,8 @@ public class CompleteEvaluation extends Evaluation{
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA4 (MI)",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath));
 		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA6",this.evaluatePath));
-		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA9",this.evaluatePath));
+		allApproaches.add(new EvaluationApproach(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath));
 	}
 	
 	/**

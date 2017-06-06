@@ -80,7 +80,7 @@ public class EvaluationApproach extends Evaluation{
 		LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 		boolean newMetaproduct = true;
 		int version = getVersionNumber();
-		if(version == 5||version == 6||version == 7||version == 8){
+		if(version == 5||version == 6){
 			newMetaproduct = false;
 		}
 		projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
@@ -137,7 +137,7 @@ public class EvaluationApproach extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==6||getVersionNumber()==9){
+		if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==6){
 			ExcelManager.generateSingleApproachEvaluationWithReuseXLS(this);
 		}
 		else{

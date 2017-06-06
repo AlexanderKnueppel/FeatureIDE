@@ -78,7 +78,7 @@ public class SingleProject extends Evaluation{
 		this.evalVersion = getApproachVersion();
 		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results.xlsx");
 		boolean newMetaproduct=true,featurestub=false;
-		if(evalVersion == 5||evalVersion == 6||evalVersion == 7||evalVersion == 8){
+		if(evalVersion == 5||evalVersion == 6){
 			newMetaproduct = false;
 		}
 		if(evalVersion==1){
@@ -128,12 +128,6 @@ public class SingleProject extends Evaluation{
 			case 5 :aproj.performVa5(toEvaluate,evaluatePath);
 					break;
 			case 6 :aproj.performVa6(toEvaluate,evaluatePath);
-					break;
-			case 7 :aproj.performVa2(toEvaluate,evaluatePath);
-					break;
-			case 8 :aproj.performVa3(toEvaluate,evaluatePath);
-					break;
-			case 9 :aproj.performVa5(toEvaluate,evaluatePath);
 					break;
 		}
 		proofList = aproj.getProofList();
