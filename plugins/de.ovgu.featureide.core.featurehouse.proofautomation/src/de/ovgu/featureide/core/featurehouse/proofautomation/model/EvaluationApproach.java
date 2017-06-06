@@ -56,10 +56,9 @@ public class EvaluationApproach extends Evaluation{
 		if(d== null){
 			date = new Date();
 		}
-		evaluatePath = new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name);
+		evaluatePath = FileManager.createDir(new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name));
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
-		generateCode();
 		this.singleExecution = singleExecution;
 	}
 	
@@ -106,7 +105,7 @@ public class EvaluationApproach extends Evaluation{
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				projectVersions.add(new SingleProject(f,getVersionNumber(),evaluatePath.getAbsolutePath()));
+				projectVersions.add(new SingleProject(f,getVersionNumber(),evaluatePath.getAbsolutePath()+FILE_SEPERATOR+f.getName()));
 			}
 		}
 	}
@@ -141,6 +140,7 @@ public class EvaluationApproach extends Evaluation{
 	 * Performs the Evaluation of one Approach
 	 */
 	public void performEvaluation(){
+		generateCode();
 		for(SingleProject s : projectVersions){
 			startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
 		}

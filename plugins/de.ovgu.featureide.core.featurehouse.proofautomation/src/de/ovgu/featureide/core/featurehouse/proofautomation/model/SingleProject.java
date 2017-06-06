@@ -57,7 +57,7 @@ public class SingleProject extends Evaluation{
 	 */
 	public SingleProject(File f, int evalVersion, String evaluatePath){
 		super(f);
-		this.evaluatePath = new File(evaluatePath);
+		this.evaluatePath = FileManager.createDir(new File(evaluatePath));
 		if(evalVersion>0){
 			this.evalVersion = evalVersion;
 		}
