@@ -189,46 +189,23 @@ public class FileManager {
 	}
 	
 	/**
-	 * Copies the partial proofs from a previous version, which can be reused by the current version
-	 * @param versionA
-	 * @param versionB
-	 */
-	public static void copyReusablePartialProofs (File versionA, File versionB){
-		if(versionA.isDirectory()&&versionB.isDirectory()){
-			File featureStubA = new File(versionA.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
-			File featureStubB = new File(versionB.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
-			List<File> equalFeaturestubfiles = compareFeatureStubs(featureStubA,featureStubB);
-			createDir(new File(versionB.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir));
-			File[] featurestubs = featureStubB.listFiles();
-			for(File f : featurestubs){
-				if(f.isDirectory()){
-					createDir(new File(versionB.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getName()));
-				}
-			}
-			for(File e: equalFeaturestubfiles){
-				List<File> relatedProofs = getProofsForFeatureStubClass(e,versionA);
-				for(File rp: relatedProofs){
-					copyFile(rp.getAbsolutePath(),versionB.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+e.getParentFile().getName());
-				}
-			}
-		}
-	}
-	
-	/**
 	 * Copies the reusable proofs for featurestubs of previous versions
 	 * @param evalPath
 	 * @param project
 	 */
 	public static void reuseFeaturestub(File evalPath, File project){
 		try{
-			File firstProject = getProjectv1Path(project);
-			File firstProjectEvalPath = new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+evaluationDir);
-			List<File> equalFiles = compareFeatureStubs(new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir),new File(firstProject.getAbsolutePath()+FILE_SEPERATOR+featureStubDir));
-			for(File f: equalFiles){
-				List<File> reusableProofs= getProofsForFeatureStubClass(f,firstProjectEvalPath);
+			File firstProjectFeaturestub = new File(getProjectv1Path(project).getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
+			File firstProjectSavedProofs = new File(getProjectv1Path(evalPath).getAbsolutePath()+FILE_SEPERATOR+savedProofsDir);
+			File currentProjectFeaturestub =new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
+			List<File> equalFeaturestubs = compareFeatureStubs(currentProjectFeaturestub,firstProjectFeaturestub);
+			for(File e: equalFeaturestubs){
+				File savedProofFeaturestub = new File(firstProjectSavedProofs+FILE_SEPERATOR+e.getName());
+				File[] reusableProofs= savedProofFeaturestub.listFiles();
 				for(File r: reusableProofs){
-					createDir(new File(project.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()));
-					copyFile(r.getAbsolutePath(),project.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+f.getParentFile().getName()+FILE_SEPERATOR+r.getName());
+					File savedProofFeaturestubCur =new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+e.getName());
+					createDir(savedProofFeaturestubCur);
+					copyFile(r.getAbsolutePath(),savedProofFeaturestubCur+FILE_SEPERATOR+r.getName());
 				}
 			}
 		} catch(Exception e){
@@ -237,46 +214,28 @@ public class FileManager {
 	}
 	
 	/**
-	 * Returns a filelist which contains all proofs which belongs to the given featurestub class
-	 * @param featureStubClass
-	 * @param versionA
-	 * @return
-	 */
-	private static List<File> getProofsForFeatureStubClass(File featureStubClass, File versionA){
-		File featurestub = featureStubClass.getParentFile();
-		String featureStubClassName = featureStubClass.getName().replace(".java", "");
-		File previousFS = new File(versionA.getParentFile().getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+featurestub.getName());
-		File[] savedProofsOfFeatureStub = previousFS.listFiles();
-		List<File> relatedProofs = new LinkedList<File>();
-		for(File f : savedProofsOfFeatureStub){
-			if(f.getName().contains(featureStubClassName)){
-				relatedProofs.add(f);
-			}
-		}
-		return relatedProofs;
-	}
-	
-	/**
 	 * Returns all featurestub files which are equal 
 	 * @param fstubA
 	 * @param fstubB
 	 * @return
 	 */
-	private static List<File> compareFeatureStubs(File fstubA, File fstubB){
+	private static LinkedList<File> compareFeatureStubs(File fstubA, File fstubB){
 		if(!fstubA.isDirectory()||!fstubB.isDirectory()){
 			return null;
 		}
 		File[] dirAFiles = fstubA.listFiles();
 		File[] dirBFiles = fstubB.listFiles();
-		LinkedList<File> equalFiles = new LinkedList<File>();
+		LinkedList<File> equalFeatureStubs = new LinkedList<File>();
 		for(File a : dirAFiles){
 			for(File b : dirBFiles){
 				if(a.getName().equals(b.getName())){
-					equalFiles.addAll(compareDirectory(a,b));
+					if(compareDirectory(a,b)){
+						equalFeatureStubs.add(b);
+					}
 				}
 			}
 		}
-		return equalFiles;
+		return equalFeatureStubs;
 	}
 	
 	/**
@@ -285,23 +244,22 @@ public class FileManager {
 	 * @param dirB
 	 * @return
 	 */
-	private static List<File> compareDirectory(File dirA, File dirB){
+	private static boolean compareDirectory(File dirA, File dirB){
 		if(!dirA.isDirectory()||!dirB.isDirectory()){
-			return null;
+			return false;
 		}
 		File[] dirAFiles = dirA.listFiles();
 		File[] dirBFiles = dirB.listFiles();
-		LinkedList<File> equalFiles = new LinkedList<File>();
 		for(File a : dirAFiles){
 			for(File b : dirBFiles){
 				if(a.getName().equals(b.getName())){
-					if(filesAreEqual(a,b)){
-						equalFiles.add(a);
+					if(!filesAreEqual(a,b)){
+						return false;
 					}
 				}
 			}
 		}
-		return equalFiles;
+		return true;
 	}
 	
 	/**
