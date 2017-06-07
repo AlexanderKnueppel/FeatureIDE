@@ -335,4 +335,8 @@ public class AutomatingProof {
 	public boolean isClosed() {
 		return closed;
 	}
+	
+	public void removeProof(){
+		environment.getMediator().getUI().removeProof(environment.getMediator().getSelectedProof());
+	}
 }

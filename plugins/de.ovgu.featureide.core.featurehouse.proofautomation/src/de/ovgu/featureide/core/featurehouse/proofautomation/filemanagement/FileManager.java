@@ -175,6 +175,20 @@ public class FileManager {
 	}
 	
 	/**
+	 * Copies files from folder version1 to versionX
+	 * @param version1
+	 * @param versionX
+	 */
+	public static void copyFolderContent(File version1, File versionX){
+		if(version1.isDirectory()&&versionX.isDirectory()){
+			File[] allPartialProofs = version1.listFiles();
+			for(File f: allPartialProofs){
+				copyFile(f.getAbsolutePath(),versionX.getAbsolutePath()+FILE_SEPERATOR+f.getName());
+			}
+		}
+	}
+	
+	/**
 	 * Copies the partial proofs from a previous version, which can be reused by the current version
 	 * @param versionA
 	 * @param versionB

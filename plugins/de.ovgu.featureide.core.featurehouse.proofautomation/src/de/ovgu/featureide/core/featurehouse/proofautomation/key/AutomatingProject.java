@@ -108,15 +108,30 @@ public class AutomatingProject{
 	public void performVa2(File loc,File evalPath){
 		//Phase 1
 		String savePartialProofsPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;
+		boolean firstVersion =loc.getName().contains("1");
+		if(!firstVersion){
+			File version1 = new File(FileManager.getProjectv1Path(evalPath).getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
+			FileManager.copyFolderContent(version1,new File(savePartialProofsPath));
+		}
 		File metaproduct = getMetaproduct(loc);
 		List<AutomatingProof> abstractProofs = loadInKeY(metaproduct);
 		phase1ProofList.addAll(abstractProofs);
 		List<File> abstractProofPart = new LinkedList<File>();
 		for(AutomatingProof a : abstractProofs){
 			try {
-				System.out.println(a.getTargetName()+a.getTypeName());
-				a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-				abstractProofPart.add(a.saveProof(savePartialProofsPath));
+				File reuseProof = null;
+				if(!firstVersion){
+					reuseProof = proofAlreadyExistsAbstract(a,evalPath);
+				}
+				if(reuseProof!=null){
+					System.out.println(reuseProof);
+					abstractProofPart.add(reuseProof);
+				}
+				else{
+					System.out.println(a.getTargetName()+a.getTypeName());
+					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+					abstractProofPart.add(a.saveProof(savePartialProofsPath));
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -129,12 +144,20 @@ public class AutomatingProject{
 			String defaultName= a.getTypeName()+"__"+a.getTargetName();
 			File reuse = null;
 			for(File absProof: abstractProofPart){
-				if(absProof.getName().contains(defaultName)){
+				String name = absProof.getName();
+				System.out.println(name+" "+defaultName);
+				if(name.contains(defaultName)){
 					reuse = absProof;
 				}			
 			}
 			try {
 				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
+				if(!a.isClosed()){
+					a.removeProof();
+					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+					File restartProof = a.saveProof(savePartialProofsPath);
+					a.startMetaProductProof(restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
+				}
 				a.saveProof(metaproductPath);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -283,6 +306,22 @@ public class AutomatingProject{
 			}
 		}
 		return false;
+	}
+	
+	private static File proofAlreadyExistsAbstract(AutomatingProof a, File evalPath){
+		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.partialProofsDir);
+		File[] proofs = savedProofsPath.listFiles();
+		String defaultName= a.getTypeName()+"__"+a.getTargetName();;
+		if(proofs!=null){
+			for(File f : proofs){
+				if(!f.isDirectory()){
+					if(f.getName().endsWith(".proof") && f.getName().contains(defaultName)){
+						return f;
+					}
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**
