@@ -26,13 +26,21 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.configuration;
  * @author Stefanie
  */
 public class Configuration {
-	public static String keyBinPath = "D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\system\\binary"; //contains the key binary path (usually system\binary)
-	public static String keyLibsPath = "D:\\Programme\\Eclipse Umgebungen\\eclipse mars\\key\\key-ext-jars"; //contains the key library path (usually key-ext-jars)
+	public static String keyBinPath = "D:\\Programme\\Eclipse\\git\\key\\system\\binary"; //contains the key binary path (usually system\binary)
+	public static String keyLibsPath = "D:\\Programme\\Eclipse\\git\\key\\key-ext-jars"; //contains the key library path (usually key-ext-jars)
 	public static int maxRuleApplication = 10000;
 	public static boolean excludeMain = true; //excludes the proofs of class main
 	public static String excludedClass ="Main";
 	public static boolean excludeFailedProofs = true; //if true the failed Proofs are removed from the total results
 	public static boolean proveDispatcher = false; //if true, the dispatcher Methods are proven else not
+	public static boolean proveOriginal = false;
 	public static boolean performVerification = true; //performs Verification only if true
 	public static boolean generateMetaproduct = true; //
+	public static boolean currentMetaproductwithDispatcher = true; //states if the current used Metaproduct has dispatcher methods
+	/**
+	 * @param currentMetaproductwithDispatcher the currentMetaproductwithDispatcher to set
+	 */
+	public static void setCurrentMetaproductwithDispatcher(boolean currentMetaproductwithDispatcher) {
+		Configuration.currentMetaproductwithDispatcher = currentMetaproductwithDispatcher;
+	}
 }

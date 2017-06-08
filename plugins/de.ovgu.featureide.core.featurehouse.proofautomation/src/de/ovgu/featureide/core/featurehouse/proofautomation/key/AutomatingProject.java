@@ -434,7 +434,7 @@ public class AutomatingProject{
 		AutomatingProof account = getAccountConstructor(location);
 		if(account!=null){
 			account.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication, null);
-			account.getProof().pruneProof(account.getProof().root());
+			account.removeProof();
 		}
 	}
 	
@@ -485,7 +485,12 @@ public class AutomatingProject{
                 	if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
                 		AutomatingProof a =new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract);
                 		if(!a.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
-                			proofs.add(a);
+                			if(!a.getTargetName().contains("_original_")||Configuration.proveOriginal){
+                				proofs.add(a);
+                			}
+                			if(!Configuration.proveDispatcher&&Configuration.currentMetaproductwithDispatcher){
+                				removeDispatcher(proofs);
+                			}
                 		}
                 	}
                 }
@@ -495,8 +500,20 @@ public class AutomatingProject{
         
 	}
 
-	private void removeDispatcher(List<AutomatingProof> proofs){
-
+	private static void removeDispatcher(List<AutomatingProof> proofs){
+		//pattern nameMethode_ contains
+		List<AutomatingProof> removeDispatcher = new LinkedList<AutomatingProof>();
+		for(AutomatingProof a: proofs){
+			for(AutomatingProof b: proofs){
+				String aNameWithoutBrackets = a.getTargetName().replaceAll("\\(.*\\)", "");
+				if(b.getTypeName().equals(a.getTypeName())&&a!=b){
+					if(b.getTargetName().contains(aNameWithoutBrackets+"_")){
+						removeDispatcher.add(a);
+					}
+				}
+			}
+		}
+		proofs.removeAll(removeDispatcher);
 	}
 	
 

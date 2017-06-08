@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
+import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
@@ -113,6 +114,12 @@ public class SingleProject extends Evaluation{
 	 * Performs the evaluation of a single approach dependent on the current approach
 	 */
 	public void performEvaluation(){
+		if(evalVersion == 5||evalVersion == 6){
+			Configuration.setCurrentMetaproductwithDispatcher(false);
+		}
+		else{
+			Configuration.setCurrentMetaproductwithDispatcher(true);
+		}
 		FileManager.initFolders(evaluatePath, evalVersion);
 		AutomatingProject aproj = AutomatingProject.getInstance();
 		aproj.warmUp(FileManager.getFirstMetaproductElement(toEvaluate));
