@@ -88,7 +88,7 @@ public class MetaProductBuilder {
 	 * @param featurestub
 	 * @return
 	 */
-	private static boolean checkForOriginal(File f, String featurestub){
+	public static boolean checkForOriginal(File f, String featurestub){
 		if(f.getAbsolutePath().endsWith(".proof")&!f.getAbsolutePath().contains("inv")){
 			try {
 				BufferedReader bReader = new BufferedReader(new FileReader(f));
@@ -116,7 +116,7 @@ public class MetaProductBuilder {
 	 * @param metaproductClass
 	 * @return true if the given file contains the given method
 	 */
-	private static boolean checkForMethod(String method, File metaproductClass){
+	public static boolean checkForMethod(String method, File metaproductClass){
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(metaproductClass));
             String line = bReader.readLine();

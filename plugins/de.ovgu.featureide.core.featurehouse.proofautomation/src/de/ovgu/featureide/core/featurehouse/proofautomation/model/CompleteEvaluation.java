@@ -71,7 +71,8 @@ public class CompleteEvaluation extends Evaluation{
 	 * Creates an XLSX File with the result of the evaluation
 	 */
 	public void createXLS(){
-		ExcelManager.generateAllApproachEvaluationWithReuseXLS(this);;
+		ExcelManager.generateAllApproachEvaluationWithReuseXLS(this);
+		ExcelManager.generateAllApproachWithInitSeperated(this);
 	}
 	
 	/**

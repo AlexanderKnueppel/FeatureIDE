@@ -55,6 +55,7 @@ public class AutomatingProject{
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private List<AutomatingProof> proofList; //contains all proofs of the current project
 	private List<AutomatingProof> phase1ProofList = new LinkedList<AutomatingProof>();
+	private List<AutomatingProof> proofListWithPhase1And2 = new LinkedList<AutomatingProof>();
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
 	
 	public static AutomatingProject getInstance(){
@@ -70,6 +71,13 @@ public class AutomatingProject{
 	 */
 	public List<AutomatingProof> getPhase1ProofList() {
 		return phase1ProofList;
+	}
+
+	/**
+	 * @return the proofListWithPhase1And2
+	 */
+	public List<AutomatingProof> getProofListWithPhase1And2() {
+		return proofListWithPhase1And2;
 	}
 
 	/**
@@ -124,11 +132,9 @@ public class AutomatingProject{
 					reuseProof = proofAlreadyExistsAbstract(a,evalPath);
 				}
 				if(reuseProof!=null){
-					System.out.println(reuseProof);
 					abstractProofPart.add(reuseProof);
 				}
 				else{
-					System.out.println(a.getTargetName()+a.getTypeName());
 					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 					abstractProofPart.add(a.saveProof(savePartialProofsPath));
 				}
@@ -143,12 +149,18 @@ public class AutomatingProject{
 		for(AutomatingProof a : metaproductProofs){
 			String defaultName= a.getTypeName()+"__"+a.getTargetName();
 			File reuse = null;
+			AutomatingProof reuseProof = null;
 			for(File absProof: abstractProofPart){
 				String name = absProof.getName();
-				System.out.println(name+" "+defaultName);
 				if(name.contains(defaultName)){
 					reuse = absProof;
-				}			
+				}
+				for(AutomatingProof ap : abstractProofs){
+					if(ap.getTargetName().equals(a.getTargetName())&&ap.getTypeName().equals(a.getTypeName())){
+						reuseProof = ap;
+					}
+				}
+				
 			}
 			try {
 				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
@@ -159,6 +171,17 @@ public class AutomatingProject{
 					a.startMetaProductProof(restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 				}
 				a.saveProof(metaproductPath);
+				AutomatingProof aTotal = new AutomatingProof(a.getTypeName(),
+						a.getTargetName(),a.getStat().getNodes(),a.getStat().getBranches(),
+						a.getStat().getAppliedRules(),a.getStat().getAutomodeTime(),
+						a.getReusedStat().getNodes(),a.getReusedStat().getBranches(),
+						a.getReusedStat().getAppliedRules(),a.getReusedStat().getAutomodeTime(),a.isClosed());
+				if(reuseProof!=null){
+					aTotal.getStat().addStatistics(reuseProof.getStat());
+					aTotal.getReusedStat().addStatistics(reuseProof.getReusedStat());
+				}
+				proofListWithPhase1And2.add(aTotal);
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -277,6 +300,7 @@ public class AutomatingProject{
 					try {
 						a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 						a.saveProof(saveFeatureStubPath);
+						a.setFeaturestub(f.getParentFile().getName());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -342,9 +366,38 @@ public class AutomatingProject{
 				threadsBefore =Thread.getAllStackTraces().keySet();
 				a.saveProof(metaproductPath);
 				a.waitForNewThread(threadsBefore);
+				AutomatingProof reusedProof = null;
+				for(AutomatingProof firstPhase: phase1ProofList){
+					if(reuse.getName().equals(getSaveName(firstPhase,projectDir))){
+						reusedProof = firstPhase;
+					}
+				}
+				AutomatingProof aTotal = new AutomatingProof(a.getTypeName(),
+						a.getTargetName(),a.getStat().getNodes(),a.getStat().getBranches(),
+						a.getStat().getAppliedRules(),a.getStat().getAutomodeTime(),
+						a.getReusedStat().getNodes(),a.getReusedStat().getBranches(),
+						a.getReusedStat().getAppliedRules(),a.getReusedStat().getAutomodeTime(),a.isClosed());
+				if(reusedProof!=null){
+					aTotal.getStat().addStatistics(reusedProof.getStat());
+					aTotal.getReusedStat().addStatistics(reusedProof.getReusedStat());
+				}
+				proofListWithPhase1And2.add(aTotal);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public static String getSaveName(AutomatingProof proof,File projectDir){
+		String methodname = proof.getTargetName();
+		methodname = methodname.replaceAll("\\(.*\\)", "");
+		File featurestubFile = new File (projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+proof.getTypeName()+".java");
+		File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+proof.getTypeName()+".java");
+		if(MetaProductBuilder.checkForOriginal(featurestubFile,proof.getFeaturestub())||MetaProductBuilder.checkForMethod(methodname+"_"+proof.getFeaturestub(),metaproduct)){
+			return proof.getTypeName()+"_"+methodname+"_"+proof.getFeaturestub()+".proof";
+		}
+		else{
+			return proof.getTypeName()+"_"+methodname+".proof";
 		}
 	}
 	

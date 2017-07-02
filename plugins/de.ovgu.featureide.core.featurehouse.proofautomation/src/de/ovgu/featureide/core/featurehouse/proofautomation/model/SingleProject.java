@@ -39,6 +39,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 public class SingleProject extends Evaluation{
 	private List<AutomatingProof> phase1ProofList = new LinkedList<AutomatingProof>();
 	private List<AutomatingProof> proofList = new LinkedList<AutomatingProof>(); //contains all Automating proofs of this project
+	private List<AutomatingProof> proofList1And2Phase = new LinkedList<AutomatingProof>();
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private int evalVersion;
 
@@ -96,6 +97,13 @@ public class SingleProject extends Evaluation{
 	}
 
 	/**
+	 * @return the proofList1And2Phase
+	 */
+	public List<AutomatingProof> getProofList1And2Phase() {
+		return proofList1And2Phase;
+	}
+
+	/**
 	 * Returns the apporach version according to the directory
 	 * @return
 	 */
@@ -139,6 +147,7 @@ public class SingleProject extends Evaluation{
 		}
 		proofList = aproj.getProofList();
 		phase1ProofList = aproj.getPhase1ProofList();
+		proofList1And2Phase = aproj.getProofListWithPhase1And2();
 		updateFailedProofs();
 		updateProofCount();
 		updateSum();

@@ -58,6 +58,7 @@ public class AutomatingProof {
 	private Proof proof;
 	private ProofStatistics stat = new ProofStatistics();
 	private ProofStatistics reusedStat = new ProofStatistics();
+	private String featurestub;
 	private boolean closed = false;
 	/**
 	 * Constructs a new AutomatingProof 
@@ -327,6 +328,20 @@ public class AutomatingProof {
 	 */
 	public ProofStatistics getReusedStat() {
 		return reusedStat;
+	}
+
+	/**
+	 * @return the featurestub
+	 */
+	public String getFeaturestub() {
+		return featurestub;
+	}
+
+	/**
+	 * @param featurestub the featurestub to set
+	 */
+	public void setFeaturestub(String featurestub) {
+		this.featurestub = featurestub;
 	}
 
 	/**

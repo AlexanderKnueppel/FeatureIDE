@@ -20,6 +20,7 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.excel;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,7 +45,61 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
  * @author Stefanie
  */
 public class ExcelManager {	
-	//todo: replace toEvaluate.getName() with evaluationPath.getName()
+	
+	public static void generateAllApproachWithInitSeperated(CompleteEvaluation c){
+		Workbook wb = new XSSFWorkbook();
+		CreationHelper crHelper = wb.getCreationHelper();
+	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
+	    Row curRow = fullEvaluationTitles(total,crHelper,8);
+	    fullOptionTitles(curRow,crHelper,1);   
+	    Sheet initialEffort = wb.createSheet(WorkbookUtil.createSafeSheetName("Initial Effort"));
+	    fullEvaluationTitles(initialEffort,crHelper,1);
+	    int rowcounter = 2;
+	    for(EvaluationApproach e: c.getAllApproaches()){
+	    	SingleProject s = getInitialProject(e);
+	    	ProofStatistics reuse = new ProofStatistics();
+		    reuse.addStatistics(e.firstPhaseReuse);
+		    reuse.removeStatistics(s.firstPhaseReuse);
+		    reuse.addStatistics(e.secondPhaseReuse);
+		    reuse.removeStatistics(s.secondPhaseReuse);
+		    ProofStatistics stat = new ProofStatistics();
+		    stat.addStatistics(e.firstPhase);
+		    stat.removeStatistics(s.firstPhase);
+		    stat.addStatistics(e.secondPhase);
+		    stat.removeStatistics(s.secondPhase);
+	    	Row totalCurRow = proofLists(8,total,crHelper, e.evaluatePath.getName(),reuse,stat, rowcounter,e.failedProofs-s.failedProofs,e.proofs-s.proofs);
+	    	addOptions(1,crHelper, totalCurRow,e);
+	    	ProofStatistics initReuse = s.firstPhaseReuse;
+	    	initReuse.addStatistics(s.secondPhaseReuse);
+	    	ProofStatistics initStat = s.firstPhase;
+	    	initStat.addStatistics(s.secondPhase);
+	    	proofLists(1,initialEffort,crHelper,e.evaluatePath.getName(),initReuse,initStat,rowcounter,s.failedProofs,s.proofs);
+	    	rowcounter++;
+	    }
+	    autosizeColumns(total,20);
+	    autosizeColumns(initialEffort,9);
+	    try {
+	    	FileOutputStream fOut = new FileOutputStream(new File(c.evaluatePath.getAbsolutePath()+System.getProperty("file.separator")+"Evaluation Results with Initial Effort.xlsx"));
+			wb.write(fOut);
+			fOut.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    try {
+			wb.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	public static SingleProject getInitialProject(EvaluationApproach e){
+		for(SingleProject s: e.getProjectVersion()){
+			if(s.evaluatePath.getName().contains("1")){
+				return s;
+			}
+		}
+		return null;
+	}
 	/**
 	 * Generates a summary of all approaches in an xlsx file
 	 * @param c
@@ -67,10 +122,10 @@ public class ExcelManager {
 		    ProofStatistics stat = new ProofStatistics();
 		    stat.addStatistics(e.firstPhase);
 		    stat.addStatistics(e.secondPhase);
-	    	Row totalCurRow = proofLists(8,total,crHelper, e.evaluatePath.getName(),reuse,stat, rowcounter,e);
+	    	Row totalCurRow = proofLists(8,total,crHelper, e.evaluatePath.getName(),reuse,stat, rowcounter,e.failedProofs,e.proofs);
 	    	addOptions(1,crHelper, totalCurRow,e);
-	    	proofLists(1,phaseOne,crHelper, e.evaluatePath.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter,e);
-	    	proofLists(1,phaseTwo,crHelper, e.evaluatePath.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter,e);
+	    	proofLists(1,phaseOne,crHelper, e.evaluatePath.getName(),e.firstPhaseReuse,e.firstPhase, rowcounter,e.failedProofs,e.proofs);
+	    	proofLists(1,phaseTwo,crHelper, e.evaluatePath.getName(),e.secondPhaseReuse,e.secondPhase, rowcounter,e.failedProofs,e.proofs);
 	    	rowcounter++;
 	    }
 	    autosizeColumns(total,20);
@@ -144,7 +199,7 @@ public class ExcelManager {
 		}
 	}
 	
-	private static Row proofLists(int firstColumn, Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter,EvaluationApproach e){
+	private static Row proofLists(int firstColumn, Sheet s, CreationHelper crHelper, String name, ProofStatistics reuse, ProofStatistics stat, int rowcounter,int failedProofs, int succededProofs){
 		Row approachRow = s.createRow(rowcounter);
     	approachRow.createCell(firstColumn).setCellValue(crHelper.createRichTextString(name));
     	approachRow.createCell(firstColumn+1).setCellValue(reuse.getNodes());
@@ -155,8 +210,8 @@ public class ExcelManager {
     	approachRow.createCell(firstColumn+6).setCellValue(stat.getBranches());
     	approachRow.createCell(firstColumn+7).setCellValue(stat.getAppliedRules());
     	approachRow.createCell(firstColumn+8).setCellValue(stat.getAutomodeTime());
-    	if(s.getSheetName().equals("Total")){
-    		approachRow.createCell(firstColumn+9).setCellValue(crHelper.createRichTextString((e.proofs-e.failedProofs)+"\\"+e.proofs));
+    	if(s.getSheetName().equals("Total")||s.getSheetName().equals("Initial Effort")){
+    		approachRow.createCell(firstColumn+9).setCellValue(crHelper.createRichTextString((succededProofs-failedProofs)+"\\"+succededProofs));
     	}
     	return approachRow;
 	}
@@ -507,6 +562,10 @@ public class ExcelManager {
 	    rowcount = createProofLists(s.getProofList(),phaseTwo,crHelper,1);
 	    createLastRowSingleProject(s.secondPhaseReuse,s.secondPhase,phaseTwo,crHelper,rowcount,s);
 	    autosizeColumns(phaseTwo,11);
+	    Sheet sumOneTwo = wb.createSheet(WorkbookUtil.createSafeSheetName("Sum of Phases"));
+	    createColumnTitles(sumOneTwo,crHelper);
+	    rowcount = createProofListsForTotalSum(s.getProofList1And2Phase(),sumOneTwo,crHelper,1);
+	    autosizeColumns(sumOneTwo,11);
 	    try {
 	    	FileOutputStream fOut = new FileOutputStream(s.statistics);
 			wb.write(fOut);
@@ -550,6 +609,26 @@ public class ExcelManager {
 	    	approachRows.createCell(8).setCellValue(a.getStat().getBranches()-a.getReusedStat().getBranches());
 	    	approachRows.createCell(9).setCellValue(a.getStat().getAppliedRules()-a.getReusedStat().getAppliedRules());
 	    	approachRows.createCell(10).setCellValue(a.getStat().getAutomodeTime()-a.getReusedStat().getAutomodeTime());
+	    	approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
+	    	rowcounter++;
+	    }
+		return rowcounter;
+	}
+	
+	private static int createProofListsForTotalSum(List<AutomatingProof> ap, Sheet s, CreationHelper crHelper,int start){
+		int rowcounter = start;
+		for(AutomatingProof a: ap){
+	    	Row approachRows = s.createRow(rowcounter);
+	    	approachRows.createCell(1).setCellValue(crHelper.createRichTextString(a.getTypeName()));
+	    	approachRows.createCell(2).setCellValue(crHelper.createRichTextString(a.getTargetName()));
+	    	approachRows.createCell(3).setCellValue(a.getReusedStat().getNodes());
+	    	approachRows.createCell(4).setCellValue(a.getReusedStat().getBranches());
+	    	approachRows.createCell(5).setCellValue(a.getReusedStat().getAppliedRules());
+	    	approachRows.createCell(6).setCellValue(a.getReusedStat().getAutomodeTime());
+	    	approachRows.createCell(7).setCellValue(a.getStat().getNodes());
+	    	approachRows.createCell(8).setCellValue(a.getStat().getBranches());
+	    	approachRows.createCell(9).setCellValue(a.getStat().getAppliedRules());
+	    	approachRows.createCell(10).setCellValue(a.getStat().getAutomodeTime());
 	    	approachRows.createCell(11).setCellValue(a.isClosed()? "Yes":"No");
 	    	rowcounter++;
 	    }
