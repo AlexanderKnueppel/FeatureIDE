@@ -204,9 +204,13 @@ public class AutomatingProof {
         waitForNewThread(threadsBefore);
         threadsBefore = Thread.getAllStackTraces().keySet();
         while(!proof.openEnabledGoals().isEmpty()&&goalHasApplicableRules()){
+        	int previousNodes = proof.countNodes();
         	threadsBefore = Thread.getAllStackTraces().keySet();
         	MainWindow.getInstance().getMediator().startAutoMode();
         	waitForNewThread(threadsBefore);
+        	if(uncloseableGoal(previousNodes)){
+        		break;
+        	}
         }
         closed = true;
         if(!proof.openGoals().isEmpty()){
@@ -226,6 +230,10 @@ public class AutomatingProof {
 			}
 		}
 		return false;
+	}
+	
+	public boolean uncloseableGoal(int previousNodes){
+		return proof.countNodes()==previousNodes;
 	}
 
 	/**
