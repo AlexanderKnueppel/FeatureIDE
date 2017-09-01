@@ -263,20 +263,24 @@ public class AutomatingProject{
 	 * @return
 	 */
 	private File reuseFullProof(File location, AutomatingProof a){
-		File projectv1 = FileManager.getProjectv1Path(location);
-		File reuseProofDir = new File (projectv1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir);
-		if(!reuseProofDir.exists()){
+		try{
+			File projectv1 = FileManager.getProjectv1Path(location);
+			File reuseProofDir = new File (projectv1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir);
+			if(!reuseProofDir.exists()){
+				return null;
+			}
+			File[] reuseProofs = reuseProofDir.listFiles();
+			for(File p : reuseProofs){
+				String filename = p.getName();
+				String defaultName= a.getTypeName()+"__"+a.getTargetName();
+				if(filename.contains(defaultName)){
+					return p;
+				}
+			}
+			return null;	
+		}catch(NullPointerException n){
 			return null;
 		}
-		File[] reuseProofs = reuseProofDir.listFiles();
-		for(File p : reuseProofs){
-			String filename = p.getName();
-			String defaultName= a.getTypeName()+"__"+a.getTargetName();
-			if(filename.contains(defaultName)){
-				return p;
-			}
-		}
-		return null;		
 	}
 	
 	
