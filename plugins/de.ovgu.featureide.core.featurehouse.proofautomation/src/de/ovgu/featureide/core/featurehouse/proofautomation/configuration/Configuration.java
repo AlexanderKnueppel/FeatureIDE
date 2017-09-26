@@ -37,6 +37,8 @@ public class Configuration {
 	public static boolean performVerification = true; //performs Verification only if true
 	public static boolean generateMetaproduct = true; //
 	public static boolean currentMetaproductwithDispatcher = true; //states if the current used Metaproduct has dispatcher methods
+	public static boolean warmUp = false; //if true key strats with Account for a warm up
+	
 	/**
 	 * @param currentMetaproductwithDispatcher the currentMetaproductwithDispatcher to set
 	 */

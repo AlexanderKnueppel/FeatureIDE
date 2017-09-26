@@ -488,10 +488,12 @@ public class AutomatingProject{
 	 * 
 	 */
 	public void warmUp(File location){
-		AutomatingProof account = getAccountConstructor(location);
-		if(account!=null){
-			account.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication, null);
-			account.removeProof();
+		if(Configuration.warmUp){
+			AutomatingProof account = getAccountConstructor(location);
+			if(account!=null){
+				account.startMetaProductProof(null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication, null);
+				account.removeProof();
+			}
 		}
 	}
 	
