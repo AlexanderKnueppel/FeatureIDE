@@ -1,5 +1,5 @@
 README:
-
+Installation:
 1. Install Eclipse Mars (Modeling Tool)
 2. Install KeY (Branch pelevinaAbstractContracts) and KeY4Eclipse
 3. Install FeatureIDE (https://github.com/kruegers/FeatureIDE):
@@ -11,13 +11,50 @@ README:
 4. Install Featurehouse (https://github.com/kruegers/featurehouse), 
    perform the build and add the jar file to 
 	de.ovgu.featureide.core.featurehouse/lib
-	
-5. Start an eclipse instance
-6. Add the projects to workspace
-6. Open the ProofAutomation View
-7. Add key binary path in Configuration (key\system\binary) and the key library path (key\key-ext-jars)
+
+For complete Verification with all six Verification Approaches over all projects:
+1. Start an eclipse instance
+2. Open the ProofAutomation View
+3. Add the projects to workspace
+4. Add key binary path in Configuration (key\system\binary) and the key library path (key\key-ext-jars)
 (Optional: Add the path to de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration
 in keyBinPath and keyLibsPath to avoid retyping)
-8. Add the folder with the project/Verification Approach/All Verification Approaches 
-   and press the right button 
-   (Start Project Evaluation/Start Evaluation of a single Phase/Start project Evaluation)
+5. Add the folder which contains all projects to Field "Directory"
+6. Press Button "Start Evaluation"
+
+For Verification with one Verification Approach over all projects:
+1. Start an eclipse instance
+2. Open the ProofAutomation View
+3. Add the projects to workspace
+4. Add key binary path in Configuration (key\system\binary) and the key library path (key\key-ext-jars)
+(Optional: Add the path to de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration
+in keyBinPath and keyLibsPath to avoid retyping)
+5. Add the folder which contains all projects to Field "Directory"
+6. Add the Verification Approach, that should be used to Field "Verification Approach" 
+(1=EVEFI,2=Abstract Contracts,3=Concrete Contracts,4=Method Inlining with Dispatcher Methods,
+5=Method Inlining without Dispatcher without Proof Reuse, 6= 5 with Proof Reuse)
+7. Press Button "Start Evaluation of a single Phase"
+
+For Verification of one Project with one Verification Approach:
+1. Start an eclipse instance
+2. Open the ProofAutomation View
+3. Add the project to workspace
+4. Add key binary path in Configuration (key\system\binary) and the key library path (key\key-ext-jars)
+(Optional: Add the path to de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration
+in keyBinPath and keyLibsPath to avoid retyping)
+5. Add the folder of the Project to Field "Directory"
+6. Add the Verification Approach, that should be used to Field "Verification Approach" 
+(1=EVEFI,2=Abstract Contracts,3=Concrete Contracts,4=Method Inlining with Dispatcher Methods,
+5=Method Inlining without Dispatcher without Proof Reuse, 6= 5 with Proof Reuse)
+7. Press Button "Start Project Evaluation"
+
+
+Remarks:
+The Results are saved in the Directory, which was specified in "Directory", in a subdirectory "Evaluation" 
+with finished Proofs, partial Proofs and an Overview for the Proofs (for single Projects, single Verification Approach, all Verification Approaches)
+Additionally there are Output and Error Files for the execution of every project verification.
+
+Missing or wrong key binary path results in a ClassNotFoundException
+
+The Directory for complete Verification/ single Verification Approach contains every Project just once, e.g.
+attempt 5/BankAccountv1, attempt 5/BankAccountv2, etc. and not a directory for every Verification Approach 
