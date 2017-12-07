@@ -1,18 +1,18 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -20,13 +20,15 @@
  */
 package org.prop4j;
 
-import java.security.InvalidParameterException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import de.ovgu.featureide.fm.core.base.IFeature;
+
 /**
  * A variable or negated variable.
- * 
+ *
  * @author Thomas Thuem
  * @author Marcus Pinnecke (Feature Interface)
  */
@@ -36,89 +38,43 @@ public class Literal extends Node implements Cloneable {
 
 	public boolean positive;
 
-	//annotate each literal of a formula with an attribute for explanation. If "Up", explain child relationship
-	// to parent from feature-tree. If "Constraint", explain using cross-tree constraint.
-	public enum FeatureAttribute {
-		Undef, Up, Down, Root, Constraint
-	};
+	/**
+	 * Creates a new positive literal.
+	 *
+	 * @param var contained variable
+	 */
+	public Literal(Object var) {
+		this(var, true);
+	}
 
-	public int origin; // attribute encodes relevant information for generating explanations
-
-
+	/**
+	 * Creates a new literal.
+	 *
+	 * @param var contained variable
+	 * @param positive whether the variable is positive or negated
+	 */
 	public Literal(Object var, boolean positive) {
 		this.var = var;
 		this.positive = positive;
 	}
 
-	public Literal(Object var) {
-		this.var = var;
-		positive = true;
-	}
-	
-	/**
-	 * Encodes a literal from the tree topology.
-	 * FeatureAttribute must not have the value Constraint.
-	 * Example with root as FeatureAttribute: origin = -1 * 5 + 3 = -2 
-	 * @param var The variable 
-	 * @param FeatureAttribute The Enumeration element  
-	 */
-	public Literal(Object var, FeatureAttribute a) {
-		this(var);
-		if (a == FeatureAttribute.Constraint) {
-			throw new InvalidParameterException("Parameter Constraint is not allowed");
-		}
-		this.origin = -1 * FeatureAttribute.values().length + a.ordinal();  
-	}																	   
-
-	/**
-	 * Encodes a literal from a constraint.
-	 * @param var The variable
-	 * @param constraintIndex The index of a constraint  
-	 */
-	public Literal(Object var, int constraintIndex) {
-		this(var);
-		setOriginConstraint(constraintIndex);  
-	}										  
-
-	/**
-	 * Decodes a constraint index.    
-	 * Example with origin = 4: origin = 4 / 5 = 0. Returns a constraint with index 0.
-	 * 
-	 * @return The constraint-index
-	 */
-	public int getSourceIndex() {
-		if (getSourceAttribute() != FeatureAttribute.Constraint) {
-			throw new InternalError ("origin is not Constraint");
-		}
-		return origin / FeatureAttribute.values().length;
-	}
-
-	/**
-	 * Decodes a FeatureAttribute. 
-	 * Example with FeatureAttribute root and origin of -2: -2 % 5 + 5 = 3. 
-	 * Returns a FeatureAttribute with value 3 (ordinal).   
-	 * 
-	 * @return FeatureAttribute The Enumeration element  
-	 */
-	public FeatureAttribute getSourceAttribute() {
-		int index = origin % FeatureAttribute.values().length;
-		if (index < 0) {
-			index += FeatureAttribute.values().length;
-		}
-		return FeatureAttribute.values()[index];
-	}
-
-	/**
-	 * Encodes a constraint-index.  
-	 * Example with constraintIndex = 0: origin = 0 * 5 + 4 = 4
-	 * @param constrIndex The index of a constraint
-	 */
-	public void setOriginConstraint(int constrIndex) {
-		this.origin = constrIndex * FeatureAttribute.values().length + FeatureAttribute.Constraint.ordinal();
+	protected Literal(Literal oldLiteral) {
+		var = oldLiteral.var;
+		positive = oldLiteral.positive;
 	}
 
 	public void flip() {
 		positive = !positive;
+	}
+
+	@Override
+	public boolean isConjunctiveNormalForm() {
+		return true;
+	}
+
+	@Override
+	public boolean isClausalNormalForm() {
+		return false;
 	}
 
 	@Override
@@ -128,34 +84,39 @@ public class Literal extends Node implements Cloneable {
 
 	@Override
 	protected Node eliminate(List<Class<? extends Node>> list) {
-		//nothing to do with children
+		// nothing to do with children
 		return this;
 	}
 
 	@Override
-	protected Node clausify() {
-		//nothing to do
+	protected Node clausifyCNF() {
+		// nothing to do
+		return this;
+	}
+
+	@Override
+	protected Node clausifyDNF() {
+		// nothing to do
 		return this;
 	}
 
 	@Override
 	public void simplify() {
-		//nothing to do (recursive calls reached lowest node)
+		// nothing to do (recursive calls reached lowest node)
 	}
 
-	/*	@Override
-		public Literal clone() { 
-			Literal copy = new Literal (var,positive);
-			copy.setSourceIndex(this.srcIndex);
-			copy.setFeatureAttribute(this.srcAttribute);
-			return copy;
-		}*/
+	@Override
+	protected List<Node> replaceFeature(IFeature feature, IFeature replaceWithFeature, List<Node> list) {
+		if (var.equals(feature.getName())) {
+			var = replaceWithFeature.getName();
+			list.add(this);
+		}
+		return list;
+	}
 
 	@Override
 	public Literal clone() {
-		Literal copy = new Literal(var, positive);
-		copy.origin = this.origin;
-		return copy;
+		return new Literal(this);
 	}
 
 	@Override
@@ -174,19 +135,38 @@ public class Literal extends Node implements Cloneable {
 		final Literal other = (Literal) node;
 		return (positive == other.positive) && (var.equals(other.var));
 	}
-	
-	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+
+	@Override
+	public StringBuilder toStringTreeFormat(StringBuilder nodeStringBuilder, int level) {
 		for (int i = 0; i < level; i++) {
 			nodeStringBuilder.append("\t");
 		}
 		nodeStringBuilder.append(var);
-				
-		return super.toString(nodeStringBuilder, level);
+
+		return super.toStringTreeFormat(nodeStringBuilder, level);
 	}
 
 	@Override
 	public boolean getValue(Map<Object, Boolean> map) {
-		return this.positive == map.get(this.var);
+		return positive == map.get(var);
+	}
+
+	@Override
+	protected Collection<String> getContainedFeatures(Collection<String> containedFeatures) {
+		containedFeatures.add(String.valueOf(var));
+		return containedFeatures;
+	}
+
+	@Override
+	protected Collection<Literal> getLiterals(Collection<Literal> literals) {
+		literals.add(this);
+		return literals;
+	}
+
+	@Override
+	protected Collection<Object> getVariables(Collection<Object> variables) {
+		variables.add(var);
+		return variables;
 	}
 
 }

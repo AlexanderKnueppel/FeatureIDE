@@ -12,13 +12,13 @@
       </composer>
    </extension>
    <extension
-         point="de.ovgu.featureide.core.wizard">
-      <newProjectWizard
-            class="de.ovgu.featureide.core.wizardextension.DefaultNewFeatureProjectWizardExtension"
-            composerid="de.ovgu.featureide.core.composer.framework"
-            id="de.ovgu.featureide.core.framework.newProjectWizard"
-            name="Default">
-      </newProjectWizard>
+         point="de.ovgu.featureide.fm.core.FMComposer">
+      <fmComposer
+            class="de.ovgu.featureide.core.framework.FrameworkFMComposerExtension"
+            composer="de.ovgu.featureide.core.composer.framework"
+            id="de.ovgu.featureide.core.framework.fmComposer"
+            name="de.ovgu.featureide.core.framework.fmComposer">
+      </fmComposer>
    </extension>
 
 </plugin>

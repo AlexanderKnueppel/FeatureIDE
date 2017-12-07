@@ -1,18 +1,18 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -23,18 +23,21 @@ package de.ovgu.featureide.fm.core.io.xml;
 import static de.ovgu.featureide.fm.core.localization.StringTable.AUTO;
 import static de.ovgu.featureide.fm.core.localization.StringTable.REDUNDANT;
 import static de.ovgu.featureide.fm.core.localization.StringTable.TAUTOLOGY;
+
 /**
- * Provides the XML tags for {@link XmlFeatureModelReader} and {@link XmlFeatureModelWriter}. 
- * 
+ * Provides the XML tags for {@link XmlFeatureModelReader} and {@link XmlFeatureModelWriter}.
+ *
  * @author Jens Meinicke
  */
 public interface XMLFeatureModelTags {
+
 	static final String PROPERTIES = "properties";
 	static final String FEATURE_MODEL = "featureModel";
 	static final String STRUCT = "struct";
 	static final String FEATURE_ORDER = "featureOrder";
 	static final String CONSTRAINTS = "constraints";
 	static final String CONSTRAINT = "constraint";
+	static final String COLLAPSED = "collapsed";
 	static final String FEATURES = "features";
 	static final String CHOSEN_LAYOUT_ALGORITHM = "chosenLayoutAlgorithm";
 	static final String C = "c";
@@ -59,6 +62,8 @@ public interface XMLFeatureModelTags {
 	static final String NAME = "name";
 	static final String FALSE = "false";
 	static final String SHOW_HIDDEN_FEATURES = "showHiddenFeatures";
+	static final String SHOW_COLLAPSED_CONSTRAINTS = "showCollapsedConstraints";
+	static final String HIDE_LEGEND = "hideLegend";
 	static final String SHOW_SHORT_NAMES = "showShortNames";
 	static final String HORIZONTAL_LAYOUT = "horizontalLayout";
 	static final String RULE = "rule";

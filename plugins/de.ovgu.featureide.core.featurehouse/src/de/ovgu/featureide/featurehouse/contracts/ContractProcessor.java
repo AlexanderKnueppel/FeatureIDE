@@ -2,17 +2,17 @@
  * Copyright (C) 2005-2015  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -68,7 +68,7 @@ import de.ovgu.featureide.fm.core.functional.Functional.IFunction;
 
 /**
  * This class is responsible for processing contracts (of metaproducts with dispatcher methods).
- * 
+ *
  * @author Stefan Krueger
  * @author Sebastian Krieter
  */
@@ -96,21 +96,21 @@ public class ContractProcessor {
 		})));
 
 		final Set<Object> deadFeaturesLower = new HashSet<>();
-		for (IFeature deadFeature : featureModel.getAnalyser().getDeadFeatures()) {
+		for (final IFeature deadFeature : featureModel.getAnalyser().getDeadFeatures()) {
 			deadFeaturesLower.add(deadFeature.getName().toLowerCase());
 		}
 		final Set<Object> coreFeaturesLower = new HashSet<>();
-		for (IFeature coreFeature : featureModel.getAnalyser().getCoreFeatures()) {
+		for (final IFeature coreFeature : featureModel.getAnalyser().getCoreFeatures()) {
 			coreFeaturesLower.add(coreFeature.getName().toLowerCase());
 		}
 		coreFeaturesLower.add(NodeCreator.varTrue);
 		deadFeaturesLower.add(NodeCreator.varFalse);
-		
+
 		featureNamesLower.add(NodeCreator.varTrue);
 		featureNamesLower.add(NodeCreator.varFalse);
-		
-		Path path = Paths.get(outputPath);
-		FileVisitor<Path> fileVisit = new FileVisitor<Path>() {
+
+		final Path path = Paths.get(outputPath);
+		final FileVisitor<Path> fileVisit = new FileVisitor<Path>() {
 
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -122,30 +122,20 @@ public class ContractProcessor {
 				if (attrs.isRegularFile()) {
 					final String fileName = file.getFileName().toString();
 					final int indexOfDot = fileName.lastIndexOf('.');
-					if (indexOfDot > 0 && "java".equals(fileName.substring(indexOfDot + 1))) {
+					if ((indexOfDot > 0) && "java".equals(fileName.substring(indexOfDot + 1))) {
 						final String content = new String(Files.readAllBytes(file), "UTF-8");
 						final StringBuilder newContent = new StringBuilder(content.length());
 						/*
-						 * Contracts can either be abstract or concrete.
-						 * 
-						 * If the contract is abstract, clauses look like this:
-						 * (requires|ensures)_abs $nameR;
-						 * def $nameR = C1 && ... Cn;
-						 * In order to get C1 ... Cn, we look for the requires_abs and ensures_abs keywords 
-						 * and then get the actual clauses by cutting off everything before the next equal sign.
-						 *								  
-						 * If the contract is concrete, it looks like this:
-						 *  requires|ensures C1;
-						 *  	...
-						 *  requires|ensures Cn;
-						 *  Here, we look for the requires and ensures keywords and make a cut after the next whitespace.
-						 *  
+						 * Contracts can either be abstract or concrete. If the contract is abstract, clauses look like this: (requires|ensures)_abs $nameR; def
+						 * $nameR = C1 && ... Cn; In order to get C1 ... Cn, we look for the requires_abs and ensures_abs keywords and then get the actual
+						 * clauses by cutting off everything before the next equal sign. If the contract is concrete, it looks like this: requires|ensures C1;
+						 * ... requires|ensures Cn; Here, we look for the requires and ensures keywords and make a cut after the next whitespace.
 						 */
-						String abstractContractsClauseRegex = "\\s+(requires_abs|ensures_abs)\\s+[^;]*;\\s+def[^;]*;";
-						String concreteContractsClauseRegex = "(requires|ensures)\\s+[^;]*;";
+						final String abstractContractsClauseRegex = "\\s+(requires_abs|ensures_abs)\\s+[^;]*;\\s+def[^;]*;";
+						final String concreteContractsClauseRegex = "(requires|ensures)\\s+[^;]*;";
 						Pattern clausePattern = Pattern.compile(abstractContractsClauseRegex);
 						Matcher clauseMatcher = clausePattern.matcher(content);
-						boolean fileHasAbstractContracts = clauseMatcher.find();
+						final boolean fileHasAbstractContracts = clauseMatcher.find();
 						if (!fileHasAbstractContracts) {
 							clausePattern = Pattern.compile(concreteContractsClauseRegex);
 							clauseMatcher = clausePattern.matcher(content);
@@ -156,21 +146,21 @@ public class ContractProcessor {
 						clauseMatcher.reset();
 						int pos = 0;
 						while (clauseMatcher.find()) {
-							int start = clauseMatcher.start();
-							int end = clauseMatcher.end();
-							String abstractClause = content.substring(start, end);
+							final int start = clauseMatcher.start();
+							final int end = clauseMatcher.end();
+							final String abstractClause = content.substring(start, end);
 							final int clauseLength = abstractClause.length();
-							int indexOfClause = abstractClause.indexOf(fileHasAbstractContracts ? '=' : ' ');
-							String clauseContent = abstractClause.substring(indexOfClause + 1, clauseLength - 1).trim();
+							final int indexOfClause = abstractClause.indexOf(fileHasAbstractContracts ? '=' : ' ');
+							final String clauseContent = abstractClause.substring(indexOfClause + 1, clauseLength - 1).trim();
 
-							ContractNodeReader conNodeReader = new ContractNodeReader();
-							Node oldClauseNode = conNodeReader.parseStringToNode(clauseContent);
+							final ContractNodeReader conNodeReader = new ContractNodeReader();
+							final Node oldClauseNode = conNodeReader.parseStringToNode(clauseContent);
 							Node clauseNode = oldClauseNode.toRegularCNF();
 							final List<Node> collectNodes;
 							final Node[] andChildren = clauseNode.getChildren();
 							collectNodes = new ArrayList<Node>(andChildren.length);
 							for (int j = 0; j < andChildren.length; j++) {
-								Node childOfAnd = andChildren[j];
+								final Node childOfAnd = andChildren[j];
 								handleLiteralsAndOrClauses(deadFeaturesLower, coreFeaturesLower, featureNamesLower, clauseNode, collectNodes, childOfAnd);
 							}
 
@@ -185,11 +175,11 @@ public class ContractProcessor {
 									final List<IConstr> constraintMarkers = redundantSat.addCNF(clauseNode.getChildren());
 
 									int i = -1;
-									for (IConstr constraint : constraintMarkers) {
+									for (final IConstr constraint : constraintMarkers) {
 										i++;
 										if (constraint != null) {
 											redundantSat.removeConstraint(constraint);
-											Node constraintNode = clauseNode.getChildren()[i];
+											final Node constraintNode = clauseNode.getChildren()[i];
 											if (!redundantSat.isImplied(constraintNode.getChildren())) {
 												redundantSat.addCNF(new Node[] { constraintNode });
 												newNodeChildren.add(constraintNode);
@@ -197,16 +187,18 @@ public class ContractProcessor {
 										}
 									}
 									clauseNode = new And(newNodeChildren.toArray(new Node[0]));
-								} catch (ContradictionException e) {
+								} catch (final ContradictionException e) {
 									Logger.logError(e);
 								}
 							}
-							String optimizedNode = NodeWriter.nodeToString(clauseNode, NodeWriter.jmlSymbols);
+							final NodeWriter nw = new NodeWriter(clauseNode);
+							nw.setSymbols(NodeWriter.jmlSymbols);
+							final String optimizedNode = nw.nodeToString();
 
 							System.err.println(" Before: " + clauseContent);
 							System.err.println("After : " + optimizedNode);
 							// 31 nextDay_Interest, true entfernen; 32 siehe 31
-							int offset = start + indexOfClause + 1;
+							final int offset = start + indexOfClause + 1;
 
 							newContent.append(content.substring(pos, offset));
 							newContent.append(" ");
@@ -252,7 +244,7 @@ public class ContractProcessor {
 				final Node[] orChildren = childOfAnd.getChildren();
 				nodes = new ArrayList<Node>(orChildren.length);
 				for (int k = 0; k < orChildren.length; k++) {
-					Literal childOfOr = (Literal) orChildren[k];
+					final Literal childOfOr = (Literal) orChildren[k];
 					if (handleLiteral(deadFeatures, coreFeaturesLower, featureNamesLower, nodes, childOfOr)) {
 						expTrue = true;
 					}
@@ -316,18 +308,18 @@ public class ContractProcessor {
 		final String fileLocation = file.getLocation().toOSString();
 		if (postCompiledFiles.add(fileLocation)) {
 			final String fileContent = new String(Files.readAllBytes(Paths.get(fileLocation)), file.getCharset());
-			Pattern p = Pattern.compile(
+			final Pattern p = Pattern.compile(
 					"([/][*][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*[*][/])|([/][/][@].*(ensures_abs|requires_abs|invariant|assignable_abs)\\s+.*$)",
 					Pattern.DOTALL);
 			if (p.matcher(fileContent).find()) {
 				final StringBuilder contentEditor = new StringBuilder(fileContent);
 
-				Node node = NodeCreator.createNodes(CorePlugin.getFeatureProject(file).getFeatureModel(), false).toRegularCNF();
+				final Node node = NodeCreator.createNodes(CorePlugin.getFeatureProject(file).getFeatureModel(), false).toRegularCNF();
 
-				Node[] andChildren = node.getChildren();
+				final Node[] andChildren = node.getChildren();
 				int removalCount = 0;
 				for (int i = 0; i < andChildren.length; i++) {
-					Node andChild = andChildren[i];
+					final Node andChild = andChildren[i];
 
 					int absoluteValueCount = 0;
 					boolean valid = true;
@@ -351,14 +343,14 @@ public class ContractProcessor {
 								valid = false;
 							}
 						} else {
-							//remember when you/we merge fork and master that this was not part of Sebastian's extension
+							// remember when you/we merge fork and master that this was not part of Sebastian's extension
 							literal.var = ((String) literal.var).toLowerCase();
 						}
 					}
 
 					if (valid) {
 						if (absoluteValueCount > 0) {
-							Literal[] newChildren = new Literal[children.length - absoluteValueCount];
+							final Literal[] newChildren = new Literal[children.length - absoluteValueCount];
 							int k = 0;
 							for (int j = 0; j < children.length; j++) {
 								final Literal literal = children[j];
@@ -376,7 +368,7 @@ public class ContractProcessor {
 				}
 
 				if (removalCount > 0) {
-					Node[] newChildren = new Node[andChildren.length - removalCount];
+					final Node[] newChildren = new Node[andChildren.length - removalCount];
 					int k = 0;
 					for (int j = 0; j < andChildren.length; j++) {
 						final Node finalNode = andChildren[j];
@@ -387,7 +379,11 @@ public class ContractProcessor {
 					node.setChildren(newChildren);
 				}
 
-				final String nodeToString = NodeWriter.nodeToString(node, NodeWriter.javaSymbols, "FM.FeatureModel.");
+				final NodeWriter nw = new NodeWriter(node);
+				nw.setSymbols(NodeWriter.jmlSymbols);
+				nw.setPrefix("FM.FeatureModel.");
+				final String nodeToString = nw.nodeToString();
+
 				final String featuremodel = "\n\t/*@ public invariant " + nodeToString + "; @*/\n";
 				final ASTParser astp = ASTParser.newParser(AST.JLS8);
 
@@ -397,8 +393,8 @@ public class ContractProcessor {
 				final CompilationUnit cu = (CompilationUnit) astp.createAST(null);
 				final PostCompiledFileVisitor postCompiledVisitor = new PostCompiledFileVisitor(contentEditor, featuremodel);
 				cu.accept(postCompiledVisitor);
-				String newContent = postCompiledVisitor.hasConstructor ? contentEditor.toString().replace(FMPLACEHOLDER, nodeToString)
-						: contentEditor.toString();
+				final String newContent =
+					postCompiledVisitor.hasConstructor ? contentEditor.toString().replace(FMPLACEHOLDER, nodeToString) : contentEditor.toString();
 				file.setContents(new ByteArrayInputStream(newContent.getBytes(file.getCharset())), false, true, null);
 			}
 		}
@@ -407,8 +403,8 @@ public class ContractProcessor {
 	private static final class PostCompiledFileVisitor extends ASTVisitor {
 
 		private boolean hasConstructor = false;
-		private StringBuilder contentEditor;
-		private String featuremodel;
+		private final StringBuilder contentEditor;
+		private final String featuremodel;
 
 		public PostCompiledFileVisitor(StringBuilder contentEditor, String featuremodel) {
 			super();
@@ -426,7 +422,7 @@ public class ContractProcessor {
 
 		@Override
 		public boolean visit(TypeDeclaration node) {
-			contentEditor.insert(node.getStartPosition() + node.getLength() - 1, featuremodel);
+			contentEditor.insert((node.getStartPosition() + node.getLength()) - 1, featuremodel);
 			return super.visit(node);
 		}
 

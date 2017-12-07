@@ -1,18 +1,18 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -32,15 +32,15 @@ import de.ovgu.featureide.fm.ui.editors.IGraphicalFeature;
 
 /**
  * Operation with functionality to move features. Provides redo/undo support.
- * 
+ *
  * @author Fabian Benduhn
  * @author Marcus Pinnecke
  */
 public class MoveFeatureOperation extends AbstractFeatureModelOperation {
 
-	private FeatureOperationData data;
-	private Point newPos;
-	private Point oldPos;
+	private final FeatureOperationData data;
+	private final Point newPos;
+	private final Point oldPos;
 
 	public MoveFeatureOperation(FeatureOperationData data, Object editor, Point newPos, Point oldPos, IFeature feature) {
 		super(feature.getFeatureModel(), MOVE_FEATURE);
@@ -63,11 +63,28 @@ public class MoveFeatureOperation extends AbstractFeatureModelOperation {
 			oldParent.getObject().getStructure().removeChild(featureStructure);
 
 			final IGraphicalFeature newParent = data.getNewParent();
-			newParent.getObject().getStructure().addChildAtPosition(data.getNewIndex(), featureStructure);
+
+			if (newParent.isCollapsed()) {
+				newParent.getObject().getStructure().addChildAtPosition(newParent.getObject().getStructure().getChildrenCount() + 1, featureStructure);
+
+				for (final IFeatureStructure fs : newParent.getObject().getStructure().getChildren()) {
+					if (fs != featureStructure) {
+						final IGraphicalFeature graphicalFS = feature.getGraphicalModel().getGraphicalFeature(fs.getFeature());
+						graphicalFS.setCollapsed(true);
+					}
+				}
+			} else {
+				newParent.getObject().getStructure().addChildAtPosition(data.getNewIndex(), featureStructure);
+			}
 
 			if (oldParent != newParent) {
 				oldParent.update(FeatureIDEEvent.getDefault(EventType.CHILDREN_CHANGED));
 				newParent.update(FeatureIDEEvent.getDefault(EventType.CHILDREN_CHANGED));
+			}
+
+			if (newParent.isCollapsed()) {
+				newParent.setCollapsed(false);
+				feature.getGraphicalModel().getFeatureModel().fireEvent(new FeatureIDEEvent(newParent.getObject(), EventType.COLLAPSED_CHANGED, null, null));
 			}
 		} else {
 			newInnerOrder(newPos);

@@ -1,18 +1,18 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -23,6 +23,7 @@ package de.ovgu.featureide.fm.ui.properties.language;
 import static de.ovgu.featureide.fm.core.localization.StringTable.ABSTRAKT;
 import static de.ovgu.featureide.fm.core.localization.StringTable.ALTERNATIVE;
 import static de.ovgu.featureide.fm.core.localization.StringTable.CONSTRAINT_IST_TAUTOLOGIE;
+import static de.ovgu.featureide.fm.core.localization.StringTable.EINGEKLAPPT;
 import static de.ovgu.featureide.fm.core.localization.StringTable.FALSCH_OPTIONALES_FEATURE;
 import static de.ovgu.featureide.fm.core.localization.StringTable.GEERBT;
 import static de.ovgu.featureide.fm.core.localization.StringTable.GERMAN;
@@ -34,9 +35,10 @@ import static de.ovgu.featureide.fm.core.localization.StringTable.REDUNDANTES_CO
 import static de.ovgu.featureide.fm.core.localization.StringTable.UNBESTIMMBAR_VERSTECKTES_FEATURE;
 import static de.ovgu.featureide.fm.core.localization.StringTable.VERSTECKT;
 import static de.ovgu.featureide.fm.core.localization.StringTable.VON_INTERFACE;
+
 /**
  * Class implementing the extension point <code>"de.ovgu.featureide.fm.core.language"</code>
- * 
+ *
  * @author Jens Meinicke
  * @author Florian Proksch
  * @author Stefan Krueger
@@ -53,22 +55,23 @@ public class German implements ILanguage {
 	private static final String INTERFACED = VON_INTERFACE;
 	private static final String CONCRETE = KONKRET;
 	private static final String HIDDEN = VERSTECKT;
-	private static final String DEAD = "Unw�hlbar";
+	private static final String COLLAPSED = EINGEKLAPPT;
+	private static final String DEAD = "Unwählbar";
 	private static final String FALSE_OPTIONAL = FALSCH_OPTIONALES_FEATURE;
 	private static final String OR = ODER;
 	private static final String OPTIONAL = "Optional";
 	private static final String INDETHIDDEN = UNBESTIMMBAR_VERSTECKTES_FEATURE;
 	private static final String REDUNDANT = REDUNDANTES_CONSTRAINT;
 	private static final String IMPLICIT = "Implizites Constraint";
-	private static final String UNSATISFIABLE_CONST = "Unerf�llbares Constraint";
+	private static final String UNSATISFIABLE_CONST = "Unerfüllbares Constraint";
 	private static final String TAUTOLOGY_CONST = CONSTRAINT_IST_TAUTOLOGIE;
-	private static final String VOID_MODEL_CONST = "Constraint macht Produktlinie unerf�llbar";
+	private static final String VOID_MODEL_CONST = "Constraint macht Produktlinie unerfüllbar";
 
 	@Override
 	public String getRedundantConst() {
 		return REDUNDANT;
 	}
-	
+
 	@Override
 	public String getImplicitConst() {
 		return IMPLICIT;
@@ -140,6 +143,11 @@ public class German implements ILanguage {
 	}
 
 	@Override
+	public String getCollapsed() {
+		return COLLAPSED;
+	}
+
+	@Override
 	public String getDead() {
 		return DEAD;
 	}
@@ -162,5 +170,20 @@ public class German implements ILanguage {
 	@Override
 	public String getOptional() {
 		return OPTIONAL;
+	}
+
+	@Override
+	public String getExplanation() {
+		return "Das ausgewählte Element ist defekt" + System.lineSeparator() + "wegen der hervorgehobenen Abhängigkeiten:";
+	}
+
+	@Override
+	public String getLikelyCause() {
+		return "wahrsch. Ursache";
+	}
+
+	@Override
+	public String getUnlikelyCause() {
+		return "unwahrsch. Ursache";
 	}
 }

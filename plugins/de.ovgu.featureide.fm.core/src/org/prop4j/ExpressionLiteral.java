@@ -50,13 +50,13 @@ public class ExpressionLiteral extends Literal {
 //		return super.equals(node) && (node instanceof ExpressionLiteral) && ((ExpressionLiteral) node).expression.equals(expression);
 //	}
 
-	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+	public StringBuilder toStringTreeFormat(StringBuilder nodeStringBuilder, int level) {
 		for (int i = 0; i < level; i++) {
 			nodeStringBuilder.append("\t");
 		}
 		nodeStringBuilder.append("EXP: ");
 
-		return super.toString(nodeStringBuilder, 0);
+		return super.toStringTreeFormat(nodeStringBuilder, 0);
 	}
 	
 	

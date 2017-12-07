@@ -1,3 +1,23 @@
+/* FeatureIDE - A Framework for Feature-Oriented Software Development
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
+ *
+ * This file is part of FeatureIDE.
+ *
+ * FeatureIDE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * FeatureIDE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * See http://featureide.cs.ovgu.de/ for further information.
+ */
 package de.ovgu.featureide.ui.actions;
 
 import org.eclipse.core.resources.IProject;
@@ -6,8 +26,8 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.packageview.PackageFragmentRootContainer;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ContributionItem;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
@@ -24,13 +44,14 @@ import org.eclipse.ui.internal.Workbench;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.base.impl.FMFactoryManager;
 import de.ovgu.featureide.fm.core.color.ColorScheme;
 import de.ovgu.featureide.fm.core.color.FeatureColorManager;
 import de.ovgu.featureide.ui.UIPlugin;
 
 /**
  * Class to add the profilemenu to the contextmenu of the project (projectonly)
- * 
+ *
  * @author Jonas Weigt
  * @author Christian Harnisch
  * @author Marcus Pinnecke
@@ -38,17 +59,18 @@ import de.ovgu.featureide.ui.UIPlugin;
 
 @SuppressWarnings({ "restriction" })
 public class DynamicProfileMenu extends ContributionItem {
+
 	private AddProfileColorSchemeAction addProfileSchemeAction;
 	private RenameProfileColorSchemeAction renameProfileSchemeAction;
 	private DeleteProfileColorSchemeAction deleteProfileSchemeAction;
-	private final IFeatureModel featureModel; {
-		IFeatureProject curFeatureProject = getCurrentFeatureProject();
-		featureModel = curFeatureProject == null ? null : curFeatureProject.getFeatureModel();
+	private final IFeatureModel featureModel;
+	{
+		final IFeatureProject curFeatureProject = getCurrentFeatureProject();
+		featureModel = curFeatureProject == null ? FMFactoryManager.getEmptyFeatureModel() : curFeatureProject.getFeatureModel();
 	}
-	private boolean multipleSelected = isMultipleSelection();
+	private final boolean multipleSelected = isMultipleSelection();
 
-	public DynamicProfileMenu() {
-	}
+	public DynamicProfileMenu() {}
 
 	public DynamicProfileMenu(String id) {
 		super(id);
@@ -62,8 +84,10 @@ public class DynamicProfileMenu extends ContributionItem {
 		if (featureModel == null) {
 			return;
 		}
-		MenuManager man = new MenuManager("Color Scheme", UIPlugin.getDefault().getImageDescriptor("icons/FeatureColorIcon.gif"), "");
+		final MenuManager man = new MenuManager("Color Scheme Menu", UIPlugin.getDefault().getImageDescriptor("icons/FeatureColorIcon.gif"), "");
 		man.addMenuListener(new IMenuListener() {
+
+			@Override
 			public void menuAboutToShow(IMenuManager m) {
 				fillContextMenu(m);
 			}
@@ -81,11 +105,11 @@ public class DynamicProfileMenu extends ContributionItem {
 	 * Fills the {@link IMenuManager} with action-buttons.
 	 */
 	private void fillContextMenu(IMenuManager menuMgr) {
-		for (ColorScheme cs : FeatureColorManager.getColorSchemes(featureModel)) {
+		for (final ColorScheme cs : FeatureColorManager.getColorSchemes(featureModel)) {
 			if (cs.isDefault()) {
 				continue;
 			}
-			SetProfileColorSchemeAction setCSAction = new SetProfileColorSchemeAction(cs.getName(), Action.AS_CHECK_BOX, featureModel);
+			final SetProfileColorSchemeAction setCSAction = new SetProfileColorSchemeAction(cs.getName(), IAction.AS_CHECK_BOX, featureModel);
 			if (cs.isCurrent()) {
 				setCSAction.setChecked(true);
 			}
@@ -121,9 +145,9 @@ public class DynamicProfileMenu extends ContributionItem {
 	 * Returns selection of type IStructuredSelection
 	 */
 	private static IStructuredSelection getIStructuredCurrentSelection() {
-		ISelectionService selectionService = Workbench.getInstance().getActiveWorkbenchWindow().getSelectionService();
+		final ISelectionService selectionService = Workbench.getInstance().getActiveWorkbenchWindow().getSelectionService();
 
-		ISelection selection = selectionService.getSelection();
+		final ISelection selection = selectionService.getSelection();
 		return (IStructuredSelection) selection;
 	}
 
@@ -131,11 +155,11 @@ public class DynamicProfileMenu extends ContributionItem {
 	 * Disables the profilemenu, if more than one project is selected
 	 */
 	private static boolean isMultipleSelection() {
-		IStructuredSelection myselection = getIStructuredCurrentSelection();
+		final IStructuredSelection myselection = getIStructuredCurrentSelection();
 
 		if (myselection instanceof ITreeSelection) {
-			TreeSelection treeSelection = (TreeSelection) myselection;
-			TreePath[] treePaths = treeSelection.getPaths();
+			final TreeSelection treeSelection = (TreeSelection) myselection;
+			final TreePath[] treePaths = treeSelection.getPaths();
 			if (treePaths.length > 1) {
 				return true;
 
@@ -150,20 +174,24 @@ public class DynamicProfileMenu extends ContributionItem {
 	 */
 	private static IFeatureProject getCurrentFeatureProject() {
 		final Object element = getIStructuredCurrentSelection().getFirstElement();
-		if (element instanceof IResource) {
-			return CorePlugin.getFeatureProject((IResource) element);
-		} else if (element instanceof PackageFragmentRootContainer) {
-			IJavaProject jProject = ((PackageFragmentRootContainer) element).getJavaProject();
-			return CorePlugin.getFeatureProject(jProject.getProject());
-		} else if (element instanceof IJavaElement) {
-			return CorePlugin.getFeatureProject(((IJavaElement) element).getJavaProject().getProject());
-		} else if (element instanceof IAdaptable) {
-			final IProject project = (IProject) ((IAdaptable) element).getAdapter(IProject.class);
-			if (project != null) {
-				return CorePlugin.getFeatureProject(project);
+		if (element != null) {
+			if (element instanceof IResource) {
+				return CorePlugin.getFeatureProject((IResource) element);
+			} else if (element instanceof PackageFragmentRootContainer) {
+				final IJavaProject jProject = ((PackageFragmentRootContainer) element).getJavaProject();
+				return CorePlugin.getFeatureProject(jProject.getProject());
+			} else if (element instanceof IJavaElement) {
+				return CorePlugin.getFeatureProject(((IJavaElement) element).getJavaProject().getProject());
+			} else if (element instanceof IAdaptable) {
+				// Cast is necessary, don't remove
+				final IProject project = (IProject) ((IAdaptable) element).getAdapter(IProject.class);
+				if (project != null) {
+					return CorePlugin.getFeatureProject(project);
+				}
 			}
+			throw new RuntimeException("element " + element + "(" + element.getClass() + ") not covered");
 		}
-		throw new RuntimeException("element " + element + "(" + element.getClass() + ") not covered");
+		return null;
 	}
 
 }

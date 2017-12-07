@@ -1,18 +1,18 @@
 /* FeatureIDE - A Framework for Feature-Oriented Software Development
- * Copyright (C) 2005-2016  FeatureIDE team, University of Magdeburg, Germany
+ * Copyright (C) 2005-2017  FeatureIDE team, University of Magdeburg, Germany
  *
  * This file is part of FeatureIDE.
- * 
+ *
  * FeatureIDE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * FeatureIDE is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FeatureIDE.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -26,16 +26,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.ovgu.featureide.fm.core.base.IFeature;
 
 /**
- * A propositional node that can be transformed into conjunctive normal form
- * (cnf).
- * 
+ * A propositional node that can be transformed into conjunctive normal form (cnf).
+ *
  * @author Thomas Thuem
  * @author Marcus Pinnecke (Feature Interface)
  */
@@ -45,13 +47,15 @@ public abstract class Node {
 
 	@SuppressWarnings("unchecked")
 	public void setChildren(Object... newChildren) {
-		//allow collections as parameters
-		if (newChildren.length == 1 && newChildren[0] instanceof Collection)
+		// allow collections as parameters
+		if ((newChildren.length == 1) && (newChildren[0] instanceof Collection)) {
 			newChildren = ((Collection<Object>) newChildren[0]).toArray();
-		//copy children and create literals
+		}
+		// copy children and create literals
 		children = new Node[newChildren.length];
-		for (int i = 0; i < children.length; i++)
+		for (int i = 0; i < children.length; i++) {
 			children[i] = getNode(newChildren[i]);
+		}
 	}
 
 	public void setChildren(Object leftChild, Object rightChild) {
@@ -66,15 +70,51 @@ public abstract class Node {
 		return children;
 	}
 
+	/**
+	 * <p> Returns true iff this node evaluates to true under the given truth value assignment. The result of the evaluation is the same as if each positive
+	 * literal in the expression were replaced by the corresponding boolean value in the given map. </p>
+	 *
+	 * <p> For example, for the {@link And conjunction} operation, this operations returns true iff the following formula is satisfied:
+	 * <pre><i>c<sub>1</sub></i> &and; &hellip; &and; <i>c<sub>n</sub></i></pre> Where <i>c<sub>i</sub></i> is the <i>i</i>-th of the <i>n</i> children of the
+	 * node. </p>
+	 *
+	 * @param assignment truth value assignment from variable to true or false
+	 * @return the result of evaluation of this node
+	 */
+	public abstract boolean getValue(Map<Object, Boolean> assignment);
+
+	/**
+	 * Returns true iff this is in conjunctive normal form. This is the case iff this is a conjunction of disjunctions of literals. Note that redundant nodes
+	 * may be omitted. This means that instead of one-literal conjunctions and disjunctions, the literal alone may be stored.
+	 *
+	 * @return true iff this is in conjunctive normal form.
+	 */
+	public abstract boolean isConjunctiveNormalForm();
+
+	/**
+	 * Returns true iff this is in clausal normal form. This is a more narrow case of conjunctive normal form. Specifically, redundant nodes may not be omitted.
+	 * In other words, this must be a conjunction of clauses. Each clause must in turn contain nothing but a positive amount of literals.
+	 *
+	 * @return true iff this is in clausal normal form
+	 */
+	public abstract boolean isClausalNormalForm();
+
 	public Node toCNF() {
 		Node cnf = this;
 		cnf = cnf.eliminateNonCNFOperators();
 		cnf = deMorgan(cnf);
-		return cnf.clausify();
+		return cnf.clausifyCNF();
+	}
+
+	public Node toDNF() {
+		Node cnf = this;
+		cnf = cnf.eliminateNonCNFOperators();
+		cnf = deMorgan(cnf);
+		return cnf.clausifyDNF();
 	}
 
 	public Node toRegularCNF() {
-		Node regularCNFNode = this.toCNF();
+		Node regularCNFNode = toCNF();
 		if (regularCNFNode instanceof And) {
 			final Node[] children = regularCNFNode.getChildren();
 			for (int i = 0; i < children.length; i++) {
@@ -89,10 +129,6 @@ public abstract class Node {
 			regularCNFNode = new And(new Or(regularCNFNode));
 		}
 		return regularCNFNode;
-	}
-
-	public boolean getValue(Map<Object, Boolean> map) {
-		throw new RuntimeException(getClass().getName() + IS_NOT_SUPPORTING_THIS_METHOD);
 	}
 
 	public static Node buildCNF(Node node) {
@@ -224,7 +260,7 @@ public abstract class Node {
 						final int[] curSizeArray = sizeArrays[i];
 
 						if (curSizeArray != null) {
-							int index = indexArray[i];
+							final int index = indexArray[i];
 							final Node newChildChild = newChild.getChildren()[index];
 							if (curSizeArray[index] < 0) {
 								newClause[curIndex++] = newChildChild;
@@ -301,30 +337,13 @@ public abstract class Node {
 		return node;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Node toCNFprintln() {
-		Node node = this;
-		System.out.println(node);
-		node = node.eliminate(Choose.class, Equals.class, Implies.class);
-		System.out.println(node);
-		node = node.eliminate(Not.class);
-		System.out.println(node);
-		node = node.eliminate(AtMost.class, AtLeast.class);
-		System.out.println(node);
-		node = node.eliminate(Not.class);
-		System.out.println(node);
-		node = node.clausify();
-		System.out.println(node);
-		System.out.println();
-		return node;
-	}
-
 	public void simplify() {
 		for (int i = 0; i < children.length; i++) {
 			children[i].simplify();
 		}
 	}
 
+	@Override
 	abstract public Node clone();
 
 	@Override
@@ -338,45 +357,60 @@ public abstract class Node {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
-		Node other = (Node) obj;
+		}
+		final Node otherNode = (Node) obj;
+		if (children.length != otherNode.children.length) {
+			return false;
+		}
 		final List<Node> thisChildrenList = Arrays.asList(children);
-		final List<Node> otherChildrenList = Arrays.asList(other.children);
+		final List<Node> otherChildrenList = Arrays.asList(otherNode.children);
 		return thisChildrenList.containsAll(otherChildrenList) && otherChildrenList.containsAll(thisChildrenList);
 	}
 
+	@Override
+	public String toString() {
+		return new NodeWriter(this).nodeToString();
+	}
+
 	/**
-	 * Returns a string representation of this node. The symbols for logical
-	 * connectors, e.g. And, are given as a parameter.
-	 * 
+	 * Returns a string representation of this node. The symbols for logical connectors, e.g. And, are given as a parameter.
+	 *
 	 * @see org.prop4j.NodeWriter.shortSymbols (default)
 	 * @see org.prop4j.NodeWriter.logicalSymbols
 	 * @see org.prop4j.NodeWriter.textualSymbols
-	 * 
+	 *
 	 * @param symbols the symbols for logical connectors
-	 * 
+	 *
 	 * @return a string representing this node
 	 */
 	public String toString(String[] symbols) {
-		return NodeWriter.nodeToString(this, symbols, false, true);
+		final NodeWriter nw = new NodeWriter(this);
+		nw.setSymbols(symbols);
+		nw.setEnquoteWhitespace(true);
+		return nw.nodeToString();
 	}
 
 	public static Node[] clone(Node[] array) {
-		Node[] newArray = new Node[array.length];
-		for (int i = 0; i < newArray.length; i++)
+		final Node[] newArray = new Node[array.length];
+		for (int i = 0; i < newArray.length; i++) {
 			newArray[i] = array[i].clone();
+		}
 		return newArray;
 	}
 
 	public static LinkedList<Node> clone(LinkedList<Node> list) {
-		LinkedList<Node> newList = new LinkedList<Node>();
-		for (Node node : list)
+		final LinkedList<Node> newList = new LinkedList<Node>();
+		for (final Node node : list) {
 			newList.add(node.clone());
+		}
 		return newList;
 	}
 
@@ -386,12 +420,17 @@ public abstract class Node {
 	}
 
 	protected Node eliminate(List<Class<? extends Node>> list) {
-		for (int i = 0; i < children.length; i++)
+		for (int i = 0; i < children.length; i++) {
 			children[i] = children[i].eliminate(list);
+		}
 		return this;
 	}
 
-	protected Node clausify() {
+	protected Node clausifyCNF() {
+		throw new RuntimeException(getClass().getName() + IS_NOT_SUPPORTING_THIS_METHOD);
+	}
+
+	protected Node clausifyDNF() {
 		throw new RuntimeException(getClass().getName() + IS_NOT_SUPPORTING_THIS_METHOD);
 	}
 
@@ -399,30 +438,23 @@ public abstract class Node {
 		return replaceFeature(feature, replaceWithFeature, new LinkedList<Node>());
 	}
 
-	public List<Node> replaceFeature(IFeature feature, IFeature replaceWithFeature, List<Node> list) {
-		if (this instanceof Literal) {
-			if (((Literal) this).var.equals(feature.getName())) {
-				((Literal) this).var = replaceWithFeature.getName();
-				list.add(this);
-			}
-		} else {
-			for (Node child : this.children) {
-				child.replaceFeature(feature, replaceWithFeature, list);
-			}
+	protected List<Node> replaceFeature(IFeature feature, IFeature replaceWithFeature, List<Node> list) {
+		for (final Node child : children) {
+			child.replaceFeature(feature, replaceWithFeature, list);
 		}
 		return list;
 	}
 
 	protected final void fuseWithSimilarChildren() {
 		int count = children.length;
-		for (Node child : children) {
+		for (final Node child : children) {
 			if (getClass().isInstance(child)) {
 				count += child.children.length - 1;
 			}
 		}
 		final Node[] newChildren = new Node[count];
 		int i = 0;
-		for (Node child : children) {
+		for (final Node child : children) {
 			if (getClass().isInstance(child)) {
 				System.arraycopy(child.children, 0, newChildren, i, child.children.length);
 				i += child.children.length;
@@ -438,98 +470,235 @@ public abstract class Node {
 	}
 
 	protected Node[] chooseKofN(Node[] elements, int k, boolean negated) {
-		int n = elements.length;
+		final int n = elements.length;
 
-		//return tautology
-		if (k == 0 || k == n + 1)
+		// return tautology
+		if ((k == 0) || (k == (n + 1))) {
 			return new Node[] { new Or(new Not(elements[0].clone()), elements[0].clone()) };
+		}
 
-		//return contradiction
-		if (k < 0 || k > n + 1)
+		// return contradiction
+		if ((k < 0) || (k > (n + 1))) {
 			return new Node[] { new And(new Not(elements[0].clone()), elements[0].clone()) };
+		}
 
-		Node[] newNodes = new Node[binom(n, k)];
+		final Node[] newNodes = new Node[binom(n, k)];
 		int j = 0;
 
-		//negate all elements
-		if (negated)
+		// negate all elements
+		if (negated) {
 			negateNodes(elements);
+		}
 
-		Node[] clause = new Node[k];
-		int[] index = new int[k];
+		final Node[] clause = new Node[k];
+		final int[] index = new int[k];
 
-		//the position that is currently filled in clause
+		// the position that is currently filled in clause
 		int level = 0;
 		index[level] = -1;
 
 		while (level >= 0) {
-			//fill this level with the next element
+			// fill this level with the next element
 			index[level]++;
-			//did we reach the maximum for this level
-			if (index[level] >= n - (k - 1 - level)) {
-				//go to previous level
+			// did we reach the maximum for this level
+			if (index[level] >= (n - (k - 1 - level))) {
+				// go to previous level
 				level--;
 			} else {
 				clause[level] = elements[index[level]];
-				if (level == k - 1)
+				if (level == (k - 1)) {
 					newNodes[j++] = new Or(clone(clause));
-				else {
-					//go to next level
+				} else {
+					// go to next level
 					level++;
-					//allow only ascending orders (to prevent from duplicates)
+					// allow only ascending orders (to prevent from duplicates)
 					index[level] = index[level - 1];
 				}
 			}
 		}
-		if (j != newNodes.length)
+		if (j != newNodes.length) {
 			throw new RuntimeException("Pre-calculation of the number of elements failed!");
+		}
 		return newNodes;
 	}
 
 	public static int binom(int n, int k) {
-		if (k > n / 2)
+		if (k > (n / 2)) {
 			k = n - k;
-		if (k < 0 || n < 0)
+		}
+		if ((k < 0) || (n < 0)) {
 			return 0;
-		if (k == 0 || n == 0)
+		}
+		if ((k == 0) || (n == 0)) {
 			return 1;
-		return binom(n - 1, k - 1) * n / k;
+		}
+		return (binom(n - 1, k - 1) * n) / k;
 	}
 
 	protected static void negateNodes(Node[] nodes) {
-		for (int i = 0; i < nodes.length; i++)
+		for (int i = 0; i < nodes.length; i++) {
 			nodes[i] = new Not(nodes[i]);
-	}
-
-	public List<String> getContainedFeatures() {
-		List<String> ret = new ArrayList<>();
-		getContainedFeatures(this, ret);
-		return ret;
-	}
-
-	private void getContainedFeatures(Node actNode, List<String> featureList) {
-		if (actNode instanceof Literal) {
-			featureList.add(((Literal) actNode).var.toString());
-		} else {
-			for (Node child : actNode.getChildren()) {
-				getContainedFeatures(child, featureList);
-			}
 		}
 	}
-	
-	@Override
-	public String toString() {
-		return toString(new StringBuilder(), 0).toString();
+
+	public String toStringTreeFormat() {
+		return toStringTreeFormat(new StringBuilder(), 0).toString();
 	}
 
-	public StringBuilder toString(StringBuilder nodeStringBuilder, int level) {
+	public StringBuilder toStringTreeFormat(StringBuilder nodeStringBuilder, int level) {
 		if (children != null) {
-			for (Node child : this.children) {
+			for (final Node child : children) {
 				nodeStringBuilder.append("\n");
-				child.toString(nodeStringBuilder, level+1);
+				child.toStringTreeFormat(nodeStringBuilder, level + 1);
 			}
-		}	
+		}
 		return nodeStringBuilder;
 	}
 
+	/**
+	 * Returns all features contained in this node and its children. Duplicates are kept.
+	 *
+	 * @return all features contained in this node and its children; not null
+	 */
+	public List<String> getContainedFeatures() {
+		return new ArrayList<>(getContainedFeatures(new LinkedList<String>()));
+	}
+
+	/**
+	 * Returns all features contained in this node and its children. Duplicates are removed.
+	 *
+	 * @return all features contained in this node and its children; not null
+	 */
+	public Set<String> getUniqueContainedFeatures() {
+		return (Set<String>) getContainedFeatures(new LinkedHashSet<String>());
+	}
+
+	/**
+	 * Returns all features contained in this node and its children. Uses the given collection as out variable.
+	 *
+	 * @param containedFeatures collection of previously found features to add to; not null
+	 * @return all features contained in this node and its children; not null
+	 */
+	protected Collection<String> getContainedFeatures(Collection<String> containedFeatures) {
+		for (final Node child : children) {
+			child.getContainedFeatures(containedFeatures);
+		}
+		return containedFeatures;
+	}
+
+	/**
+	 * Returns all literals contained in this node and its children. Duplicates are kept.
+	 *
+	 * @return all literals contained in this node and its children; not null
+	 */
+	public List<Literal> getLiterals() {
+		return new ArrayList<>(getLiterals(new LinkedList<Literal>()));
+	}
+
+	/**
+	 * Returns all literals contained in this node and its children. Duplicates are removed.
+	 *
+	 * @return all literals contained in this node and its children; not null
+	 */
+	public Set<Literal> getUniqueLiterals() {
+		return (Set<Literal>) getLiterals(new LinkedHashSet<Literal>());
+	}
+
+	/**
+	 * Returns all literals contained in this node and its children. Duplicates are kept. Uses the given collection as out variable.
+	 *
+	 * @param literals collection of previously found literals to add to; not null
+	 * @return all literals contained in this node and its children; not null
+	 */
+	protected Collection<Literal> getLiterals(Collection<Literal> literals) {
+		for (final Node child : children) {
+			child.getLiterals(literals);
+		}
+		return literals;
+	}
+
+	/**
+	 * Returns all variables contained in this node and its children. Duplicates are kept.
+	 *
+	 * @return all variables contained in this node and its children; not null
+	 */
+	public List<Object> getVariables() {
+		return new ArrayList<>(getVariables(new LinkedList<Object>()));
+	}
+
+	/**
+	 * Returns all variables contained in this node and its children. Duplicates are removed.
+	 *
+	 * @return all variables contained in this node and its children; not null
+	 */
+	public Set<Object> getUniqueVariables() {
+		return (Set<Object>) getVariables(new LinkedHashSet<Object>());
+	}
+
+	/**
+	 * Returns all variables contained in this node and its children. Uses the given collection as out variable.
+	 *
+	 * @param variables collection of previously found variables to add to; not null
+	 * @return all variables contained in this node and its children; not null
+	 */
+	protected Collection<Object> getVariables(Collection<Object> variables) {
+		for (final Node child : children) {
+			child.getVariables(variables);
+		}
+		return variables;
+	}
+
+	/**
+	 * <p> Returns all possible truth value assignments for {@link #getVariables() all variables} in this node. </p>
+	 *
+	 * <p> Let <i>n</i> denote the amount of literals in this node. Then this method will return exactly <i>2<sup>n</sup></i> assignments. Each assignment in
+	 * turn contains exactly <i>n</i> entries (1 for each variable). </p>
+	 *
+	 * @return all possible truth value assignments; not null
+	 */
+	public Set<Map<Object, Boolean>> getAssignments() {
+		return getAssignments(null);
+	}
+
+	/**
+	 * Returns all truth value assignments for which this node {@link #getValue(Map) evaluates} to true.
+	 *
+	 * @return all satisfying truth value assignments; not null
+	 */
+	public Set<Map<Object, Boolean>> getSatisfyingAssignments() {
+		return getAssignments(true);
+	}
+
+	/**
+	 * Returns all truth value assignments for which this node {@link #getValue(Map) evaluates} to false.
+	 *
+	 * @return all contradicting truth value assignments; not null
+	 */
+	public Set<Map<Object, Boolean>> getContradictingAssignments() {
+		return getAssignments(false);
+	}
+
+	/**
+	 * Returns all truth value assignments for which this node {@link #getValue(Map) evaluates} to the given boolean value. Accepts all assignments if the given
+	 * boolean value is null.
+	 *
+	 * @param result the expected evaluation result; null to accept every assignment
+	 * @return all accepted truth value assignments; not null
+	 */
+	private Set<Map<Object, Boolean>> getAssignments(Boolean result) {
+		final Set<Object> keys = getUniqueVariables();
+		final Set<Map<Object, Boolean>> assignments = new LinkedHashSet<>();
+		for (int assignment = 0; assignment < (1 << keys.size()); assignment++) {
+			final Map<Object, Boolean> map = new LinkedHashMap<Object, Boolean>();
+			int i = 0;
+			for (final Object key : keys) {
+				map.put(key, (assignment & (1 << i)) != 0);
+				i++;
+			}
+			if ((result == null) || (getValue(map) == result)) {
+				assignments.add(map);
+			}
+		}
+		return assignments;
+	}
 }
