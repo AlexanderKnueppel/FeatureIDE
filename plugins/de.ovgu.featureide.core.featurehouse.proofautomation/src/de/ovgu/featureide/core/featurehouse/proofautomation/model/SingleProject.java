@@ -129,6 +129,12 @@ public class SingleProject extends Evaluation{
 			Configuration.setCurrentMetaproductwithDispatcher(true);
 		}
 		FileManager.initFolders(evaluatePath, evalVersion);
+		if(evalVersion == 1){
+			File fstubPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+			FileManager.copyCompleteFolderContent(fstubPath,new File(evaluatePath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir));
+		}
+		File metaproductPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir);
+		FileManager.copyCompleteFolderContent(metaproductPath,new File(evaluatePath.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 		AutomatingProject aproj = AutomatingProject.getInstance();
 		aproj.warmUp(FileManager.getFirstMetaproductElement(toEvaluate));
 		switch(evalVersion){

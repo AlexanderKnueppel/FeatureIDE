@@ -122,8 +122,12 @@ public class FileManager {
 		if(version ==1 || version == 2 || version == 7 || version  == 8){
 			createDir(new File(evaluateDir+FILE_SEPERATOR+savedProofsDir));
 			createDir(new File(evaluateDir+FILE_SEPERATOR+partialProofsDir));
+			if(version==1){
+				createDir(new File(evaluateDir+FILE_SEPERATOR+featureStubDir));
+			}
 		}
 		createDir(new File(evaluateDir+FILE_SEPERATOR+finishedProofsDir));
+		createDir(new File(evaluateDir+FILE_SEPERATOR+metaproductDir));
 	}
 	
 	/**
@@ -184,6 +188,23 @@ public class FileManager {
 			File[] allPartialProofs = version1.listFiles();
 			for(File f: allPartialProofs){
 				copyFile(f.getAbsolutePath(),versionX.getAbsolutePath()+FILE_SEPERATOR+f.getName());
+			}
+		}
+	}
+	
+	/**
+	 * Copies files from folder version1 to versionX
+	 * @param version1
+	 * @param versionX
+	 */
+	public static void copyCompleteFolderContent(File folderSrc, File folderTarget){
+		if(folderSrc.isDirectory()&&folderTarget.isDirectory()){
+			File[] allPartialProofs = folderSrc.listFiles();
+			for(File f: allPartialProofs){
+				copyFile(f.getAbsolutePath(),folderTarget.getAbsolutePath()+FILE_SEPERATOR+f.getName());
+				if(f.isDirectory()){
+					copyCompleteFolderContent(f,new File(folderTarget.getAbsolutePath()+FILE_SEPERATOR+f.getName()));
+				}
 			}
 		}
 	}
