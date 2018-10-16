@@ -384,9 +384,8 @@ public class ContractProcessor {
 				nw.setPrefix("FM.FeatureModel.");
 				final String nodeToString = nw.nodeToString();
 
-				final String featuremodel = "\n\t/*@ public invariant " + nodeToString + "; @*/\n";
+				final String featuremodel = "";
 				final ASTParser astp = ASTParser.newParser(AST.JLS8);
-
 				astp.setSource(fileContent.toCharArray());
 				astp.setKind(ASTParser.K_COMPILATION_UNIT);
 

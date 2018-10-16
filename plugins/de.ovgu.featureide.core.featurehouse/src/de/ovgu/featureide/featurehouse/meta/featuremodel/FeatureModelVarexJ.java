@@ -121,4 +121,9 @@ public class FeatureModelVarexJ implements IFeatureModelClass {
 		return stringBuilder.toString();
 	}
 
+	@Override
+	public String getFormulaAsInvariant() {
+		return "";
+	}
+
 }

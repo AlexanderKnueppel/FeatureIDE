@@ -124,4 +124,9 @@ public class FeatureModelJPFBDD implements IFeatureModelClass {
 		return stringBuilder.toString();
 	}
 
+	@Override
+	public String getFormulaAsInvariant() {
+		return "";
+	}
+
 }

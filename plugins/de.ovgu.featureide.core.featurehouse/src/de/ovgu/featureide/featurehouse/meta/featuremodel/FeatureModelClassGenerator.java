@@ -81,7 +81,8 @@ public class FeatureModelClassGenerator {
 	public FeatureModelClassGenerator(IFeatureProject featureProject) {
 		if (featureProject.getMetaProductGeneration().equals(IFeatureProject.META_MODEL_CHECKING_BDD_JAVA_JML)) {
 			featureModelClass = new FeatureModelJPFBDD(featureProject.getFeatureModel());
-		} else if (featureProject.getMetaProductGeneration().equals(IFeatureProject.META_THEOREM_PROVING) || featureProject.getMetaProductGeneration().equals(IFeatureProject.META_THEOREM_PROVING_DISP)) {
+		} else if (featureProject.getMetaProductGeneration().equals(IFeatureProject.META_THEOREM_PROVING)
+			|| featureProject.getMetaProductGeneration().equals(IFeatureProject.META_THEOREM_PROVING_DISP)) {
 			featureModelClass = new FeatureModelKeY(featureProject.getFeatureModel());
 		} else if (featureProject.getMetaProductGeneration().equals(IFeatureProject.META_MODEL_CHECKING)) {
 			featureModelClass = new FeatureModelJPFCore(featureProject.getFeatureModel());
@@ -133,6 +134,7 @@ public class FeatureModelClassGenerator {
 		stringBuilder.append(NEWLINE);
 		stringBuilder.append("\t");
 		stringBuilder.append(featureModelClass.getFormula());
+		stringBuilder.append(featureModelClass.getFormulaAsInvariant());
 		stringBuilder.append(featureModelClass.getGetter());
 		stringBuilder.append(featureModelClass.getSelection());
 		stringBuilder.append(NEWLINE);

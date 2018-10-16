@@ -22,8 +22,13 @@ package de.ovgu.featureide.featurehouse.meta.featuremodel;
 
 import java.util.Locale;
 
+import org.prop4j.Node;
+import org.prop4j.NodeWriter;
+
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
+import de.ovgu.featureide.fm.core.editing.AdvancedNodeCreator;
+import de.ovgu.featureide.fm.core.editing.AdvancedNodeCreator.CNFType;
 import de.ovgu.featureide.fm.core.functional.Functional;
 
 /**
@@ -84,6 +89,16 @@ public class FeatureModelKeY implements IFeatureModelClass {
 	@Override
 	public String getSelection() {
 		return "";
+	}
+
+	@Override
+	public String getFormulaAsInvariant() {
+		final AdvancedNodeCreator anc = new AdvancedNodeCreator(featureModel);
+		anc.setCnfType(CNFType.Regular);
+		anc.setIncludeBooleanValues(false);
+		final Node nodes = anc.createNodes();
+		final String formula = nodes.toString(NodeWriter.javaSymbols).toLowerCase(Locale.ENGLISH);
+		return VALIDINV + "/*@ public invariant " + formula + "; @*/\r\n\t";
 	}
 
 }
