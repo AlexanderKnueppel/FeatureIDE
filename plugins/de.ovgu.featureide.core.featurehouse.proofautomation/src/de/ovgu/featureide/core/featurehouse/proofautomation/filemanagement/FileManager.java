@@ -216,22 +216,50 @@ public class FileManager {
 	 */
 	public static void reuseFeaturestub(File evalPath, File project){
 		try{
+			//TODO quicky fixi... don't know about that => change project to evalPath????
 			File firstProjectFeaturestub = new File(getProjectv1Path(project).getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
 			File firstProjectSavedProofs = new File(getProjectv1Path(evalPath).getAbsolutePath()+FILE_SEPERATOR+savedProofsDir);
 			File currentProjectFeaturestub =new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
 			List<File> equalFeaturestubs = compareFeatureStubs(currentProjectFeaturestub,firstProjectFeaturestub);
+			System.out.println("Reusing the following feature stubs for " + project.getName());
 			for(File e: equalFeaturestubs){
+				System.out.println(e.getName());
 				File savedProofFeaturestub = new File(firstProjectSavedProofs+FILE_SEPERATOR+e.getName());
 				File[] reusableProofs= savedProofFeaturestub.listFiles();
 				for(File r: reusableProofs){
 					File savedProofFeaturestubCur =new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+e.getName());
+					System.out.println("Reuse: " + r.getName());
 					createDir(savedProofFeaturestubCur);
 					copyFile(r.getAbsolutePath(),savedProofFeaturestubCur+FILE_SEPERATOR+r.getName());
 				}
 			}
 		} catch(Exception e){
-			System.out.println("Single Project Excecution finds no reuse");
+			System.out.println(e.getMessage() + "\n" + "Single Project Excecution finds no reuse");
 		}
+	}
+	
+//	public static void main(String[] args) {
+//		File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
+//		File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\Evaluation\\2019-11-27 07-57-21\\1\\BankAccountv7"+FILE_SEPERATOR+featureStubDir);
+//		for(File f : compareFeatureStubs(ba1stubs, ba2stubs)) {
+//			System.out.println(f.getName() + " is the same!");
+//		}
+//		
+//		File project = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\BankAccountv7");
+//		File evalPath = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\Evaluation\\2019-11-27 07-57-21\\1\\BankAccountv7");
+//		reuseFeaturestub(evalPath, project);
+//	}
+	
+	public static void main(String[] args) {
+		File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
+		File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+		for(File f : compareFeatureStubs(ba1stubs, ba2stubs)) {
+			System.out.println(f.getName() + " is the same!");
+		}
+//		
+		File first = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
+		File second = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
+		reuseFeaturestub(first, second);
 	}
 	
 	/**
@@ -294,6 +322,8 @@ public class FileManager {
 			byte[] aBytes = Files.readAllBytes(a.toPath());
 			byte[] bBytes = Files.readAllBytes(b.toPath());
 			if(aBytes.length!=bBytes.length){
+//				System.out.println(a.getAbsolutePath() + ": " + aBytes.length + " bytes");
+//				System.out.println(b.getAbsolutePath() + ": " + bBytes.length + " bytes");
 				return false;
 			}
 			for(int i = 0; i< aBytes.length;i++){

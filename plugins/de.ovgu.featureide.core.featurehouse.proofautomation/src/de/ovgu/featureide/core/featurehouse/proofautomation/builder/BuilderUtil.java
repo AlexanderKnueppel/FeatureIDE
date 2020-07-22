@@ -48,6 +48,28 @@ public class BuilderUtil {
 	}
 	
 	/**
+	 * Ugly fix, because the dispatcher does not add this clause, but it is necessary to prove update(int i)....
+	 */
+	public static void fixUpdateLoggingInBA5BA6(File f){
+		StringBuffer sbuffer = new StringBuffer();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(f));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.contains("def update_LoggingE =")){
+            		line = line.replace("def update_LoggingE =", "def update_LoggingE = (FM.FeatureModel.dailylimit  ||  \\old(withdraw) == withdraw) && ");
+                }
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,f);
+	}
+	
+	/**
 	 * Removes the brackets of a variable, so that key gets no error
 	 * @param f java file which contains the variable
 	 * @param var variable which has brackets surrounding it

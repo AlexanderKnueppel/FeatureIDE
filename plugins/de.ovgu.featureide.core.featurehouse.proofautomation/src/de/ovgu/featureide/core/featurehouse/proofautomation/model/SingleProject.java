@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager;
@@ -59,7 +60,7 @@ public class SingleProject extends Evaluation{
 		else{
 			this.evalVersion = getApproachVersion();
 		}
-		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results.xlsx");
+		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results-VA" + this.evalVersion+".xlsx");
 	}
 	
 	public List<AutomatingProof> getProofList(){
@@ -78,7 +79,7 @@ public class SingleProject extends Evaluation{
 		File vaDir = FileManager.createDir(new File(dateDir+FILE_SEPERATOR+verificationApproachName));
 		this.evaluatePath = FileManager.createDir(new File(vaDir+FILE_SEPERATOR+f.getName()));
 		this.evalVersion = getApproachVersion();
-		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results.xlsx");
+		this.statistics = new File (evaluatePath+FILE_SEPERATOR+"Evaluation Results-VA" + this.evalVersion+".xlsx");
 		boolean newMetaproduct=true,featurestub=false;
 		if(evalVersion == 5||evalVersion == 6){
 			newMetaproduct = false;
@@ -131,6 +132,11 @@ public class SingleProject extends Evaluation{
 		FileManager.initFolders(evaluatePath, evalVersion);
 		if(evalVersion == 1){
 			File fstubPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+			//Fix here instead of in performVa1 (i.e., before copy)
+			File transactionAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
+			File lockAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
+			FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
+			//copy
 			FileManager.copyCompleteFolderContent(fstubPath,new File(evaluatePath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir));
 		}
 		File metaproductPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir);
@@ -138,7 +144,7 @@ public class SingleProject extends Evaluation{
 		AutomatingProject aproj = AutomatingProject.getInstance();
 		aproj.warmUp(FileManager.getFirstMetaproductElement(toEvaluate));
 		switch(evalVersion){
-			case 1 :aproj.performVa1(toEvaluate,evaluatePath);
+			case 1 :aproj.performVa0(toEvaluate,evaluatePath);
 					break;
 			case 2 :aproj.performVa2(toEvaluate,evaluatePath);
 					break;

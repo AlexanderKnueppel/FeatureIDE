@@ -21,7 +21,9 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.builder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -32,6 +34,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.featurehouse.FeatureHouseComposer;
 import de.ovgu.featureide.featurehouse.meta.FeatureStubsGenerator;
 import de.ovgu.featureide.fm.ui.handlers.base.SelectionWrapper;
@@ -61,6 +64,22 @@ public class projectWorker {
 			}
 		}
 		return allProjectsForApproach;
+	}
+	
+	public static void sandbox() {
+		List<String> accounts = new ArrayList<String>();
+		File dir = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\");
+		
+		
+		
+//		generateCodeForSingleProject(dir.getName(), false, true);
+		
+//		String FILE_SEPERATOR = System.getProperty("file.separator");
+//		System.out.println("Name: " + dir.getName());
+//		if(dir.getName().contains("5") || dir.getName().contains("6")) {
+//			File acc = new File(dir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+"Account.java");
+//			BuilderUtil.fixUpdateLoggingInBA5BA6(acc);
+//		}
 	}
 	
 	public static void generateCodeForSingleProject(String projectName,boolean featurestub,boolean newMetaproduct){

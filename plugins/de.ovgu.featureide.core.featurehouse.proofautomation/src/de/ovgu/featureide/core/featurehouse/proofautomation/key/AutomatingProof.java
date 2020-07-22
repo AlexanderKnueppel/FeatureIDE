@@ -26,8 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
 import de.uka.ilkd.key.collection.ImmutableList;
+import de.uka.ilkd.key.collection.ImmutableSet;
 //import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
 import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.gui.configuration.ProofSettings;
@@ -148,6 +150,11 @@ public class AutomatingProof {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+//		ImmutableSet<Contract> contracts = environment.getSpecificationRepository().getAllContracts();
+//		for (Contract contract : contracts) {
+//        	System.out.println(contract.getName());
+//		}
 		waitForNewThread(threadsBeforeStart);
 		Set<Thread>threadsBefore = Thread.getAllStackTraces().keySet();
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
@@ -174,7 +181,11 @@ public class AutomatingProof {
 				setReusedStatistics();
 				waitForNewThread(threadsBefore);
 	        }
+	        System.out.println("Reused: " + proof.statistics());
 	    }
+        
+
+        
         waitForNewThread(threadsBeforeStart);
         threadsBefore = Thread.getAllStackTraces().keySet();
         try{
@@ -219,6 +230,9 @@ public class AutomatingProof {
         }
         waitForNewThread(threadsBefore);
         setStatistics();
+        
+        System.out.println("Actual: " + proof.statistics());
+        
         return reusedAProof;
 	 }
 	
@@ -361,5 +375,54 @@ public class AutomatingProof {
 	
 	public void removeProof(){
 		environment.getMediator().getUI().removeProof(environment.getMediator().getSelectedProof());
+	}
+
+	/**
+	 * @param oldPartialProof
+	 * @param maxRuleApplication
+	 * @param defaultSettingsForFeatureStub
+	 */
+	public void replayFeatureStubProof(File oldPartialProof, String savePath, int maxRuleApplication,
+			StrategyProperties defaultSettingsForFeatureStub) {
+		boolean reusedAProof = false;
+		Set<Thread> threadsBeforeStart = Thread.getAllStackTraces().keySet();
+		try{
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
+		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
+		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
+		    waitForNewThread(threadsBefore);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		waitForNewThread(threadsBeforeStart);
+		Set<Thread>threadsBefore = Thread.getAllStackTraces().keySet();
+		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+		waitForNewThread(threadsBefore);
+	    threadsBefore = Thread.getAllStackTraces().keySet();
+        choices.put("assertions", "assertions:safe");
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
+        waitForNewThread(threadsBefore);
+        
+        if(oldPartialProof!=null){
+	        if(oldPartialProof.getName().endsWith(".proof")){
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+	        	MainWindow.getInstance().reuseProof(oldPartialProof);
+	        	waitForNewThread(threadsBefore);
+	        	reusedAProof = true;
+	        	File reusedProof = saveProof(savePath);
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+				MainWindow.getInstance().loadProblem(reusedProof);
+				waitForNewThread(threadsBefore);
+				reusedProof.delete();
+				threadsBefore =Thread.getAllStackTraces().keySet();
+				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
+				setReusedStatistics();
+				waitForNewThread(threadsBefore);
+	        }
+	    }
+		
 	}
 }

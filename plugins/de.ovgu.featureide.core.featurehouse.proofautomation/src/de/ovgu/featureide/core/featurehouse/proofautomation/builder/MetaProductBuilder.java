@@ -24,6 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
 /**
@@ -44,6 +47,36 @@ public class MetaProductBuilder {
 		File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");
 		BuilderUtil.removeBracketsOfVar(account, "lock");
 		BuilderUtil.removeBracketsOfVar(account, "result");
+		BuilderUtil.fixUpdateLoggingInBA5BA6(account);
+	}
+	
+	public static void main(String[] args) {
+		File proof = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest\\Application(Application__nextYear()).JML normal_behavior operation contract.0.proof");
+		File f = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest");
+		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+		
+		String methodname = getMethodName(proof);
+		String method_to_replace = methodname + "_original_" + f.getName();
+		
+		System.out.println("method name : " + methodname);
+		System.out.println("method to replace : " + method_to_replace);
+		
+		System.out.println("Classname : " + getClassName(proof)+".java");
+		
+		File metaproduct = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.metaproductDir + "\\"+getClassName(proof)+".java");
+		
+		if(checkForOriginal(proof,f.getName())){
+			System.out.println("Original found! Original method name is " + getOriginalMethod(methodname,f.getName(),metaproduct));
+			System.out.println("The original method " + getOriginalMethod(methodname,f.getName(),metaproduct));
+			System.out.println("Possible replacement " + "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct));
+			System.out.println("Does replacement exist? -> " + (checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct) ? "Yes" : "No"));
+			
+			if(!checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct)) {
+				String replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+				System.out.println("This is the alternative: " + replace_with);
+			}
+		}
 	}
 	
 	/**
@@ -57,18 +90,96 @@ public class MetaProductBuilder {
 			if(f.isDirectory()){
 				File[] proofs = f.listFiles();
 				for(File proof: proofs){
-					String methodname = getMethodName(proof);
+					String methodname = getMethodName(proof);//undoUpdate
+					String method_to_replace = methodname + "_original_" + f.getName();
+					//f.getName() interest
+					//
 					File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proof)+".java");
-					if(checkForOriginal(proof,f.getName())||checkForMethod(methodname+"_"+f.getName(),metaproduct)){
-						replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
+					if(checkForOriginal(proof,f.getName())){
+						String replace_with = "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+						if(!checkForMethod(replace_with,metaproduct)) {
+							replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+						}
+						System.out.println("Replace " + method_to_replace + " in  " + methodname+"_"+f.getName() + " with " + replace_with);
+						replaceMethodNamesInPartialProofsTest(method_to_replace,replace_with,f.getName(),proof);
+						renameAbstractKeywords(proof, f, methodname);
+						renameRemainingStuff(proof, f, methodname);
 						renameProof(proof,f,methodname+"_"+f.getName());
 					}
 					else{
-						renameProof(proof,f,methodname);
+						String extensionForBankAccount = "";
+						List<String> whitelist = new ArrayList<String>();
+						whitelist.add("update");
+						whitelist.add("undoUpdate");
+						whitelist.add("nextDay");
+						whitelist.add("nextYear");
+						if(whitelist.contains(methodname) && f.getName().equals("BankAccount")) {
+							extensionForBankAccount += "_BankAccount";
+						}
+						renameAbstractKeywords(proof, f, methodname);
+						//renameRemainingStuff(proof, f, methodname);
+						renameProof(proof,f,methodname + extensionForBankAccount);
 					}
+					
+					
+					
+					//replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
+					//renameProof(proof,f,methodname+"_"+f.getName());
 				}
 			}
 		}
+	}
+	
+	private static void renameRemainingStuff(File proof, File stub, String methodname){
+		StringBuffer sbuffer = new StringBuffer();
+		String newmethodname = methodname + "_" + stub.getName();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.startsWith("name=")){
+            		line = line.replaceAll(methodname, newmethodname);
+            	} 
+            	
+            	if(line.startsWith("contract=")){
+            		line = line.replaceAll(methodname, newmethodname);
+            	} 
+            	
+            	if(line.contains("methodBodyExpand")){
+            		line = line.replaceAll(methodname, newmethodname);
+            	} 
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
+	}
+	
+	private static void renameAbstractKeywords(File proof, File stub, String methodname){
+		StringBuffer sbuffer = new StringBuffer();
+		String newmethodname = methodname + "_" + stub.getName();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.contains(methodname + "E")){
+            		line = line.replaceAll(methodname + "E", newmethodname + "E");
+            	} else if(line.contains(methodname + "R")) {
+            		line = line.replaceAll(methodname + "R", newmethodname + "R");
+            	} else if(line.contains(methodname + "A")) {
+            		line = line.replaceAll(methodname + "A", newmethodname + "A");
+            	}
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
 	}
 	
 	/**
@@ -89,7 +200,7 @@ public class MetaProductBuilder {
 	 * @return
 	 */
 	public static boolean checkForOriginal(File f, String featurestub){
-		if(f.getAbsolutePath().endsWith(".proof")&!f.getAbsolutePath().contains("inv")){
+		if(f.getAbsolutePath().endsWith(".proof")&&!f.getAbsolutePath().contains("inv")){
 			try {
 				BufferedReader bReader = new BufferedReader(new FileReader(f));
 	            String line = bReader.readLine();
@@ -140,9 +251,12 @@ public class MetaProductBuilder {
 	 * @return
 	 */
 	private static String getMethodName(File f){
+		
 		String filename = f.getName();
+		
 		String[] filenameParts = filename.split("\\.");
 		if(filenameParts[0].contains("java")){
+			System.out.println(filenameParts[0]);
 			return "inv";
 		}
 		else{
@@ -194,6 +308,25 @@ public class MetaProductBuilder {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	private static void replaceMethodNamesInPartialProofsTest(String oldName, String newName
+			,String featurestub, File proof){
+		StringBuffer sbuffer = new StringBuffer();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.contains(oldName)){
+            		line = line.replaceAll(oldName, newName);
+            	}
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
 	}
 	
 	/**

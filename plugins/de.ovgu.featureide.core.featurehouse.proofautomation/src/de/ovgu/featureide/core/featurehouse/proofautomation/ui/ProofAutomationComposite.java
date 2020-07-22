@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
@@ -59,6 +60,7 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
+	private Button sandbox;
 	
 	
 	
@@ -107,12 +109,14 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		source.setText("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4");
 		vaLabel = new Label(loadComposite, SWT.NONE);
 		vaLabel.setText("Verification Approach:");
 		verificationApproach = new Text(loadComposite, SWT.BORDER);
 		verificationApproach.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		verificationApproach.setText("1");
 		Composite buttonComposite = new Composite(load, SWT.NONE);
-		buttonComposite.setLayout(new GridLayout(3,true));
+		buttonComposite.setLayout(new GridLayout(4,true));
 		buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		loadVerificationDir = new Button (buttonComposite, SWT.PUSH);
 		loadVerificationDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -168,6 +172,21 @@ public class ProofAutomationComposite extends Composite{
 				if(Configuration.performVerification){
 					ep.performEvaluation();
 				}
+			}
+		} );
+		
+		sandbox = new Button (buttonComposite, SWT.PUSH);
+		sandbox.setText("Sandbox");
+		sandbox.addSelectionListener( new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				//projectWorker.sandbox();
+				AutomatingProject.sandboxV2();
 			}
 		} );
 		

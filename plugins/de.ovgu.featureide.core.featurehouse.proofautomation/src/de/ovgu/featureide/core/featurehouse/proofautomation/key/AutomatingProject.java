@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
@@ -92,20 +93,41 @@ public class AutomatingProject{
 	}
 	
 	/**
+	 * Performs the evaluation of approach 1 Fefalution + Family Proof Replay
+	 * @param loc
+	 */
+	public void performVa0(File loc, File evalPath){
+		boolean firstVersion = loc.getName().contains("1");
+		if(!firstVersion){
+			FileManager.reuseFeaturestub(evalPath, loc);
+		}
+		performFeaturestubVerification(loc,evalPath,firstVersion, true); //TODO run with false
+		FileManager.copySavedProofsToPartialProofs(evalPath);
+		MetaProductBuilder.preparePartialProofs(loc,evalPath);
+
+		performMetaproductVerification(loc,evalPath);
+	}
+	
+	/**
 	 * Performs the evaluation of approach 1 Fefalution
 	 * @param loc
 	 */
 	public void performVa1(File loc, File evalPath){
-		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
-		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
-		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-		boolean firstVersion =loc.getName().contains("1");
+//		File transactionAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
+//		File lockAccount = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
+//		FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
+		boolean firstVersion = loc.getName().contains("1");
 		if(!firstVersion){
 			FileManager.reuseFeaturestub(evalPath, loc);
 		}
-		performFeaturestubVerification(loc,evalPath,firstVersion);
+		performFeaturestubVerification(loc,evalPath,firstVersion, false); //TODO run with false
 		FileManager.copySavedProofsToPartialProofs(evalPath);
 		MetaProductBuilder.preparePartialProofs(loc,evalPath);
+//		
+//		if(loc.getName().contains("5") || loc.getName().contains("6")) {
+//			File acc = new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+"Account.java");
+//			BuilderUtil.fixUpdateLoggingInBA5BA6(acc);
+//		}
 		performMetaproductVerification(loc,evalPath);
 	}
 	
@@ -142,12 +164,18 @@ public class AutomatingProject{
 				e.printStackTrace();
 			}
 		}
+		
+		for(File absProof: abstractProofPart) {
+			System.out.println("[" + absProof.getName() + " ("+absProof.getAbsolutePath()+")]");
+		}
+		
 		//Phase 2
 		List<AutomatingProof> metaproductProofs = loadInKeY(metaproduct);
 		proofList = metaproductProofs;
 		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		for(AutomatingProof a : metaproductProofs){
 			String defaultName= a.getTypeName()+"__"+a.getTargetName();
+			defaultName = defaultName.replace(" ", "");
 			File reuse = null;
 			AutomatingProof reuseProof = null;
 			for(File absProof: abstractProofPart){
@@ -160,7 +188,10 @@ public class AutomatingProject{
 						reuseProof = ap;
 					}
 				}
-				
+				if(reuse != null)
+					System.out.println(defaultName + ": reuse " + reuse.getName() + " ("+reuse.getAbsolutePath()+")");
+				else
+					System.out.println(defaultName + ": not reused... no file");
 			}
 			try {
 				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
@@ -272,7 +303,7 @@ public class AutomatingProject{
 			File[] reuseProofs = reuseProofDir.listFiles();
 			for(File p : reuseProofs){
 				String filename = p.getName();
-				String defaultName= a.getTypeName()+"__"+a.getTargetName();
+				String defaultName = a.getTypeName()+"__"+a.getTargetName().replace(" ", "");
 				if(filename.contains(defaultName)){
 					return p;
 				}
@@ -283,12 +314,14 @@ public class AutomatingProject{
 		}
 	}
 	
-	
+	private void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion){
+		performFeaturestubVerification(projectDir,evalPath,firstVersion, false);
+	}
 	/**
 	 * Performs the featurestub phase of the verification
 	 * @param projectDir
 	 */
-	private void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion){
+	private void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion, boolean stubReplay){
 		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
 		String currentFeatureStub;
 		String saveFeatureStubPath;
@@ -300,13 +333,21 @@ public class AutomatingProject{
 			List<AutomatingProof> ap = loadInKeY(f);
 			phase1ProofList.addAll(ap);
 			for(AutomatingProof a : ap){
+				//Replay feature stub proof
 				if(firstVersion||!proofAlreadyExists(a,evalPath,f.getParentFile())){
-					try {
-						a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+					File oldPartialProof = getOldFeatureStubProof(a, FileManager.getProjectv1Path(projectDir));
+					if(!firstVersion && stubReplay && oldPartialProof != null) {
+						a.replayFeatureStubProof(oldPartialProof, saveFeatureStubPath, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 						a.saveProof(saveFeatureStubPath);
 						a.setFeaturestub(f.getParentFile().getName());
-					} catch (Exception e) {
-						e.printStackTrace();
+					} else {
+						try {
+							a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+							a.saveProof(saveFeatureStubPath);
+							a.setFeaturestub(f.getParentFile().getName());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -323,7 +364,7 @@ public class AutomatingProject{
 	private static boolean proofAlreadyExists(AutomatingProof a, File evalPath, File featurestub){
 		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+featurestub.getName());
 		File[] proofs = savedProofsPath.listFiles();
-		String defaultName= a.getTypeName()+"__"+a.getTargetName();
+		String defaultName= a.getTypeName()+"__"+a.getTargetName().replace(" ", "");
 		if(proofs!=null){
 			for(File f : proofs){
 				if(!f.isDirectory()){
@@ -339,7 +380,7 @@ public class AutomatingProject{
 	private static File proofAlreadyExistsAbstract(AutomatingProof a, File evalPath){
 		File savedProofsPath = new File(evalPath+FILE_SEPERATOR+FileManager.partialProofsDir);
 		File[] proofs = savedProofsPath.listFiles();
-		String defaultName= a.getTypeName()+"__"+a.getTargetName();;
+		String defaultName= a.getTypeName()+"__"+a.getTargetName().replace(" ", "");
 		if(proofs!=null){
 			for(File f : proofs){
 				if(!f.isDirectory()){
@@ -350,6 +391,163 @@ public class AutomatingProject{
 			}
 		}
 		return null;
+	}
+	
+	private static File getOldFeatureStubProof(AutomatingProof a, File toEvaluate){
+		File savedProofsPath = new File(toEvaluate+FILE_SEPERATOR+FileManager.partialProofsDir);
+		File[] proofs = savedProofsPath.listFiles();
+		String defaultName= a.getTypeName()+"__"+a.getTargetName().replace(" ", "");
+		if(proofs!=null){
+			for(File f : proofs){
+				if(!f.isDirectory()){
+					if(f.getName().endsWith(".proof") && f.getName().contains(defaultName)){
+						return f;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static void sandboxV2() {
+		//File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
+		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+		
+		//File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1\\Partial Proofs for Metaproduct\\Transaction\\Transaction_transfer.proof");
+		//File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1");
+		
+//		File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-11-27 09-53-48\\VA2 (Metaproduct)\\BankAccountv1\\Partial Proofs for Metaproduct\\Transaction(Transaction__transfer(Account,Account,int)).JML normal_behavior operation contract.0.proof");
+//		File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-11-27 09-53-48\\VA2 (Metaproduct)\\BankAccountv1");
+
+		File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\v2test\\2\\BankAccountv1\\Partial Proofs for Metaproduct\\Transaction(Transaction__transfer(Account,Account,int)).JML normal_behavior operation contract.0.proof");
+		File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\v2test\\2\\BankAccountv1");
+		
+		File loc = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\BankAccountv1");
+		String savePartialProofsPath = projectBA1.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;		
+		File java = getMetaproduct(loc);	
+		List<AutomatingProof> ap = loadInKeY(java);
+		
+		String finishedProofPath = projectBA1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		
+		for(AutomatingProof a : ap){
+			if(!a.getTargetName().startsWith("transfer")) {
+				continue;
+			}
+			
+			//Set<Thread> threadsBefore;	
+			a.startMetaProductProof(partialProofTransactionTransfer,DefaultStrategies.defaultSettingsForMetaproduct(),Configuration.maxRuleApplication,finishedProofPath);
+			if(!a.isClosed()){
+				a.removeProof();
+				try {
+					a.startAbstractProof(Configuration.maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				File restartProof = a.saveProof(savePartialProofsPath);
+				a.startMetaProductProof(restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),Configuration.maxRuleApplication,finishedProofPath);
+			}
+			//threadsBefore =Thread.getAllStackTraces().keySet();
+			a.saveProof(finishedProofPath);
+			//a.waitForNewThread(threadsBefore);
+			
+			System.out.println(a.getTypeName() + " - " + a.getTargetName());
+			System.out.println(a.getProof().statistics().nodes);
+		}
+	}
+	
+	public static void main(String[] args) {
+		//File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
+		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+		
+		File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2020-01-16 16-22-28\\1\\BankAccountv1\\Partial Proofs for Metaproduct\\Interest\\Application_nextYear_Interest.proof");
+		File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2020-01-16 16-22-28\\1\\BankAccountv1");
+		
+//		File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-11-27 09-53-48\\VA2 (Metaproduct)\\BankAccountv1\\Partial Proofs for Metaproduct\\Transaction(Transaction__transfer(Account,Account,int)).JML normal_behavior operation contract.0.proof");
+//		File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-11-27 09-53-48\\VA2 (Metaproduct)\\BankAccountv1");
+
+		//File partialProofTransactionTransfer = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\v2test\\2\\BankAccountv1\\Partial Proofs for Metaproduct\\Transaction(Transaction__transfer(Account,Account,int)).JML normal_behavior operation contract.0.proof");
+		//File projectBA1 = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\v2test\\2\\BankAccountv1");
+		
+		//File loc = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\BankAccountv1");
+		String savePartialProofsPath = projectBA1.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;		
+//		
+//		
+//		
+//		
+//		//Phase 1
+//		File metaproduct = getMetaproduct(loc);
+//		List<AutomatingProof> abstractProofs = loadInKeY(metaproduct);
+//		phase1ProofList.addAll(abstractProofs);
+//		List<File> abstractProofPart = new LinkedList<File>();
+//		for(AutomatingProof a : abstractProofs){
+//			try {
+//				File reuseProof = null;
+//				if(!firstVersion){
+//					reuseProof = proofAlreadyExistsAbstract(a,evalPath);
+//				}
+//				if(reuseProof!=null){
+//					abstractProofPart.add(reuseProof);
+//				}
+//				else{
+//					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+//					abstractProofPart.add(a.saveProof(savePartialProofsPath));
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+		
+		//Phase 1
+//		File partialProofTransactionTransfer = null;
+//		File metaproduct = getMetaproduct(loc);
+//		List<AutomatingProof> abstractProofs = loadInKeY(metaproduct);
+//		for(AutomatingProof a : abstractProofs){
+//			if(!a.getTargetName().startsWith("transfer")) {
+//				continue;
+//			}
+//			try {
+//				a.startAbstractProof(Configuration.maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			partialProofTransactionTransfer = a.saveProof(savePartialProofsPath);
+//		}
+		
+		//Phase 2
+		File java = getMetaproduct(projectBA1);	
+		List<AutomatingProof> ap = loadInKeY(java);
+		
+		String finishedProofPath = projectBA1.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		
+		for(AutomatingProof a : ap){
+			if(!a.getTargetName().startsWith("nextYear_Interest")) {
+				continue;
+			}
+			
+			Set<Thread> threadsBefore;	
+			a.startMetaProductProof(partialProofTransactionTransfer,DefaultStrategies.defaultSettingsForMetaproduct(),Configuration.maxRuleApplication,finishedProofPath);
+			if(!a.isClosed()){
+				a.removeProof();
+				try {
+					a.startAbstractProof(Configuration.maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				File restartProof = a.saveProof(savePartialProofsPath);
+				a.startMetaProductProof(restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),Configuration.maxRuleApplication,finishedProofPath);
+			}
+			threadsBefore =Thread.getAllStackTraces().keySet();
+			a.saveProof(finishedProofPath);
+			a.waitForNewThread(threadsBefore);
+			
+			System.out.println(a.getTypeName() + " - " + a.getTargetName());
+			System.out.println(a.getProof().statistics().nodes);
+		}
 	}
 	
 	/**
@@ -372,7 +570,10 @@ public class AutomatingProject{
 				a.waitForNewThread(threadsBefore);
 				AutomatingProof reusedProof = null;
 				for(AutomatingProof firstPhase: phase1ProofList){
-					if(reuse.getName().equals(getSaveName(firstPhase,projectDir))){
+					String savename = getSaveName(firstPhase,projectDir);
+					if(reuse == null)
+						System.out.println("Savename in method meta: " + savename);
+					if(reuse.getName().equals(savename)){
 						reusedProof = firstPhase;
 					}
 				}
@@ -438,6 +639,11 @@ public class AutomatingProject{
 			if(biggestFile == null || f.length()>biggestFile.length()){
 				biggestFile = f;
 			}
+		}
+		if(biggestFile == null) {
+			System.out.println("Biggestfile is null! Target name was: " + ap.getTargetName() + "; Type name was: " + ap.getTypeName());
+			System.out.println("Possible proof files: ");
+			featureStubProofs.stream().forEach(f -> System.out.println("    -" + f.getName()));
 		}
 		return biggestFile;
 	}
