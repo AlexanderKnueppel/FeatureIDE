@@ -35,7 +35,8 @@ import de.uka.ilkd.key.gui.actions.ExitMainAction;
  * @author Stefanie
  */
 public class startNewJVM {
-
+	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final String PATH_SEPERATOR = System.getProperty("path.separator");
 	/**
 	 * Starts the evaluation for a single project
 	 * @param args [0] contains project path [1] contains the evaluation path
@@ -57,15 +58,15 @@ public class startNewJVM {
 	 */
 	public static void startNewProcess(File projectForEvaluation, File evalPath){
 		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		String binPath = projectPath +"\\bin";
-		String excelLibs = getDirContent(new File(projectPath+"\\lib"));
+		String binPath = projectPath + "bin";
+		String excelLibs = getDirContent(new File(projectPath+FILE_SEPERATOR+"lib"));
 	    String keyPath = Configuration.keyBinPath;
 	    String keyLibs = getDirContent(new File(Configuration.keyLibsPath));
 	    String classname = startNewJVM.class.getName();
 	    ProcessBuilder processBuilder = 
-	                new ProcessBuilder("java", "-cp",excelLibs+keyLibs+";"+keyPath+";"+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());
-	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+"\\Error.txt"));
-	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+"\\Output.txt"));
+	                new ProcessBuilder("java", "-cp",excelLibs+keyLibs+PATH_SEPERATOR+keyPath+PATH_SEPERATOR+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());
+	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Error.txt"));
+	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Output.txt"));
 	    try{
 	    	Process process = processBuilder.start();
 	    	process.waitFor();
@@ -87,7 +88,7 @@ public class startNewJVM {
 				paths += getDirContent(f);
 			}
 			else{
-				paths += f.getAbsolutePath()+";";
+				paths += f.getAbsolutePath()+PATH_SEPERATOR;
 			}
 		}
 		return paths;

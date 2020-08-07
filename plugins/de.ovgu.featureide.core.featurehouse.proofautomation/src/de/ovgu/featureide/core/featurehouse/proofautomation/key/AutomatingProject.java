@@ -326,7 +326,7 @@ public class AutomatingProject{
 		String currentFeatureStub;
 		String saveFeatureStubPath;
 		for(File f: featurestubs){
-			String[] seperatedPath = f.getAbsolutePath().split("\\"+FILE_SEPERATOR);
+			String[] seperatedPath = f.getAbsolutePath().split(FILE_SEPERATOR);
 			currentFeatureStub = seperatedPath[seperatedPath.length-2];
 			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
 			FileManager.createDir(new File (saveFeatureStubPath));

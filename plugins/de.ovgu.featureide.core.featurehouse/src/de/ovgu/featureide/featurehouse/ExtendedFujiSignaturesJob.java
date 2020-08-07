@@ -22,6 +22,7 @@ package de.ovgu.featureide.featurehouse;
 
 import static de.ovgu.featureide.fm.core.localization.StringTable.FUJI_SIGNATURES_LOADED_;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -269,7 +270,7 @@ public class ExtendedFujiSignaturesJob implements LongRunningMethod<ProjectSigna
 		int featureID = astNode.featureID();
 
 		String featurename = featureModulePathnames.get(featureID);
-		return featurename.substring(featurename.lastIndexOf('\\') + 1);
+		return featurename.substring(featurename.lastIndexOf(File.separator) + 1);
 	}
 
 	@Override
