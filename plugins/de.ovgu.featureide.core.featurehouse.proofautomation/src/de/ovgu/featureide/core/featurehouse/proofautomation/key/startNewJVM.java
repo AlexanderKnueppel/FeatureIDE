@@ -64,7 +64,7 @@ public class startNewJVM {
 	    String keyLibs = getDirContent(new File(Configuration.keyLibsPath));
 	    String classname = startNewJVM.class.getName();
 	    ProcessBuilder processBuilder = 
-	                new ProcessBuilder("java", "-cp",excelLibs+keyLibs+PATH_SEPERATOR+keyPath+PATH_SEPERATOR+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());
+                new ProcessBuilder("java", "-cp",excelLibs+PATH_SEPERATOR+keyPath+PATH_SEPERATOR+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());	
 	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Error.txt"));
 	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Output.txt"));
 	    try{

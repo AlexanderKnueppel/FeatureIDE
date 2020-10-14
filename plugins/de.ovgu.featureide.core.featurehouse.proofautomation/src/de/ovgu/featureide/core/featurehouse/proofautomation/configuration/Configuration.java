@@ -26,8 +26,8 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.configuration;
  * @author Stefanie
  */
 public class Configuration {
-	public static String keyBinPath = "C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Fefalution\\KeY\\system\\binary"; //contains the key binary path (usually system\binary)
-	public static String keyLibsPath = "C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Fefalution\\KeY\\key-ext-jars"; //contains the key library path (usually key-ext-jars)
+	public static String keyBinPath = "/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/key-2.7-exe.jar"; //contains the key binary path (usually system\binary)
+	public static String keyLibsPath = "/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/lib/KeY/libs"; //contains the key library path (usually key-ext-jars)
 	public static int maxRuleApplication = 10000;
 	public static boolean excludeMain = true; //excludes the proofs of class main
 	public static String excludedClass ="Main";
