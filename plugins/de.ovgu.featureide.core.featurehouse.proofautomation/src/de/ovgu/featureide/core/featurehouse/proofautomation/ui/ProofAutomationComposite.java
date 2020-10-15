@@ -109,7 +109,7 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)");
+		source.setText("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4");
 		vaLabel = new Label(loadComposite, SWT.NONE);
 		vaLabel.setText("Verification Approach:");
 		verificationApproach = new Text(loadComposite, SWT.BORDER);
@@ -155,7 +155,6 @@ public class ProofAutomationComposite extends Composite{
 				SingleProject s = new SingleProject(f,verificationApproach.getText());
 				if(Configuration.performVerification){
 					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
-					
 				}
 			}
 		} );

@@ -22,37 +22,27 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyae.DefaultProblemLoader;
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
-import org.key_project.util.collection.ImmutableList;
+import de.uka.ilkd.key.collection.ImmutableList;
+import de.uka.ilkd.key.collection.ImmutableSet;
 //import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
-import de.uka.ilkd.key.settings.ChoiceSettings;
-import de.uka.ilkd.key.settings.ProofSettings;
-import de.uka.ilkd.key.macros.CompleteAbstractProofMacro;
+import de.uka.ilkd.key.gui.MainWindow;
+import de.uka.ilkd.key.gui.configuration.ProofSettings;
+import de.uka.ilkd.key.gui.macros.FinishAbstractProofMacro;
+import de.uka.ilkd.key.gui.notification.NotificationEventID;
+import de.uka.ilkd.key.gui.notification.NotificationTask;
 import de.uka.ilkd.key.proof.Goal;
 import de.uka.ilkd.key.proof.Proof;
-import de.uka.ilkd.key.proof.Statistics;
-import de.uka.ilkd.key.proof.init.InitConfig;
-import de.uka.ilkd.key.proof.init.ProofInputException;
+import de.uka.ilkd.key.proof.Proof.Statistics;
 import de.uka.ilkd.key.proof.init.ProofOblInput;
-import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
-import de.uka.ilkd.key.proof.io.ProblemLoaderException;
-import de.uka.ilkd.key.proof.io.consistency.AbstractFileRepo;
-import de.uka.ilkd.key.proof.io.consistency.SimpleFileRepo;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
-import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
-import de.uka.ilkd.key.control.KeYEnvironment;
-import de.uka.ilkd.key.control.ProofControl;
-import de.uka.ilkd.key.control.UserInterfaceControl;
-import de.uka.ilkd.key.gui.MainWindow;
+import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
 import de.uka.ilkd.key.symbolic_execution.util.SymbolicExecutionUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
@@ -107,28 +97,35 @@ public class AutomatingProof {
 	 */
 	public void startAbstractProof(int maxRuleApplication, StrategyProperties sp) throws Exception{
 		try {
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-			proof = environment.createProof(input);
+			proof = environment.getUi().createProof(environment.getInitConfig(), input);
+			waitForNewThread(threadsBefore);
 		} 
 		catch (Exception e) {
 			 	//ToDo
 		}
 		// Set proof strategy options
+		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-		
+		waitForNewThread(threadsBefore);
 		// Make sure that the new options are used
+		threadsBefore = Thread.getAllStackTraces().keySet();
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+		waitForNewThread(threadsBefore);
+		threadsBefore = Thread.getAllStackTraces().keySet();
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+		waitForNewThread(threadsBefore);
 		proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
-        ProofControl proofControl = environment.getProofControl();
-        //Apply Macro "Finish abstract proof part"
-		CompleteAbstractProofMacro fapm = new CompleteAbstractProofMacro();
+		proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+		//Apply Macro "Finish abstract proof part"
+		FinishAbstractProofMacro fapm = new FinishAbstractProofMacro();
 		int previousNodes;
 		do{
 			previousNodes = proof.countNodes();
-			proofControl.runMacro(proof.root(), fapm, null);
-			proofControl.waitWhileAutoMode();
+		    threadsBefore = Thread.getAllStackTraces().keySet();
+		    fapm.applyTo(environment.getMediator(), null, null);
+		    waitForNewThread(threadsBefore);
 		}while(proof.countNodes()==previousNodes);
         if(proof.openGoals().isEmpty()){
         	closed = true;
@@ -142,11 +139,15 @@ public class AutomatingProof {
 	 */
 	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath){
 		boolean reusedAProof = false;
+		Set<Thread> threadsBeforeStart = Thread.getAllStackTraces().keySet();
 		try{
-		    proof = environment.createProof(contract.createProofObl(environment.getInitConfig(), contract));
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
+		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
+		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
 //		    ProofUserManager.getInstance().addUser(proof, environment, this);
+		    waitForNewThread(threadsBefore);
 		}
-		catch (ProofInputException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -154,52 +155,70 @@ public class AutomatingProof {
 //		for (Contract contract : contracts) {
 //        	System.out.println(contract.getName());
 //		}
-        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+		waitForNewThread(threadsBeforeStart);
+		Set<Thread>threadsBefore = Thread.getAllStackTraces().keySet();
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+		waitForNewThread(threadsBefore);
+	    threadsBefore = Thread.getAllStackTraces().keySet();
         choices.put("assertions", "assertions:safe");
-        choiceSettings.setDefaultChoices(choices);
-        //KeYEnvironment<AbstractUserInterfaceControl> env;
-      
-       
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
+        waitForNewThread(threadsBefore);
         if(reuseProof!=null){
-        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
-            try {
-            	AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-            	InitConfig initConfig = loader.getInitConfig();
-            	KeYEnvironment keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-            	Proof proof2 = keYEnvironment.getLoadedProof();
-            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
-            	keYEnvironment.getProofControl().waitWhileAutoMode();
-			} catch (ProblemLoaderException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        if(reuseProof.getName().endsWith(".proof")){
-
-            MainWindow.getInstance().reuseProof(reuseProof);
+	        if(reuseProof.getName().endsWith(".proof")){
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+	        	MainWindow.getInstance().reuseProof(reuseProof);
+	        	waitForNewThread(threadsBefore);
 	        	reusedAProof = true;
 	        	File reusedProof = saveProof(savePath);
-	        	MainWindow.getInstance().loadProblem(reusedProof);
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
+				MainWindow.getInstance().loadProblem(reusedProof);
+				waitForNewThread(threadsBefore);
 				reusedProof.delete();
+				threadsBefore =Thread.getAllStackTraces().keySet();
 				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
 				setReusedStatistics();
+				waitForNewThread(threadsBefore);
 	        }
-       System.out.println("Reused: " + proof.getStatistics());
+	        System.out.println("Reused: " + proof.statistics());
 	    }
         
 
+        
+        waitForNewThread(threadsBeforeStart);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        try{
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+        }
+        catch(Exception e){
+        	e.printStackTrace();
+        }
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-        proof.setActiveStrategy(environment.getProfile().getDefaultStrategyFactory().create(proof, sp));
-
-        //MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getProfile().getDefaultStrategyFactory().create(proof, sp));
-
-        //deactivateResultDialog();
-
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        proof.setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getMediator().getProfile().getDefaultStrategyFactory().create(proof, sp));
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        deactivateResultDialog();
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
         while(!proof.openEnabledGoals().isEmpty()&&goalHasApplicableRules()){
         	int previousNodes = proof.countNodes();
-        	environment.getProofControl().startAndWaitForAutoMode(proof);
+        	threadsBefore = Thread.getAllStackTraces().keySet();
+        	MainWindow.getInstance().getMediator().startAutoMode();
+        	waitForNewThread(threadsBefore);
         	if(uncloseableGoal(previousNodes)){
         		break;
         	}
@@ -209,9 +228,10 @@ public class AutomatingProof {
         	System.out.println(this.targetName+this.typeName+" was not closed");
         	closed = false;
         }
+        waitForNewThread(threadsBefore);
         setStatistics();
         
-        System.out.println("Actual: " + proof.getStatistics());
+        System.out.println("Actual: " + proof.statistics());
         
         return reusedAProof;
 	 }
@@ -246,7 +266,7 @@ public class AutomatingProof {
 	
 	/**
 	 * Deactivates the result dialog which popups in key when a proof is finished
-	 
+	 */
 	private void deactivateResultDialog(){
 		NotificationTask task= null;
 		task = MainWindow.getInstance().getNotificationManager().getNotificationTask(NotificationEventID.PROOF_CLOSED);
@@ -254,14 +274,13 @@ public class AutomatingProof {
            MainWindow.getInstance().getNotificationManager().removeNotificationTask(task);
         }
 	}
-	*/ 
-	
+	 
 	/**
 	 * Sets the needed statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
 	 */
 	public void setStatistics() {
-		Statistics s = proof.getStatistics();
-		stat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTimeInMillis : 0l);
+		Statistics s = proof.statistics();
+		stat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
 		stat.setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
 		stat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
 		stat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
@@ -271,8 +290,8 @@ public class AutomatingProof {
 	 * Sets the needed reused statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
 	 */
 	public void setReusedStatistics() {
-		Statistics s = proof.getStatistics();
-		reusedStat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTimeInMillis : 0l);
+		Statistics s = proof.statistics();
+		reusedStat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTime : 0l);
 		reusedStat.setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
 		reusedStat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
 		reusedStat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
@@ -284,18 +303,15 @@ public class AutomatingProof {
 	 */
 	public File saveProof(String path){
 		final String defaultName 
-    	= MiscTools.toValidFileName(environment.getLoadedProof().name().toString());
-		FileSystem fs = FileSystems.getDefault();
-		Path proofFile = fs.getPath(path+System.getProperty("file.separator")+defaultName+".proof");
-		AbstractFileRepo simple = new SimpleFileRepo();
+    	= MiscTools.toValidFileName(environment.getMediator()
+    		.getSelectedProof().name()
+            .toString());
+		File proofFile = new File (path+System.getProperty("file.separator")+defaultName+".proof");
+		MainWindow w = MainWindow.getInstance();
 		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
-		try {
-			simple.saveProof(proofFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		w.saveProof(proofFile);
 		waitForNewThread(threadsBefore);
-		return proofFile.toFile();
+		return proofFile;
 	}
 	
 	/**
@@ -358,7 +374,7 @@ public class AutomatingProof {
 	}
 	
 	public void removeProof(){
-		environment.getLoadedProof().dispose();
+		environment.getMediator().getUI().removeProof(environment.getMediator().getSelectedProof());
 	}
 
 	/**
@@ -369,31 +385,44 @@ public class AutomatingProof {
 	public void replayFeatureStubProof(File oldPartialProof, String savePath, int maxRuleApplication,
 			StrategyProperties defaultSettingsForFeatureStub) {
 		boolean reusedAProof = false;
+		Set<Thread> threadsBeforeStart = Thread.getAllStackTraces().keySet();
 		try{
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
+		    waitForNewThread(threadsBefore);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		waitForNewThread(threadsBeforeStart);
+		Set<Thread>threadsBefore = Thread.getAllStackTraces().keySet();
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+		waitForNewThread(threadsBefore);
+	    threadsBefore = Thread.getAllStackTraces().keySet();
         choices.put("assertions", "assertions:safe");
-        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
-        choiceSettings.setDefaultChoices(choices);
- /*       
+        waitForNewThread(threadsBefore);
+        threadsBefore = Thread.getAllStackTraces().keySet();
+        MainWindow.getInstance().getMediator().getSelectedProof().getSettings().getChoiceSettings().setDefaultChoices(choices);
+        waitForNewThread(threadsBefore);
+        
         if(oldPartialProof!=null){
 	        if(oldPartialProof.getName().endsWith(".proof")){
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
 	        	MainWindow.getInstance().reuseProof(oldPartialProof);
+	        	waitForNewThread(threadsBefore);
 	        	reusedAProof = true;
 	        	File reusedProof = saveProof(savePath);
+	        	threadsBefore =Thread.getAllStackTraces().keySet();
 				MainWindow.getInstance().loadProblem(reusedProof);
+				waitForNewThread(threadsBefore);
 				reusedProof.delete();
+				threadsBefore =Thread.getAllStackTraces().keySet();
 				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
 				setReusedStatistics();
-
+				waitForNewThread(threadsBefore);
 	        }
 	    }
-		*/
+		
 	}
-
 }

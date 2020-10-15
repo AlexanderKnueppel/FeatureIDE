@@ -34,18 +34,17 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 
-import org.key_project.util.collection.ImmutableSet;
+import de.uka.ilkd.key.collection.ImmutableSet;
 import de.uka.ilkd.key.gui.ClassTree;
-import de.uka.ilkd.key.settings.ProofSettings;
+import de.uka.ilkd.key.gui.configuration.ProofSettings;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
 import de.uka.ilkd.key.java.declaration.InterfaceDeclaration;
 import de.uka.ilkd.key.java.declaration.TypeDeclaration;
 import de.uka.ilkd.key.logic.op.IObserverFunction;
-import de.uka.ilkd.key.proof.io.ProblemLoaderException;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
-import de.uka.ilkd.key.control.KeYEnvironment;
+import de.uka.ilkd.key.symbolic_execution.util.KeYEnvironment;
 /**
  * This class performs the proofs for a complete project
  * 
@@ -454,7 +453,7 @@ public class AutomatingProject{
 			//a.waitForNewThread(threadsBefore);
 			
 			System.out.println(a.getTypeName() + " - " + a.getTargetName());
-			System.out.println(a.getProof().getStatistics().nodes);
+			System.out.println(a.getProof().statistics().nodes);
 		}
 	}
 	
@@ -547,7 +546,7 @@ public class AutomatingProject{
 			a.waitForNewThread(threadsBefore);
 			
 			System.out.println(a.getTypeName() + " - " + a.getTargetName());
-			System.out.println(a.getProof().getStatistics().nodes);
+			System.out.println(a.getProof().statistics().nodes);
 		}
 	}
 	
@@ -721,10 +720,7 @@ public class AutomatingProject{
 	 */
 	public static List<AutomatingProof> loadInKeY(File location){
 		KeYEnvironment<?> environment;
-		List<AutomatingProof> proofs = new LinkedList<AutomatingProof>();
-		try {
-			environment = KeYEnvironment.load(location, null, null, null);
-
+		environment = KeYEnvironment.loadInMainWindow(location, null, null, true);
 		HashMap<String,String> choices =  ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().getDefaultChoices();
         choices.put("assertions", "assertions:safe");
         ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().setDefaultChoices(choices);;
@@ -745,7 +741,7 @@ public class AutomatingProject{
                return o1.getFullName().compareTo(o2.getFullName());
             }
          });
-        
+        List<AutomatingProof> proofs = new LinkedList<AutomatingProof>();
         for (KeYJavaType type : kjtsarr) {
             ImmutableSet<IObserverFunction> targets = environment.getSpecificationRepository().getContractTargets(type);
             for (IObserverFunction target : targets) {
@@ -765,10 +761,6 @@ public class AutomatingProject{
                 }
             }
         }
-		} catch (ProblemLoaderException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
         return proofs;
         
 	}
