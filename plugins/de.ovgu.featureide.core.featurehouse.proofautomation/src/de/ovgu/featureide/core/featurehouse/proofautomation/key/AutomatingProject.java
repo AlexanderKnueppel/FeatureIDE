@@ -724,49 +724,48 @@ public class AutomatingProject{
 		List<AutomatingProof> proofs = new LinkedList<AutomatingProof>();
 		try {
 			environment = KeYEnvironment.load(location, null, null, null);
-
-		HashMap<String,String> choices =  ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().getDefaultChoices();
-        choices.put("assertions", "assertions:safe");
-        ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().setDefaultChoices(choices);;
-		boolean skipLibraryClasses = true;
-		Set<KeYJavaType> kjts = environment.getJavaInfo().getAllKeYJavaTypes();
-		final Iterator<KeYJavaType> it = kjts.iterator();
-        while (it.hasNext()) {
-           KeYJavaType kjt = it.next();
-           if (!(kjt.getJavaType() instanceof ClassDeclaration || 
-                 kjt.getJavaType() instanceof InterfaceDeclaration) || 
-               (((TypeDeclaration)kjt.getJavaType()).isLibraryClass() && skipLibraryClasses)) {
-              it.remove();
-           }
-        }
-        final KeYJavaType[] kjtsarr = kjts.toArray(new KeYJavaType[kjts.size()]);
-        Arrays.sort(kjtsarr, new Comparator<KeYJavaType>() {
-            public int compare(KeYJavaType o1, KeYJavaType o2) {
-               return o1.getFullName().compareTo(o2.getFullName());
-            }
-         });
-        
-        for (KeYJavaType type : kjtsarr) {
-            ImmutableSet<IObserverFunction> targets = environment.getSpecificationRepository().getContractTargets(type);
-            for (IObserverFunction target : targets) {
-                ImmutableSet<Contract> contracts = environment.getSpecificationRepository().getContracts(type, target);
-                for (Contract contract : contracts) {
-                	if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
-                		AutomatingProof a =new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract);
-                		if(!a.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
-                			if(!a.getTargetName().contains("_original_")||Configuration.proveOriginal){
-                				proofs.add(a);
-                			}
-                			if(!Configuration.proveDispatcher&&Configuration.currentMetaproductwithDispatcher){
-                				removeDispatcher(proofs);
-                			}
-                		}
-                	}
-                }
-            }
-        }
+			HashMap<String,String> choices =  ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().getDefaultChoices();
+	        choices.put("assertions", "assertions:safe");
+	        ProofSettings.DEFAULT_SETTINGS.getChoiceSettings().setDefaultChoices(choices);;
+			
+	        boolean skipLibraryClasses = true;
+			Set<KeYJavaType> kjts = environment.getJavaInfo().getAllKeYJavaTypes();
+			final Iterator<KeYJavaType> it = kjts.iterator();
+	        while (it.hasNext()) {
+	           KeYJavaType kjt = it.next();
+	           if (!(kjt.getJavaType() instanceof ClassDeclaration || 
+	                 kjt.getJavaType() instanceof InterfaceDeclaration) || 
+	               (((TypeDeclaration)kjt.getJavaType()).isLibraryClass() && skipLibraryClasses)) {
+	              it.remove();
+	           }
+	        }
+	        final KeYJavaType[] kjtsarr = kjts.toArray(new KeYJavaType[kjts.size()]);
+	        Arrays.sort(kjtsarr, new Comparator<KeYJavaType>() {
+	            public int compare(KeYJavaType o1, KeYJavaType o2) {
+	               return o1.getFullName().compareTo(o2.getFullName());
+	            }
+	         });
+	        
+	        for (KeYJavaType type : kjtsarr) {
+	            ImmutableSet<IObserverFunction> targets = environment.getSpecificationRepository().getContractTargets(type);
+	            for (IObserverFunction target : targets) {
+	                ImmutableSet<Contract> contracts = environment.getSpecificationRepository().getContracts(type, target);
+	                for (Contract contract : contracts) {
+	                	if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
+	                		AutomatingProof a = new AutomatingProof(type.getFullName(), ClassTree.getDisplayName(environment.getServices(), contract.getTarget()), contract.getDisplayName(), environment, contract);
+	                		if(!a.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
+	                			if(!a.getTargetName().contains("_original_")||Configuration.proveOriginal){
+	                				proofs.add(a);
+	                			}
+	                			if(!Configuration.proveDispatcher&&Configuration.currentMetaproductwithDispatcher){
+	                				removeDispatcher(proofs);
+	                			}
+	                		}
+	                	}
+	                }
+	            }
+	        }
 		} catch (ProblemLoaderException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         return proofs;

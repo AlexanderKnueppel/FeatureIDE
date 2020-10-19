@@ -20,7 +20,9 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
@@ -64,7 +66,14 @@ public class startNewJVM {
 	    String keyLibs = getDirContent(new File(Configuration.keyLibsPath));
 	    String classname = startNewJVM.class.getName();
 	    ProcessBuilder processBuilder = 
-                new ProcessBuilder("java", "-cp",excelLibs+PATH_SEPERATOR+keyPath+PATH_SEPERATOR+binPath,classname,projectForEvaluation.getAbsolutePath(), evalPath.getAbsolutePath());	
+                new ProcessBuilder("java", "-cp",excelLibs+PATH_SEPERATOR
+                		+keyPath+PATH_SEPERATOR
+                		+keyLibs+PATH_SEPERATOR
+                		+binPath,
+                		classname,
+                		projectForEvaluation.getAbsolutePath(), 
+                		evalPath.getAbsolutePath())
+                .inheritIO();	
 	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Error.txt"));
 	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Output.txt"));
 	    try{

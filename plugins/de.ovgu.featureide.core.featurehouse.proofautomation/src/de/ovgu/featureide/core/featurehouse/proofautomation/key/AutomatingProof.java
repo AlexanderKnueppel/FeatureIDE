@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Set;
 
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyae.DefaultProblemLoader;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
 import org.key_project.util.collection.ImmutableList;
 //import org.key_project.key4eclipse.starter.core.util.ProofUserManager;
@@ -52,7 +51,6 @@ import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
 import de.uka.ilkd.key.control.ProofControl;
 import de.uka.ilkd.key.control.UserInterfaceControl;
-import de.uka.ilkd.key.gui.MainWindow;
 import de.uka.ilkd.key.symbolic_execution.util.SymbolicExecutionUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
@@ -106,34 +104,56 @@ public class AutomatingProof {
 	 * @throws Exception
 	 */
 	public void startAbstractProof(int maxRuleApplication, StrategyProperties sp) throws Exception{
+
 		try {
+			Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
 			proof = environment.createProof(input);
-		} 
-		catch (Exception e) {
-			 	//ToDo
-		}
-		// Set proof strategy options
-		proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-		
-		// Make sure that the new options are used
-		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
-		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-		proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
-        ProofControl proofControl = environment.getProofControl();
-        //Apply Macro "Finish abstract proof part"
-		CompleteAbstractProofMacro fapm = new CompleteAbstractProofMacro();
-		int previousNodes;
-		do{
-			previousNodes = proof.countNodes();
-			proofControl.runMacro(proof.root(), fapm, null);
-			proofControl.waitWhileAutoMode();
-		}while(proof.countNodes()==previousNodes);
-        if(proof.openGoals().isEmpty()){
-        	closed = true;
-        }
+			waitForNewThread(threadsBefore);
+			
+			threadsBefore = Thread.getAllStackTraces().keySet();
+			// Set proof strategy options
+			proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+			waitForNewThread(threadsBefore);
+			
+			threadsBefore = Thread.getAllStackTraces().keySet();
+			// Make sure that the new options are used
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+			waitForNewThread(threadsBefore);
+			
+			threadsBefore = Thread.getAllStackTraces().keySet();
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+			waitForNewThread(threadsBefore);
+			
+			threadsBefore = Thread.getAllStackTraces().keySet();
+			proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+	        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
+	        waitForNewThread(threadsBefore);
+	        
+	        ProofControl proofControl = environment.getUi().getProofControl();
+			int previousNodes;
+			do{
+				previousNodes = proof.countNodes();
+				
+				threadsBefore = Thread.getAllStackTraces().keySet();
+				
+				proofControl.runMacro(proof.root(), new CompleteAbstractProofMacro(), null);
+				proofControl.waitWhileAutoMode();
+				
+				waitForNewThread(threadsBefore);
+			}while(proof.countNodes()==previousNodes);
+	        if(proof.openGoals().isEmpty()){
+	            System.out.println("AutomationProof Line 146 : Contract '" + contract.getDisplayName() + "' of " + contract.getTarget() + " is " + (closed ? "verified" : "still open") + ".");
+	        	closed = true;
+	        }
+
         setStatistics();
+		} 
+		catch (ProofInputException e) {
+            System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
+            e.printStackTrace();
+		}
+
 	}
 	
 	/**
@@ -141,10 +161,11 @@ public class AutomatingProof {
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
 	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath){
+		System.out.println("AutomatingProof Line 143 : Starte Metaprodukt Beweis");
+		
 		boolean reusedAProof = false;
 		try{
 		    proof = environment.createProof(contract.createProofObl(environment.getInitConfig(), contract));
-//		    ProofUserManager.getInstance().addUser(proof, environment, this);
 		}
 		catch (ProofInputException e) {
 			e.printStackTrace();
@@ -158,33 +179,41 @@ public class AutomatingProof {
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
         choices.put("assertions", "assertions:safe");
         choiceSettings.setDefaultChoices(choices);
-        //KeYEnvironment<AbstractUserInterfaceControl> env;
-      
-       
+           
         if(reuseProof!=null){
-        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
-            try {
-            	AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-            	InitConfig initConfig = loader.getInitConfig();
-            	KeYEnvironment keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-            	Proof proof2 = keYEnvironment.getLoadedProof();
-            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
-            	keYEnvironment.getProofControl().waitWhileAutoMode();
-			} catch (ProblemLoaderException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        if(reuseProof.getName().endsWith(".proof")){
+	        if(reuseProof.getName().endsWith(".proof")){
+	        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
+	        	KeYEnvironment<UserInterfaceControl> keYEnvironment = null;
+	            try {
+	            	AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+	            	InitConfig initConfig = loader.getInitConfig();
+	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
+	            	Proof proof2 = keYEnvironment.getLoadedProof();
+	            	
+	            	System.out.println("AutomatingProof Line 193 : Reused Proof -> " + proof2.name().toString());
+	            	
+	            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
+	            	keYEnvironment.getProofControl().waitWhileAutoMode();
+	            	reusedAProof = true;
 
-            MainWindow.getInstance().reuseProof(reuseProof);
-	        	reusedAProof = true;
-	        	File reusedProof = saveProof(savePath);
-	        	MainWindow.getInstance().loadProblem(reusedProof);
-				reusedProof.delete();
-				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
+				} catch (ProblemLoaderException e) {
+					System.out.println("Loading the File " + reuseProof.toString() + " failed in Class startMetaProductProof");
+					e.printStackTrace();
+				}	
+	            
+	            File reusedProof = saveProof(savePath);
+            	try {
+					environment.load(reusedProof);
+				} catch (ProblemLoaderException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            	reusedProof.delete();
+				setProof(keYEnvironment.getLoadedProof());
 				setReusedStatistics();
+	        	
 	        }
-       System.out.println("Reused: " + proof.getStatistics());
+	       System.out.println("Reused: " + proof.getStatistics());
 	    }
         
 
@@ -192,8 +221,6 @@ public class AutomatingProof {
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
         proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
         proof.setActiveStrategy(environment.getProfile().getDefaultStrategyFactory().create(proof, sp));
-
-        //MainWindow.getInstance().getMediator().getSelectedProof().setActiveStrategy(environment.getProfile().getDefaultStrategyFactory().create(proof, sp));
 
         //deactivateResultDialog();
 
@@ -283,13 +310,15 @@ public class AutomatingProof {
 	 * @param proofFile
 	 */
 	public File saveProof(String path){
-		final String defaultName 
-    	= MiscTools.toValidFileName(environment.getLoadedProof().name().toString());
+		System.out.println("AutomatingProof Zeile 314 : " + proof.name().toString());
+		final String defaultName = MiscTools.toValidFileName(proof.name().toString());
 		FileSystem fs = FileSystems.getDefault();
 		Path proofFile = fs.getPath(path+System.getProperty("file.separator")+defaultName+".proof");
-		AbstractFileRepo simple = new SimpleFileRepo();
+
 		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		try {
+			AbstractFileRepo simple = new SimpleFileRepo();
+			simple.registerProof(proof);
 			simple.saveProof(proofFile);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -358,7 +387,8 @@ public class AutomatingProof {
 	}
 	
 	public void removeProof(){
-		environment.getLoadedProof().dispose();
+		proof.dispose();
+		//environment.getLoadedProof().dispose();
 	}
 
 	/**
@@ -380,20 +410,40 @@ public class AutomatingProof {
         choices.put("assertions", "assertions:safe");
         ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
         choiceSettings.setDefaultChoices(choices);
- /*       
         if(oldPartialProof!=null){
 	        if(oldPartialProof.getName().endsWith(".proof")){
-	        	MainWindow.getInstance().reuseProof(oldPartialProof);
-	        	reusedAProof = true;
-	        	File reusedProof = saveProof(savePath);
-				MainWindow.getInstance().loadProblem(reusedProof);
-				reusedProof.delete();
-				setProof(MainWindow.getInstance().getMediator().getSelectedProof());
-				setReusedStatistics();
+	        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
+	        	KeYEnvironment<UserInterfaceControl> keYEnvironment = null;
+	            try {
+	            	AbstractProblemLoader loader = userInterface.load(null, oldPartialProof, null, null, null, null, false);
+	            	InitConfig initConfig = loader.getInitConfig();
+	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
+	            	Proof proof2 = keYEnvironment.getLoadedProof();
+	            	
+	            	System.out.println("AutomatingProof Line 193 : Reused Proof -> " + proof2.name().toString());
+	            	
+	            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
+	            	keYEnvironment.getProofControl().waitWhileAutoMode();
+	            	reusedAProof = true;
 
+				} catch (ProblemLoaderException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+	            
+	            File reusedProof = saveProof(savePath);
+            	try {
+					environment.load(reusedProof);
+				} catch (ProblemLoaderException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            	reusedProof.delete();
+				setProof(keYEnvironment.getLoadedProof());
+				setReusedStatistics();
+	        	
 	        }
-	    }
-		*/
+        }
 	}
 
 }
