@@ -197,10 +197,10 @@ public class AutomatingProof {
 	            	reusedAProof = true;
 
 				} catch (ProblemLoaderException e) {
-					System.out.println("Loading the File " + reuseProof.toString() + " failed in Class startMetaProductProof");
+					System.out.println("Loading the File " + reuseProof.toString() + " failed in Method startMetaProductProof");
 					e.printStackTrace();
 				}	
-	            
+	            setProof(keYEnvironment.getLoadedProof());
 	            File reusedProof = saveProof(savePath);
             	try {
 					environment.load(reusedProof);
@@ -209,7 +209,6 @@ public class AutomatingProof {
 					e.printStackTrace();
 				}
             	reusedProof.delete();
-				setProof(keYEnvironment.getLoadedProof());
 				setReusedStatistics();
 	        	
 	        }
@@ -310,21 +309,19 @@ public class AutomatingProof {
 	 * @param proofFile
 	 */
 	public File saveProof(String path){
-		System.out.println("AutomatingProof Zeile 314 : " + proof.name().toString());
+		System.out.println("AutomatingProof Zeile 314 : Saving proof " + proof.name().toString());
 		final String defaultName = MiscTools.toValidFileName(proof.name().toString());
-		FileSystem fs = FileSystems.getDefault();
-		Path proofFile = fs.getPath(path+System.getProperty("file.separator")+defaultName+".proof");
+		File proofFile = new File(path+System.getProperty("file.separator")+defaultName+".proof");
 
 		Set<Thread> threadsBefore = Thread.getAllStackTraces().keySet();
 		try {
-			AbstractFileRepo simple = new SimpleFileRepo();
-			simple.registerProof(proof);
-			simple.saveProof(proofFile);
+			proof.saveToFile(proofFile);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		waitForNewThread(threadsBefore);
-		return proofFile.toFile();
+		return proofFile;
 	}
 	
 	/**
