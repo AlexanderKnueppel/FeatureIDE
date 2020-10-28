@@ -157,9 +157,11 @@ public class SingleProject extends Evaluation{
 			case 6 :aproj.performVa6(toEvaluate,evaluatePath);
 					break;
 		}
+		
 		proofList = aproj.getProofList();
 		phase1ProofList = aproj.getPhase1ProofList();
 		proofList1And2Phase = aproj.getProofListWithPhase1And2();
+		System.out.println("SingleProject Zeile 164 : proofList1And2Phase " + proofList1And2Phase.size());
 		updateFailedProofs();
 		updateProofCount();
 		updateSum();

@@ -132,7 +132,7 @@ public class MetaProductBuilder {
 	
 	private static void renameRemainingStuff(File proof, File stub, String methodname){
 		StringBuffer sbuffer = new StringBuffer();
-		String newmethodname = methodname + "_" + stub.getName();
+		String newmethodname = methodname + "_original_" + stub.getName();
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
             String line = bReader.readLine();
@@ -339,7 +339,7 @@ public class MetaProductBuilder {
 	private static void replaceMethodNamesInPartialProofs(String currentMethodName,String originalMethod
 			,String featurestub, File proof){
 		StringBuffer sbuffer = new StringBuffer();
-		String originalCall = currentMethodName+"_original_"+featurestub;
+		String originalCall = currentMethodName;
 		String newMethodName = currentMethodName+"_"+featurestub;
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));

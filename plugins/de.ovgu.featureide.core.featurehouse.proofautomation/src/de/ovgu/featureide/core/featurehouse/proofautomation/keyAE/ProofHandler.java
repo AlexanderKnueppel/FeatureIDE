@@ -22,14 +22,28 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.keyAE;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.collections4.iterators.EntrySetMapIterator;
+import org.key_project.util.collection.ImmutableList;
+import org.key_project.util.collection.ImmutableSet;
+
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
+import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
+import de.uka.ilkd.key.control.UserInterfaceControl;
+import de.uka.ilkd.key.logic.NamespaceSet;
+import de.uka.ilkd.key.parser.Location;
+import de.uka.ilkd.key.proof.BuiltInRuleIndex;
 import de.uka.ilkd.key.proof.Proof;
 import de.uka.ilkd.key.proof.Statistics;
+import de.uka.ilkd.key.proof.init.InitConfig;
+import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
+import de.uka.ilkd.key.rule.BuiltInRule;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.util.MiscTools;
+import de.uka.ilkd.key.util.Pair;
 
 /**
  * TODO description
@@ -144,5 +158,6 @@ public class ProofHandler {
 	public void setClosed(boolean closed) {
 		this.closed = closed;
 	}
+
 }
 

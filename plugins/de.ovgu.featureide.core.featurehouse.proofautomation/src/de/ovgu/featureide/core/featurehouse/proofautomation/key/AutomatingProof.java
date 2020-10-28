@@ -23,9 +23,6 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -43,8 +40,6 @@ import de.uka.ilkd.key.proof.init.ProofInputException;
 import de.uka.ilkd.key.proof.init.ProofOblInput;
 import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
 import de.uka.ilkd.key.proof.io.ProblemLoaderException;
-import de.uka.ilkd.key.proof.io.consistency.AbstractFileRepo;
-import de.uka.ilkd.key.proof.io.consistency.SimpleFileRepo;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
@@ -153,6 +148,7 @@ public class AutomatingProof {
             System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
             e.printStackTrace();
 		}
+		environment.dispose();
 
 	}
 	
@@ -189,9 +185,7 @@ public class AutomatingProof {
 	            	InitConfig initConfig = loader.getInitConfig();
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
 	            	Proof proof2 = keYEnvironment.getLoadedProof();
-	            	
-	            	System.out.println("AutomatingProof Line 193 : Reused Proof -> " + proof2.name().toString());
-	            	
+          	
 	            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
 	            	keYEnvironment.getProofControl().waitWhileAutoMode();
 	            	reusedAProof = true;
@@ -212,6 +206,7 @@ public class AutomatingProof {
 				setReusedStatistics();
 	        	
 	        }
+	        environment.dispose();
 	       System.out.println("Reused: " + proof.getStatistics());
 	    }
         
@@ -309,7 +304,7 @@ public class AutomatingProof {
 	 * @param proofFile
 	 */
 	public File saveProof(String path){
-		System.out.println("AutomatingProof Zeile 314 : Saving proof " + proof.name().toString());
+
 		final String defaultName = MiscTools.toValidFileName(proof.name().toString());
 		File proofFile = new File(path+System.getProperty("file.separator")+defaultName+".proof");
 
@@ -416,8 +411,6 @@ public class AutomatingProof {
 	            	InitConfig initConfig = loader.getInitConfig();
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
 	            	Proof proof2 = keYEnvironment.getLoadedProof();
-	            	
-	            	System.out.println("AutomatingProof Line 193 : Reused Proof -> " + proof2.name().toString());
 	            	
 	            	keYEnvironment.getProofControl().runMacro(proof2.root(),new CompleteAbstractProofMacro(), null);
 	            	keYEnvironment.getProofControl().waitWhileAutoMode();

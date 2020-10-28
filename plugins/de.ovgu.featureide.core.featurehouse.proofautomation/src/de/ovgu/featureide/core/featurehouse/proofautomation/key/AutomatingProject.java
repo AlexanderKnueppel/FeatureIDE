@@ -199,9 +199,11 @@ public class AutomatingProject{
 				if(!a.isClosed()){
 					a.removeProof();
 					a.startAbstractProof(maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+
 					File restartProof = a.saveProof(savePartialProofsPath);
 					a.startMetaProductProof(restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 				}
+
 				a.saveProof(metaproductPath);
 				AutomatingProof aTotal = new AutomatingProof(a.getTypeName(),
 						a.getTargetName(),a.getStat().getNodes(),a.getStat().getBranches(),
@@ -571,6 +573,7 @@ public class AutomatingProject{
 				a.waitForNewThread(threadsBefore);
 				AutomatingProof reusedProof = null;
 				for(AutomatingProof firstPhase: phase1ProofList){
+					
 					String savename = getSaveName(firstPhase,projectDir);
 					if(reuse == null)
 						System.out.println("Savename in method meta: " + savename);

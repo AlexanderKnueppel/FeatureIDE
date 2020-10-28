@@ -20,21 +20,18 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
-import de.uka.ilkd.key.gui.MainWindow;
-import de.uka.ilkd.key.gui.actions.ExitMainAction;
 
 /**
  * This class starts a new JVM to avoid the key memory leak
- * therefor it needs the key library and the key binary path to start a new program instance correct
+ * therefore it needs the key library and the key binary path to start a new program instance correct
  * for correct usage the eclipse part of the program is not used in the JVM
  * 
  * @author Stefanie
+ * @author Marlen Herter-Bernier 10.2020
  */
 public class startNewJVM {
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
@@ -48,8 +45,6 @@ public class startNewJVM {
 			SingleProject s = new SingleProject(new File(args[0]),0,args[1]);
 			s.performEvaluation();
 		}
-		ExitMainAction ema = new ExitMainAction(MainWindow.getInstance());
-		ema.exitMainWithoutInteraction();
 	}
 	
 	/**
@@ -62,13 +57,11 @@ public class startNewJVM {
 		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String binPath = projectPath + "bin";
 		String excelLibs = getDirContent(new File(projectPath+FILE_SEPERATOR+"lib"));
-	    String keyPath = Configuration.keyBinPath;
-	    String keyLibs = getDirContent(new File(Configuration.keyLibsPath));
+	    String keyPath = Configuration.keyPath;
 	    String classname = startNewJVM.class.getName();
 	    ProcessBuilder processBuilder = 
                 new ProcessBuilder("java", "-cp",excelLibs+PATH_SEPERATOR
                 		+keyPath+PATH_SEPERATOR
-                		+keyLibs+PATH_SEPERATOR
                 		+binPath,
                 		classname,
                 		projectForEvaluation.getAbsolutePath(), 

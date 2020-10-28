@@ -37,11 +37,16 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategie
  */
 public class AutomatingProject {
 	public static final AutomatingProject automatingProject = new AutomatingProject();
-	private List<ProofHandler> proofList = new LinkedList<ProofHandler>();
+	private static List<ProofHandler> proofList = new LinkedList<ProofHandler>();
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private int maxRuleApplication = Configuration.maxRuleApplication;
+	private static int maxRuleApplication = Configuration.maxRuleApplication;
 	
-	public void performEval(File loc,File evalPath) {
+	public static void main(String[] args) {
+		File loc = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/features/DailyLimit");
+		File evalPath =  new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/Evalutation");
+		performEval(loc,evalPath);
+	}
+	public static void performEval(File loc,File evalPath) {
 		String savePartialProofsPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir;
 		boolean firstVersion =loc.getName().contains("1");
 		if(!firstVersion){
@@ -76,7 +81,7 @@ public class AutomatingProject {
 	 * Performs the featurestub phase of the verification
 	 * @param projectDir
 	 */
-	private void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion, boolean stubReplay){
+	private static void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion, boolean stubReplay){
 		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
 		String currentFeatureStub;
 		String saveFeatureStubPath;

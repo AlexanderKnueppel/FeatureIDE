@@ -50,8 +50,6 @@ public class ProofAutomationComposite extends Composite{
 	
 	private Text key;
 	private Label keyLabel;
-	private Text keyLibs;
-	private Label keyLibsLabel;
 	
 	private Text source;
 	private Label loadLabel;
@@ -85,16 +83,12 @@ public class ProofAutomationComposite extends Composite{
 		configComposite.setLayout(new GridLayout(2,false));
 		configComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		keyLabel = new Label(configComposite, SWT.NONE);
-		keyLabel.setText("Key binary Path:");
+		keyLabel.setText("Key.jar Path:");
 		key = new Text(configComposite, SWT.BORDER);
 		key.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite configComposite2 = new Composite(config, SWT.NONE);
 		configComposite2.setLayout(new GridLayout(2,false));
 		configComposite2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		keyLibsLabel = new Label(configComposite2, SWT.NONE);
-		keyLibsLabel.setText("Key Library Path:");
-		keyLibs = new Text(configComposite2, SWT.BORDER);
-		keyLibs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
 	
 	private Group generateLoadPart(){
@@ -196,10 +190,7 @@ public class ProofAutomationComposite extends Composite{
 	
 	private void setKey(){
 		if(!key.getText().isEmpty()){
-			Configuration.keyBinPath = key.getText();
-		}
-		if(!keyLibs.getText().isEmpty()){
-			Configuration.keyLibsPath = keyLibs.getText();
+			Configuration.keyPath = key.getText();
 		}
 	}
 }

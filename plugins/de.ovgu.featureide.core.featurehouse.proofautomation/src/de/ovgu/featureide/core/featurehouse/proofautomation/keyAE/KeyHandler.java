@@ -98,12 +98,12 @@ public class KeyHandler {
 	            System.out.println("Contract '" + contract.getDisplayName() + "' of " + contract.getTarget() + " is " + (proofHandler.isClosed() ? "verified" : "still open") + ".");
 	            proofHandler.setClosed(true);
 	        }
-        
 		} catch (ProofInputException e) {
             System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
             e.printStackTrace();
 		}
 		proofHandler.setStatistics();
+		
 	}
 	
 	/**
