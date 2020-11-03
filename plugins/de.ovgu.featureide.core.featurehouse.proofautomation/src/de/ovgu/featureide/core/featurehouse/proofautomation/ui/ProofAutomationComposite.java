@@ -23,12 +23,16 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.ui;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -53,13 +57,17 @@ public class ProofAutomationComposite extends Composite{
 	
 	private Text source;
 	private Label loadLabel;
-	private Text verificationApproach;
+	private Combo verificationApproach;
+	private static final String[] approaches = { "1 Fefalution + Family Proof Replay", 
+			"2 Metaproduct", "3 Concrete Contracts", "4 Method Inlining", "5 Thuem et al", "6 Thuem et al with Reuse" };
+	//private Text verificationApproach;
 	private Label vaLabel;
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
 	private Button sandbox;
-	
+	private Button open;
+	Composite loadComposite;
 	
 	
 
@@ -96,19 +104,36 @@ public class ProofAutomationComposite extends Composite{
 		load.setText("Directory for Evaluation");
 		load.setLayout(new GridLayout(1,false));
 		load.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Composite loadComposite = new Composite(load, SWT.NONE);
-		loadComposite.setLayout(new GridLayout(2,false));
+		loadComposite = new Composite(load, SWT.NONE);
+		loadComposite.setLayout(new GridLayout(3,false));
 		loadComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		loadLabel = new Label(loadComposite, SWT.NONE);
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)");
+		open = new Button(loadComposite, SWT.PUSH);
+		open.setText("Open");
+		open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		vaLabel = new Label(loadComposite, SWT.NONE);
 		vaLabel.setText("Verification Approach:");
-		verificationApproach = new Text(loadComposite, SWT.BORDER);
+		verificationApproach = new Combo(loadComposite, SWT.DROP_DOWN | SWT.READ_ONLY);
+		//verificationApproach = new Text(loadComposite, SWT.BORDER);
 		verificationApproach.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		verificationApproach.setText("1");
+		verificationApproach.setItems(approaches);
+		verificationApproach.select(0);
+		//verificationApproach.setText("1");
+		
+	    open.addSelectionListener(new SelectionAdapter() {
+	    	public void widgetSelected(SelectionEvent event) {
+	    		DirectoryDialog dlg = new DirectoryDialog(loadComposite.getShell(), SWT.OPEN);
+	            String fn = dlg.open();
+	            if (fn != null) {
+	            	source.setText(fn);
+	            }
+	    	}
+		});
+		
 		Composite buttonComposite = new Composite(load, SWT.NONE);
 		buttonComposite.setLayout(new GridLayout(4,true));
 		buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -172,6 +197,7 @@ public class ProofAutomationComposite extends Composite{
 		
 		sandbox = new Button (buttonComposite, SWT.PUSH);
 		sandbox.setText("Sandbox");
+		sandbox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		sandbox.addSelectionListener( new SelectionListener() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {

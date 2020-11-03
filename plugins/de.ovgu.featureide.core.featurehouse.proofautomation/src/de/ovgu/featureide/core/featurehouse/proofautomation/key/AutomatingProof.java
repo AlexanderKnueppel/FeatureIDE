@@ -108,6 +108,10 @@ public class AutomatingProof {
 			
 			threadsBefore = Thread.getAllStackTraces().keySet();
 			// Set proof strategy options
+	        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+			HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+	        choices.putAll(MiscTools.getDefaultTacletOptions());
+	        choiceSettings.setDefaultChoices(choices);
 			proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
 			waitForNewThread(threadsBefore);
 			
@@ -138,7 +142,6 @@ public class AutomatingProof {
 				waitForNewThread(threadsBefore);
 			}while(proof.countNodes()==previousNodes);
 	        if(proof.openGoals().isEmpty()){
-	            System.out.println("AutomationProof Line 146 : Contract '" + contract.getDisplayName() + "' of " + contract.getTarget() + " is " + (closed ? "verified" : "still open") + ".");
 	        	closed = true;
 	        }
 
@@ -157,8 +160,7 @@ public class AutomatingProof {
 	 * @param reuseProof The adapted proof of the FeatureStub phase
 	 */
 	public boolean startMetaProductProof(File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath){
-		System.out.println("AutomatingProof Line 143 : Starte Metaprodukt Beweis");
-		
+
 		boolean reusedAProof = false;
 		try{
 		    proof = environment.createProof(contract.createProofObl(environment.getInitConfig(), contract));
@@ -174,6 +176,7 @@ public class AutomatingProof {
         ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
 		HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
         choices.put("assertions", "assertions:safe");
+        choices.putAll(MiscTools.getDefaultTacletOptions());
         choiceSettings.setDefaultChoices(choices);
            
         if(reuseProof!=null){
@@ -207,7 +210,7 @@ public class AutomatingProof {
 	        	
 	        }
 	        environment.dispose();
-	       System.out.println("Reused: " + proof.getStatistics());
+	       System.out.println("Reused: "+proof.name() +"\n"+ proof.getStatistics());
 	    }
         
 
