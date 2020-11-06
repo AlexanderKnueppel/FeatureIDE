@@ -100,9 +100,9 @@ public class MetaProductBuilder {
 						if(!checkForMethod(replace_with,metaproduct)) {
 							replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
 						}
-						System.out.println("Replace " + method_to_replace + " in  " + methodname+"_"+f.getName() + " with " + replace_with);
+					//	replaceMethodNamesInPartialProofs(methodname,replace_with,f.getName(),proof);
 						replaceMethodNamesInPartialProofsTest(method_to_replace,replace_with,f.getName(),proof);
-						renameAbstractKeywords(proof, f, methodname);
+					//	renameAbstractKeywords(proof, f, methodname);
 						renameRemainingStuff(proof, f, methodname);
 						renameProof(proof,f,methodname+"_"+f.getName());
 					}
@@ -116,9 +116,9 @@ public class MetaProductBuilder {
 						if(whitelist.contains(methodname) && f.getName().equals("BankAccount")) {
 							extensionForBankAccount += "_BankAccount";
 						}
-						renameAbstractKeywords(proof, f, methodname);
+						//renameAbstractKeywords(proof, f, methodname);
 						//renameRemainingStuff(proof, f, methodname);
-						renameProof(proof,f,methodname + extensionForBankAccount);
+						renameProof(proof,f,methodname+extensionForBankAccount);
 					}
 					
 					
@@ -169,8 +169,9 @@ public class MetaProductBuilder {
             		line = line.replaceAll(methodname + "E", newmethodname + "E");
             	} else if(line.contains(methodname + "R")) {
             		line = line.replaceAll(methodname + "R", newmethodname + "R");
-            	} else if(line.contains(methodname + "A")) {
-            		line = line.replaceAll(methodname + "A", newmethodname + "A");
+        /*    	} else if(line.contains(methodname + "A")) {
+            		System.out.println("MetaProductBuilder Line 174: " +line +" new name: "+ newmethodname);
+            		line = line.replaceAll(methodname + "A", newmethodname + "A");*/
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();
@@ -311,6 +312,7 @@ public class MetaProductBuilder {
 	}
 	private static void replaceMethodNamesInPartialProofsTest(String oldName, String newName
 			,String featurestub, File proof){
+		System.out.println("Replace " + oldName + " in  " + getMethodName(proof)+ "_"+featurestub  + " with " + newName);
 		StringBuffer sbuffer = new StringBuffer();
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));

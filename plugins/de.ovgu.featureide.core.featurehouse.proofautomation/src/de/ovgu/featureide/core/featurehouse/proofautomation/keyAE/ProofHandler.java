@@ -22,31 +22,17 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.keyAE;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import org.apache.commons.collections4.iterators.EntrySetMapIterator;
-import org.key_project.util.collection.ImmutableList;
-import org.key_project.util.collection.ImmutableSet;
-
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.ProofStatistics;
-import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
+import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofStatistics;
 import de.uka.ilkd.key.control.KeYEnvironment;
-import de.uka.ilkd.key.control.UserInterfaceControl;
-import de.uka.ilkd.key.logic.NamespaceSet;
-import de.uka.ilkd.key.parser.Location;
-import de.uka.ilkd.key.proof.BuiltInRuleIndex;
 import de.uka.ilkd.key.proof.Proof;
 import de.uka.ilkd.key.proof.Statistics;
-import de.uka.ilkd.key.proof.init.InitConfig;
-import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
-import de.uka.ilkd.key.rule.BuiltInRule;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.util.MiscTools;
-import de.uka.ilkd.key.util.Pair;
+
 
 /**
- * TODO description
+ * Class for handling all Key Proof Parameter 
  * 
  * @author marlen
  */
@@ -58,6 +44,8 @@ public class ProofHandler {
 	private Proof proof;
 	private String featurestub;
 	private ProofStatistics stat = new ProofStatistics();
+	private ProofStatistics reusedStat = new ProofStatistics();
+
 	private boolean closed = false;
 	/**
 	 * Constructs a new AutomatingProof 
@@ -82,18 +70,38 @@ public class ProofHandler {
 	public String getTargetName(){
 		return targetName;
 	}
+	
+	/**
+	 * 
+	 * @return proof
+	 */
 	public Proof getProof(){
 		return proof;
 	}
-	
+	/**
+	 * 
+	 * @param proof
+	 */
 	public void setProof(Proof proof) {
 		this.proof = proof;
 	}
-	
+	/**
+	 * removes Proof
+	 */
+	public void removeProof(){
+		proof.dispose();
+	}
+	/**
+	 * 
+	 * @return environment
+	 */
 	public KeYEnvironment<?> getEnvironment(){
 		return environment;
 	}
-
+	/**
+	 * 
+	 * @return contract
+	 */
 	public Contract getContract() {
 		return contract;
 	}
@@ -144,6 +152,31 @@ public class ProofHandler {
 		stat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
 		stat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
 	}
+	
+	/**
+	 * @return the stat
+	 */
+	public ProofStatistics getStat() {
+		return stat;
+	}
+	
+	/**
+	 * Sets the needed reused statistics (Automode Time, Nodes, Branches, applied Rules) for Evaluation
+	 */
+	public void setReusedStatistics() {
+		Statistics s = proof.getStatistics();
+		reusedStat.setAutomodeTime((proof != null && !proof.isDisposed()) ? s.autoModeTimeInMillis : 0l);
+		reusedStat.setNodes((proof != null && !proof.isDisposed()) ? s.nodes : 0);
+		reusedStat.setBranches((proof != null && !proof.isDisposed()) ? s.branches : 0);
+		reusedStat.setAppliedRules((proof != null && !proof.isDisposed()) ? s.totalRuleApps : 0);
+	}
+	/**
+	 * @return the reusedStat
+	 */
+	public ProofStatistics getReusedStat() {
+		return reusedStat;
+	}
+
 	
 	/**
 	 * @return the closed

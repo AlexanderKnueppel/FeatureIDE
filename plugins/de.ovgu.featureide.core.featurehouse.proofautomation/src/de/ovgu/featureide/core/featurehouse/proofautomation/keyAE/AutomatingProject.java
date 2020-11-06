@@ -90,19 +90,19 @@ public class AutomatingProject {
 			currentFeatureStub = seperatedPath[seperatedPath.length-2];
 			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
 			FileManager.createDir(new File (saveFeatureStubPath));
-			List<ProofHandler> ap = KeyHandler.loadInKeY(f);
+			List<ProofHandler> ap = AbstractExecution.loadInKeY(f);
 			proofList.addAll(ap);
 			for(ProofHandler a : ap){
 				//Replay feature stub proof
 				if(firstVersion||!proofAlreadyExists(a,evalPath,f.getParentFile())){
 					File oldPartialProof = getOldFeatureStubProof(a, FileManager.getProjectv1Path(projectDir));
 					if(!firstVersion && stubReplay && oldPartialProof != null) {
-						KeyHandler.startAbstractExcutionProof(a, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+						new AbstractExecution().startAbstractProof(a, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 						a.saveProof(saveFeatureStubPath);
 						a.setFeaturestub(f.getParentFile().getName());
 					} else {
 						try {
-							KeyHandler.startAbstractExcutionProof(a,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+							new AbstractExecution().startAbstractProof(a,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 							a.saveProof(saveFeatureStubPath);
 							a.setFeaturestub(f.getParentFile().getName());
 						} catch (Exception e) {

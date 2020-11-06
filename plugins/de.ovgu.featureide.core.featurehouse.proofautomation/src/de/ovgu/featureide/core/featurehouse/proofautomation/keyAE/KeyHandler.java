@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.key_project.util.collection.ImmutableSet;
+import org.stringtemplate.v4.compiler.CodeGenerator.primary_return;
 
 import bibliothek.gui.dock.themes.StationCombinerValue;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
@@ -39,6 +40,7 @@ import de.uka.ilkd.key.control.ProofControl;
 import de.uka.ilkd.key.control.UserInterfaceControl;
 import de.uka.ilkd.key.gui.ClassTree;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
+import de.uka.ilkd.key.java.declaration.modifier.Static;
 import de.uka.ilkd.key.logic.op.IObserverFunction;
 import de.uka.ilkd.key.macros.CompleteAbstractProofMacro;
 import de.uka.ilkd.key.proof.Proof;
@@ -59,53 +61,14 @@ import de.uka.ilkd.key.util.MiscTools;
  * 
  * @author marlen
  */
-public class KeyHandler {
+public abstract class KeyHandler {
 	
 
 	public static void main(String[] args) {
 		loadInKeY(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/features/DailyLimit"));
 	}
 	
-	/**
-	 * @param oldPartialProof
-	 * @param maxRuleApplication
-	 * @param defaultSettingsForFeatureStub
-	 */
-	public static void startAbstractExcutionProof(ProofHandler proofHandler, int maxRuleApplication, StrategyProperties sp) {
-		
-		KeYEnvironment<?> environment = proofHandler.getEnvironment();
-		Proof proof = proofHandler.getProof();
-		Contract contract = proofHandler.getContract();
-		try{
-			
-		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
 
-        	proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
-        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-        	proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-	        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
-			ProofControl proofControl = environment.getUi().getProofControl();
-			int previousNodes;
-			do{
-				previousNodes = proof.countNodes();
-	
-				proofControl.waitWhileAutoMode();
-	
-			}while(proof.countNodes()==previousNodes);
-	        if(proof.openGoals().isEmpty()){
-	            System.out.println("Contract '" + contract.getDisplayName() + "' of " + contract.getTarget() + " is " + (proofHandler.isClosed() ? "verified" : "still open") + ".");
-	            proofHandler.setClosed(true);
-	        }
-		} catch (ProofInputException e) {
-            System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
-            e.printStackTrace();
-		}
-		proofHandler.setStatistics();
-		
-	}
-	
 	/**
 	 * Loads a Proof-File into key, sorts and cleans the contracts and saves the Proofs into
 	 * a List with ProofHandler objects
@@ -190,6 +153,17 @@ public class KeyHandler {
 		}
 		proofs.removeAll(removeDispatcher);
 	}
+	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath) 
+	{
+		return false;
+	}
 
+
+	/**
+	 * @param maxRuleApplication
+	 * @param defaultSettingsForFeatureStub
+	 */
+	public void startAbstractProof(ProofHandler proofHandler,int maxRuleApplication, StrategyProperties sp) {
+	}
 
 }
