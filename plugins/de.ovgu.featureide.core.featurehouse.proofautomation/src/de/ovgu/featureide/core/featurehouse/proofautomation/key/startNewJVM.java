@@ -23,6 +23,7 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 import java.io.File;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
+import de.ovgu.featureide.core.featurehouse.proofautomation.evaluation.SingleApproachEvaluation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
@@ -42,7 +43,8 @@ public class startNewJVM {
 	 */
 	public static void main(String[] args) {
 		if(args.length >=2 && args[0]!=null && args[1]!=null){
-			SingleProject s = new SingleProject(new File(args[0]),0,args[1]);
+			SingleApproachEvaluation s = new SingleApproachEvaluation(new File(args[0]),0,args[1], "AbstractContract");
+			//SingleProject s = new SingleProject(new File(args[0]),0,args[1]);
 			s.performEvaluation();
 		}
 	}

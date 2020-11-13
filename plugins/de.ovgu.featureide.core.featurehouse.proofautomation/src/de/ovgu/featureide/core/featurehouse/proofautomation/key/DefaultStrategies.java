@@ -34,7 +34,6 @@ public class DefaultStrategies {
 	 * @return The prepared StrategyProperties
 	 */
 	public static StrategyProperties defaultSettingsForFeatureStub(){
-		System.out.println("defaultSettingsForFeatureStub");
 		StrategyProperties sp = ProofSettings.DEFAULT_SETTINGS.getStrategySettings().getActiveStrategyProperties();
 		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_NONCLOSE);
 		sp.setProperty(StrategyProperties.SPLITTING_OPTIONS_KEY, StrategyProperties.SPLITTING_DELAYED);
@@ -60,7 +59,6 @@ public class DefaultStrategies {
 	 * @return The prepared StrategyProperties
 	 */	
 	public static StrategyProperties defaultSettingsForMetaproduct(){
-		System.out.println("defaultSettingsForMetaproduct");
 		StrategyProperties sp = ProofSettings.DEFAULT_SETTINGS.getStrategySettings().getActiveStrategyProperties();
 		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_NONCLOSE);
 		sp.setProperty(StrategyProperties.SPLITTING_OPTIONS_KEY, StrategyProperties.SPLITTING_DELAYED);
@@ -86,7 +84,6 @@ public class DefaultStrategies {
 	 * @return The prepared StrategyProperties
 	 */
 	public static StrategyProperties defaultSettingsForVA4VA5(){
-		System.out.println("defaultSettingsForVA4VA5");
 		StrategyProperties sp = ProofSettings.DEFAULT_SETTINGS.getStrategySettings().getActiveStrategyProperties();
 		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_NONCLOSE);
 		sp.setProperty(StrategyProperties.SPLITTING_OPTIONS_KEY, StrategyProperties.SPLITTING_DELAYED);
@@ -110,7 +107,6 @@ public class DefaultStrategies {
 	 * @return The prepared StrategyProperties
 	 */	
 	public static StrategyProperties defaultSettingsForAbstractMetaproduct(){
-		System.out.println("defaultSettingsForAbstractMetaproduct");
 		StrategyProperties sp = ProofSettings.DEFAULT_SETTINGS.getStrategySettings().getActiveStrategyProperties();
 		//sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_DEFAULT);
 		sp.setProperty(StrategyProperties.STOPMODE_OPTIONS_KEY, StrategyProperties.STOPMODE_NONCLOSE);

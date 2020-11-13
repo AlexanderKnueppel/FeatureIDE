@@ -154,7 +154,7 @@ public abstract class KeyHandler {
 		proofs.removeAll(removeDispatcher);
 	}
 	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath) 
-	{
+	{	
 		return false;
 	}
 
@@ -165,5 +165,8 @@ public abstract class KeyHandler {
 	 */
 	public void startAbstractProof(ProofHandler proofHandler,int maxRuleApplication, StrategyProperties sp) {
 	}
+	
+	public void replayFeatureStubProof(ProofHandler proofHandler,File oldPartialProof, String savePath, int maxRuleApplication,
+			StrategyProperties defaultSettingsForFeatureStub) {	}
 
 }

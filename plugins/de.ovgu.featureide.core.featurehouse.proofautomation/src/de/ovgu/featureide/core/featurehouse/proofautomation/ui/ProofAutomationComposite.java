@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
+import de.ovgu.featureide.core.featurehouse.proofautomation.evaluation.CompleteApproachesEvaluation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
@@ -58,7 +59,7 @@ public class ProofAutomationComposite extends Composite{
 	private Text source;
 	private Label loadLabel;
 	private Combo verificationApproach;
-	private static final String[] approaches = { "1 Fefalution + Family Proof Replay", 
+	private static final String[] approaches = { "0 All Aproaches","1 Fefalution + Family Proof Replay", 
 			"2 Metaproduct", "3 Concrete Contracts", "4 Method Inlining", "5 Thuem et al", "6 Thuem et al with Reuse" };
 	//private Text verificationApproach;
 	private Label vaLabel;
@@ -188,7 +189,8 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());
+				//EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());
+				CompleteApproachesEvaluation ep =  new CompleteApproachesEvaluation(f,verificationApproach.getText());
 				if(Configuration.performVerification){
 					ep.performEvaluation();
 				}
