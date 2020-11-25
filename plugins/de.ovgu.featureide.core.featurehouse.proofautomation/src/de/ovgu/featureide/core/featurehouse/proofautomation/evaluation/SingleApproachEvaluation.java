@@ -28,13 +28,14 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.AbstractVerification;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ConcreteContracts;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.Fefalution;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.FefalutionFamilyProofReplay;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.Metaproduct;
+import de.ovgu.featureide.core.featurehouse.proofautomation.verification.MethodInling;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAl;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAlReuse;
 
@@ -64,10 +65,10 @@ public static void main(String[] args) {
 	 * @param evalVersion
 	 * @param evaluatePath
 	 */
-	public SingleApproachEvaluation(File f, int evalVersion, String evaluatePath, String verificationType){
+	public SingleApproachEvaluation(File f, int evalVersion, String evaluatePath, String method){
 		super(f);
 		System.out.println("Init SingleApproachEvaluation");
-		this.verificationType = verificationType;
+		this.method = method;
 		this.evaluatePath = FileManager.createDir(new File(evaluatePath));
 		if(evalVersion>0){
 			this.evalVersion = evalVersion;
@@ -106,23 +107,24 @@ public static void main(String[] args) {
 		switch(evalVersion){
 		case 1 :abstractVerification = FefalutionFamilyProofReplay.getInstance();
 				break;				
-		case 2 :abstractVerification = Fefalution.getInstance();
+		case 2 :abstractVerification = Metaproduct.getInstance();
 				break;
-		case 3 :abstractVerification = Metaproduct.getInstance();
+		case 3 :abstractVerification = ConcreteContracts.getInstance();
 				break;
-		case 4 :abstractVerification = ConcreteContracts.getInstance();
+		case 4 :abstractVerification = MethodInling.getInstance();
 				break;
 		case 5 :abstractVerification = ThuemEtAl.getInstance();
 				break;
 		case 6 :abstractVerification = ThuemEtAlReuse.getInstance();
 				break;
 		}		
-		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), verificationType);
+		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), method);
 		abstractVerification.performVerification(toEvaluate,evaluatePath);
 		
 		proofList = abstractVerification.getProofList();
 		phase1ProofList = abstractVerification.getPhase1ProofList();
 		proofList1And2Phase = abstractVerification.getProofListWithPhase1And2();
+
 		updateFailedProofs();
 		updateProofCount();
 		updateSum();

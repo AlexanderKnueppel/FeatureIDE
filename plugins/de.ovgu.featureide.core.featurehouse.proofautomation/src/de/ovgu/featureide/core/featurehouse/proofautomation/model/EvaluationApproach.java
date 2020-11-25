@@ -151,7 +151,7 @@ public class EvaluationApproach extends Evaluation{
 	public void performEvaluation(){
 		generateCode();
 		for(SingleProject s : projectVersions){
-			startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
+		//	startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
 		}
 		for(SingleProject s: projectVersions){
 			ExcelManager.updateSingleProjectsWithReuse(s);

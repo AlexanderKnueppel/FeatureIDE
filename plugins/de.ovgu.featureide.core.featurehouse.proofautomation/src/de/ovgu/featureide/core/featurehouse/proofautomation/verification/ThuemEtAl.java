@@ -26,10 +26,10 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractExecution;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 
 /**
  * TODO description
@@ -51,17 +51,22 @@ public class ThuemEtAl extends AbstractVerification{
 	 * @param loc
 	 */
 	public void performVerification(File loc, File evalPath){
-		List<ProofHandler> proofList = KeyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		
+		
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 		KeyHandler keyHandler = null;
-		if( verificationType == "AbstractContract") {
+		if( method.equals("AbstractContract")) {
+			System.out.println("Starte Proof with Abstract Contracts");
 			keyHandler = new AbstractContract();
-		}else if(verificationType == "AbstractExecution") {
+		}else if(method.equals("AbstractExecution")) {
+			System.out.println("Starte Proof with Abstract Execution");
 			keyHandler = new AbstractExecution();
 		}
+		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		for(ProofHandler aproof: proofList){
-			keyHandler.startMetaProductProof(aproof,null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication,savePath);
+			keyHandler.startMetaProductProof(aproof,null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication,savePath,"Thuem");
 			aproof.saveProof(savePath);
 		}
+		setProofList(proofList);
 	}
 }

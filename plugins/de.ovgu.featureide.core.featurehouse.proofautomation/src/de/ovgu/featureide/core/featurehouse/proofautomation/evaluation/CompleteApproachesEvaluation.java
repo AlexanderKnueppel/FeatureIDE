@@ -50,15 +50,16 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * gets a directory which contains one evaluation approache and sets the statistics file and the Evaluation Approach list
 	 * @param toEvaluate
 	 */
-	public CompleteApproachesEvaluation(File f, String verificationType) {
+	public CompleteApproachesEvaluation(File f, String verificationType, String method) {
 		super(f);
 		this.verificationType = verificationType;
+		this.method = method;
 		date = new Date();
 		if(verificationType.startsWith("0")) {
 			File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
 			evaluatePath = FileManager.createDateDir(date, evalDir);
 			statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results.xlsx");
-			setEvaluationApproach();
+			setAllEvaluationApproaches();
 		}else {
 			File dateDir = FileManager.createDateDir(date, new File(f.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
 			evaluatePath = FileManager.createDir(new File (dateDir.getAbsolutePath()+FILE_SEPERATOR+verificationType));
@@ -69,7 +70,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	/**
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
-	private void setEvaluationApproach(){
+	private void setAllEvaluationApproaches(){
 		allProjects.add(new ApproachData(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath));
 		allProjects.add(new ApproachData(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath));
 		allProjects.add(new ApproachData(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath));
@@ -91,18 +92,16 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 */
 	public void createXLS(){
 		if(allProjects.size() == 1) {
-			if(getVersionNumber()==3||getVersionNumber()==4||getVersionNumber()==5||getVersionNumber()==6){
+			int versionNr = getVersionNumber();
+			if(versionNr==3||versionNr==4||versionNr==5||versionNr==6){
 				ExcelManager2.generateSingleApproachEvaluationWithReuseXLS(approachData);
-			}
-			else{
+			}else{
 				ExcelManager2.generateSingleApproachTwoPhaseEvaluationWithReuseXLS(approachData);
 			}
 		}else {
 			ExcelManager2.generateAllApproachEvaluationWithReuseXLS(this);
 			ExcelManager2.generateAllApproachWithInitSeperated(this);
 		}
-
-
 	}
 	
 	/**
@@ -124,11 +123,10 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * Performs the complete Evaluation
 	 */
 	public void performEvaluation(){
-		for(ApproachData approachData: allProjects){
-			
+		for(ApproachData approachData: allProjects){			
 			approachData.generateCode();
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){		
-				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
+				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
 			}
 			
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){
@@ -137,11 +135,13 @@ public class CompleteApproachesEvaluation extends Evaluation{
 				approachData.addProofsCount(s);
 				if(allProjects.size() == 1) {
 					this.updateStatistics(approachData);
+				}else {
+					this.addFailedProofs(approachData);
+					this.addProofsCount(approachData);	
 				}
 			}
 			
-			this.addFailedProofs(approachData);
-			this.addProofsCount(approachData);
+
 			this.approachData = approachData;
 		}
 		

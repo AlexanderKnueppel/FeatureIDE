@@ -23,20 +23,17 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractExecution;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
-import de.uka.ilkd.key.java.declaration.modifier.Static;
-import de.uka.ilkd.key.parser.KeYLexerTokensUpdaterParser.finallyClause_return;
+
 import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**
@@ -48,7 +45,7 @@ public abstract class AbstractVerification {
 	
 	KeyHandler keyHandler = null;
 	protected static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	String verificationType;
+	String method;
 	protected static List<ProofInformation> proofList = new LinkedList<ProofInformation>();;
 	protected static List<ProofInformation> phase1ProofList = new LinkedList<ProofInformation>();
 	protected static List<ProofInformation> proofListWithPhase1And2= new LinkedList<ProofInformation>();;
@@ -61,9 +58,129 @@ public abstract class AbstractVerification {
 	 * 
 	 * @return proofList
 	 */
+
+	/**
+	 * 
+	 */
+	public void warmUp(File location, String method){
+		
+		this.method = method;
+		if(Configuration.warmUp){
+			ProofHandler account = getAccountConstructor(location);
+			if(account!=null){
+				if( method == "AbstractContract") {
+					keyHandler = new AbstractContract();
+				}else if(method == "AbstractExecution") {
+					keyHandler = new AbstractExecution();
+				}
+				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForAbstractMetaproduct(), maxRuleApplication, null,"WarmUp");
+				account.removeProof();	
+			}
+		}
+	}
+	
+	/**
+	 * @param loc
+	 * @param evalPath
+	 * @param firstVersion
+	 * @param stubReplay
+	 */
+	protected void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion, boolean stubReplay) {
+		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
+		String currentFeatureStub;
+		String saveFeatureStubPath;
+		
+		if( method.equals("AbstractContract")) {
+			System.out.println("Starte Proof with Abstract Contracts");
+			keyHandler = new AbstractContract();
+		}else if(method.equals("AbstractExecution")) {
+			System.out.println("Starte Proof with Abstract Execution");
+			keyHandler = new AbstractExecution();
+		}
+		for(File f: featurestubs){
+			String[] seperatedPath = f.getAbsolutePath().split(FILE_SEPERATOR);
+			currentFeatureStub = seperatedPath[seperatedPath.length-2];
+			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
+			FileManager.createDir(new File (saveFeatureStubPath));
+			List<ProofHandler> proofHandlers = keyHandler.loadInKeY(f);
+			//setphase1ProofList(proofHandlers);
+
+			for(ProofHandler proofHandler : proofHandlers) {
+				//Replay feature stub proof
+				if(firstVersion||!proofAlreadyExists(proofHandler,evalPath,f.getParentFile())){
+					File oldPartialProof = getOldFeatureStubProof(proofHandler, FileManager.getProjectv1Path(projectDir));
+					if(!firstVersion && stubReplay && oldPartialProof != null) {
+						keyHandler.replayFeatureStubProof(proofHandler,oldPartialProof, saveFeatureStubPath, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+						System.out.println("Abstract Verification 115 ReplayResult: closed :"+ proofHandler.isClosed() +" target :" + proofHandler.getTargetName());
+						proofHandler.saveProof(saveFeatureStubPath);
+						proofHandler.setFeaturestub(f.getParentFile().getName());
+					} else {
+						try {
+							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+							System.out.println("AbstractVerification 120 performFeaturestubVerification: closed: "+ proofHandler.isClosed() +" target: " + proofHandler.getTargetName() +" number of open goals: "+ proofHandler.getProof().openGoals().size());
+
+							proofHandler.saveProof(saveFeatureStubPath);
+							proofHandler.setFeaturestub(f.getParentFile().getName());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			setphase1ProofList(proofHandlers);
+		}
+	}
+
+	/**
+	 * Performs the second phase of the verification used for fefalution
+	 * @param projectDir
+	 */
+	protected void performMetaproductVerification(File projectDir, File evalPath){
+		List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+		File java = getMetaproduct(projectDir);
+		List<ProofHandler> proofHandlers = keyHandler.loadInKeY(java);
+		//setProofList(proofHandlers); 
+		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+
+		for(ProofHandler proofHandler : proofHandlers){
+			try {
+				File reuse = getFeatureStubProof(proofHandler,featurestubs);
+				
+				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, metaproductPath,"Fefalution");
+				proofHandler.saveProof(metaproductPath);
+				
+				ProofInformation reusedProof = null;
+				for(ProofInformation firstPhase: phase1ProofList){
+					
+					String savename = getSaveName(firstPhase,projectDir);
+					if(reuse == null)
+						System.out.println("Savename in method meta: " + savename);
+					if(reuse.getName().equals(savename)){
+						reusedProof = firstPhase;
+					}
+				}
+				ProofInformation aTotal = new ProofInformation(proofHandler.getTypeName(),
+						proofHandler.getTargetName(),proofHandler.getFeaturestub(),proofHandler.getStat(),proofHandler.getReusedStat(),proofHandler.isClosed());
+				if(reusedProof!=null){
+					aTotal.getStat().addStatistics(reusedProof.getStat());
+					aTotal.getReusedStat().addStatistics(reusedProof.getReusedStat());
+				}
+				proofHandler.getEnvironment().dispose();
+				proofListWithPhase1And2.add(aTotal);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		setProofList(proofHandlers); 
+	}
+	/**
+	 * 
+	 * @return
+	 */
 	public List<ProofInformation> getProofList(){
 		return proofList;
 	}
+	
 	/**
 	 * 
 	 * @param proofHandlers
@@ -177,7 +294,10 @@ public abstract class AbstractVerification {
 		}
 		return null;
 	}
-	
+	/**
+	 * 
+	 * @param proofs
+	 */
 	private static void removeDispatcher(List<ProofHandler> proofs){
 		//pattern nameMethode_ contains
 		List<ProofHandler> removeDispatcher = new LinkedList<ProofHandler>();
@@ -197,14 +317,15 @@ public abstract class AbstractVerification {
 	
 	/**
 	 * Returns the proof that should be reused in the second phase of verification for proof ap 
-	 * @param ap
+	 * @param proofHandler
 	 * @param featureStubProofs
 	 * @return
 	 */
-	protected static File getFeatureStubProof(ProofHandler ap, List<File> featureStubProofs){
+	protected static File getFeatureStubProof(ProofHandler proofHandler, List<File> featureStubProofs){
 		List<File> fittingProofs = new LinkedList<File>();
 		for(File proof: featureStubProofs){
-			if(isProofForMethod(ap,proof)){
+			
+			if(isProofForMethod(proofHandler,proof)){
 				fittingProofs.add(proof);
 			}
 		}
@@ -215,7 +336,7 @@ public abstract class AbstractVerification {
 			}
 		}
 		if(biggestFile == null) {
-			System.out.println("Biggestfile is null! Target name was: " + ap.getTargetName() + "; Type name was: " + ap.getTypeName());
+			System.out.println("Biggestfile is null! Target name was: " + proofHandler.getTargetName() + "; Type name was: " + proofHandler.getTypeName());
 			System.out.println("Possible proof files: ");
 			featureStubProofs.stream().forEach(f -> System.out.println("    -" + f.getName()));
 		}
@@ -247,7 +368,7 @@ public abstract class AbstractVerification {
 	 * @return
 	 */
 	protected static List<File> getAllPartialProofs(File projectDir, File evalPath){
-		File featurestub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
+		File featurestub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
 		File[] featurestubs = featurestub.listFiles();
 		List<File> proofs = new LinkedList<File>();
 		for(File f : featurestubs){
@@ -279,126 +400,27 @@ public abstract class AbstractVerification {
 	
 	/**
 	 * Returns true, if the given File proof could be reused for the proof ap
-	 * @param ap
+	 * @param proofHandler
 	 * @param proof
 	 * @return
 	 */
-	private static boolean isProofForMethod(ProofHandler ap, File proof){
-		String method = ap.getTargetName();
+	private static boolean isProofForMethod(ProofHandler proofHandler, File proof){
+		String method = proofHandler.getTargetName();
 		if(method.contains("inv")){
 			method = method.replaceAll("<inv>", "inv");
 		}
 		else{
 			method = method.replaceAll("\\(.*\\)", "");
 		}
-		String predictedName = ap.getTypeName()+"_"+method+".proof";
+		String predictedName = proofHandler.getTypeName()+"_"+method+".proof";
 		if(proof.getName().equals(predictedName)){
+			
 				return true;
 		}
 		return false;
 	}
 	
-	/**
-	 * 
-	 */
-	public void warmUp(File location, String verificationType){
-		
-		this.verificationType = verificationType;
-		if(Configuration.warmUp){
-			ProofHandler account = getAccountConstructor(location);
-			if(account!=null){
-				if( verificationType == "AbstractContract") {
-					keyHandler = new AbstractContract();
-				}else if(verificationType == "AbstractExecution") {
-					keyHandler = new AbstractExecution();
-				}
-				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForAbstractMetaproduct(), maxRuleApplication, null);
-				account.removeProof();	
-			}
-		}
-	}
-	
-	/**
-	 * @param loc
-	 * @param evalPath
-	 * @param firstVersion
-	 * @param stubReplay
-	 */
-	protected void performFeaturestubVerification(File projectDir, File evalPath, boolean firstVersion, boolean stubReplay) {
-		List<File> featurestubs = FileManager.getAllFeatureStubFilesOfAProject(projectDir);
-		String currentFeatureStub;
-		String saveFeatureStubPath;
-		if( verificationType == "AbstractContract") {
-			keyHandler = new AbstractContract();
-		}else if(verificationType == "AbstractExecution") {
-			keyHandler = new AbstractExecution();
-		}
-		for(File f: featurestubs){
-			String[] seperatedPath = f.getAbsolutePath().split(FILE_SEPERATOR);
-			currentFeatureStub = seperatedPath[seperatedPath.length-2];
-			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
-			FileManager.createDir(new File (saveFeatureStubPath));
-			List<ProofHandler> proofHandlers = keyHandler.loadInKeY(f);
-			setphase1ProofList(proofHandlers);
-			for(ProofHandler proofHandler : proofHandlers) {
-				if(firstVersion||!proofAlreadyExists(proofHandler,evalPath,f.getParentFile())){
-					File oldPartialProof = getOldFeatureStubProof(proofHandler, FileManager.getProjectv1Path(projectDir));
-					if(!firstVersion && stubReplay && oldPartialProof != null) {
-						keyHandler.replayFeatureStubProof(proofHandler,oldPartialProof, saveFeatureStubPath, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-						proofHandler.saveProof(saveFeatureStubPath);
-						proofHandler.setFeaturestub(f.getParentFile().getName());
-					} else {
-						try {
-							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-							proofHandler.saveProof(saveFeatureStubPath);
-							proofHandler.setFeaturestub(f.getParentFile().getName());
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
-	}
 
-	/**
-	 * Performs the second phase of the verification
-	 * @param projectDir
-	 */
-	protected void performMetaproductVerification(File projectDir, File evalPath){
-		List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
-		File java = getMetaproduct(projectDir);	
-		List<ProofHandler> proofHandlers = KeyHandler.loadInKeY(java);
-		setProofList(proofHandlers); 
-		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
-		
-		for(ProofHandler proofHandler : proofHandlers){
-			try {
-				File reuse = getFeatureStubProof(proofHandler,featurestubs);
-				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForAbstractMetaproduct(), maxRuleApplication, metaproductPath);
-				proofHandler.saveProof(metaproductPath);
-				ProofInformation reusedProof = null;
-				for(ProofInformation firstPhase: phase1ProofList){
-					
-					String savename = getSaveName(firstPhase,projectDir);
-					if(reuse == null)
-						System.out.println("Savename in method meta: " + savename);
-					if(reuse.getName().equals(savename)){
-						reusedProof = firstPhase;
-					}
-				}
-				ProofInformation aTotal = new ProofInformation(proofHandler.getTypeName(),
-						proofHandler.getTargetName(),proofHandler.getFeaturestub(),proofHandler.getStat(),proofHandler.getReusedStat(),proofHandler.isClosed());
-				if(reusedProof!=null){
-					aTotal.getStat().addStatistics(reusedProof.getStat());
-					aTotal.getReusedStat().addStatistics(reusedProof.getReusedStat());
-				}
-				proofListWithPhase1And2.add(aTotal);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
 	/**
 	 * Performs a Verification where the proofs of the first version are reused for the other versions
 	 * @param evalPath
@@ -407,25 +429,21 @@ public abstract class AbstractVerification {
 	 * @param firstVersion
 	 * @param savePath
 	 */
-	public void fullProofReuse(File evalPath, List<ProofHandler> proofList,
-			StrategyProperties s, boolean firstVersion, String savePath) {
-		if( verificationType == "AbstractContract") {
-			keyHandler = new AbstractContract();
-		}else if(verificationType == "AbstractExecution") {
-			keyHandler = new AbstractExecution();
-		}
+	public void fullProofReuse(File evalPath, List<ProofHandler> proofList,StrategyProperties s,
+			 boolean firstVersion, String savePath, String analyseType, KeyHandler keyHandler) {
+
 		if(firstVersion){
 			for(ProofHandler aproof: proofList){
-				keyHandler.startMetaProductProof(aproof,null, s, maxRuleApplication,savePath);
+				keyHandler.startMetaProductProof(aproof,null, s, maxRuleApplication,savePath,analyseType);
 				aproof.saveProof(savePath);
 			}
-		}
-		else{
+		}else{
 			for(ProofHandler aproof: proofList){
-				keyHandler.startMetaProductProof(aproof,reuseFullProof(evalPath,aproof), s, maxRuleApplication,savePath);
+				keyHandler.startMetaProductProof(aproof,reuseFullProof(evalPath,aproof), s, maxRuleApplication,savePath,analyseType);
 				aproof.saveProof(savePath);
 			}
 		}
+		setProofList(proofList);
 		
 	}
 	/**
@@ -462,7 +480,7 @@ public abstract class AbstractVerification {
 	 * @return proofHandler
 	 */
 	public ProofHandler getAccountConstructor(File location){
-		List<ProofHandler> proofsHandlers = KeyHandler.loadInKeY(location);
+		List<ProofHandler> proofsHandlers = keyHandler.loadInKeY(location);
 		for(ProofHandler proofHandler : proofsHandlers) {
 			if(proofHandler.getTypeName().contains("Account") && 
 					proofHandler.getTargetName().contains("Account")) {
@@ -471,7 +489,12 @@ public abstract class AbstractVerification {
 		}
 		return null;
 	}
-
+/**
+ * 
+ * @param proofHandler
+ * @param toEvaluate
+ * @return
+ */
 	private static File getOldFeatureStubProof(ProofHandler proofHandler, File toEvaluate){
 		File savedProofsPath = new File(toEvaluate+FILE_SEPERATOR+FileManager.partialProofsDir);
 		File[] proofs = savedProofsPath.listFiles();

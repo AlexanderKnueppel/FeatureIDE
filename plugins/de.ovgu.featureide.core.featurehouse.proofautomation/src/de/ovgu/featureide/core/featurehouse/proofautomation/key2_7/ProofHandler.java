@@ -18,7 +18,7 @@
  *
  * See http://featureide.cs.ovgu.de/ for further information.
  */
-package de.ovgu.featureide.core.featurehouse.proofautomation.keyAE;
+package de.ovgu.featureide.core.featurehouse.proofautomation.key2_7;
 
 import java.io.File;
 import java.io.IOException;

@@ -43,7 +43,7 @@ public class startNewJVM {
 	 */
 	public static void main(String[] args) {
 		if(args.length >=2 && args[0]!=null && args[1]!=null){
-			SingleApproachEvaluation s = new SingleApproachEvaluation(new File(args[0]),0,args[1], "AbstractContract");
+			SingleApproachEvaluation s = new SingleApproachEvaluation(new File(args[0]),0,args[1], args[2]);
 			//SingleProject s = new SingleProject(new File(args[0]),0,args[1]);
 			s.performEvaluation();
 		}
@@ -55,7 +55,7 @@ public class startNewJVM {
 	 * @param projectForEvaluation
 	 * @param evalPath
 	 */
-	public static void startNewProcess(File projectForEvaluation, File evalPath){
+	public static void startNewProcess(File projectForEvaluation, File evalPath, String method){
 		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String binPath = projectPath + "bin";
 		String excelLibs = getDirContent(new File(projectPath+FILE_SEPERATOR+"lib"));
@@ -67,7 +67,7 @@ public class startNewJVM {
                 		+binPath,
                 		classname,
                 		projectForEvaluation.getAbsolutePath(), 
-                		evalPath.getAbsolutePath())
+                		evalPath.getAbsolutePath(),method)
                 .inheritIO();	
 	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Error.txt"));
 	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Output.txt"));

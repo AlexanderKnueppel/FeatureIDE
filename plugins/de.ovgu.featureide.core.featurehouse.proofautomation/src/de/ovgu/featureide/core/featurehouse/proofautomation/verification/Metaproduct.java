@@ -27,10 +27,10 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractExecution;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 
 /**
@@ -59,53 +59,59 @@ public class Metaproduct extends AbstractVerification{
 					FileManager.copyFolderContent(version1,new File(savePartialProofsPath));
 				}
 				File metaproduct = getMetaproduct(loc);
-				List<ProofHandler> abstractProofs = KeyHandler.loadInKeY(metaproduct);
-				setphase1ProofList(abstractProofs);
+				KeyHandler keyHandler = null;
+
 				List<File> abstractProofPart = new LinkedList<File>();
-				if(verificationType == "AbstractContract") {
+				if( method.equals("AbstractContract")) {
+					System.out.println("Starte Proof with Abstract Contracts");
 					keyHandler = new AbstractContract();
-				}else if(verificationType == "AbstractExecution") {
+				}else if(method.equals("AbstractExecution")) {
+					System.out.println("Starte Proof with Abstract Execution");
 					keyHandler = new AbstractExecution();
 				}
+				List<ProofHandler> abstractProofs = keyHandler.loadInKeY(metaproduct);
 				
-				for(ProofHandler a : abstractProofs){
+				for(ProofHandler proofHandler : abstractProofs){
 					try {
 						File reuseProof = null;
 						if(!firstVersion){
-							reuseProof = this.proofAlreadyExistsAbstract(a,evalPath);
+							reuseProof = this.proofAlreadyExistsAbstract(proofHandler,evalPath);
 						}
 						if(reuseProof!=null){
 							abstractProofPart.add(reuseProof);
 						}
 						else{
-							keyHandler.startAbstractProof(a,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-							abstractProofPart.add(a.saveProof(savePartialProofsPath));
+							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+							abstractProofPart.add(proofHandler.saveProof(savePartialProofsPath));
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
+				setphase1ProofList(abstractProofs);
 				
 				for(File absProof: abstractProofPart) {
 					System.out.println("[" + absProof.getName() + " ("+absProof.getAbsolutePath()+")]");
 				}
 				
 				//Phase 2
-				List<ProofHandler> metaproductProofs = KeyHandler.loadInKeY(metaproduct);
-				setProofList(metaproductProofs);
+				List<ProofHandler> metaproductProofs = keyHandler.loadInKeY(metaproduct);
+				
 				String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
-				for(ProofHandler a : metaproductProofs){
-					String defaultName= a.getTypeName()+"__"+a.getTargetName();
+				for(ProofHandler proofHandler : metaproductProofs){
+					String defaultName= proofHandler.getTypeName()+"__"+proofHandler.getTargetName();
 					defaultName = defaultName.replace(" ", "");
 					File reuse = null;
 					ProofHandler reuseProof = null;
 					for(File absProof: abstractProofPart){
 						String name = absProof.getName();
+						System.out.println("Name of proof "+name);
+
 						if(name.contains(defaultName)){
 							reuse = absProof;
 						}
 						for(ProofHandler ap : abstractProofs){
-							if(ap.getTargetName().equals(a.getTargetName())&&ap.getTypeName().equals(a.getTypeName())){
+							if(ap.getTargetName().equals(proofHandler.getTargetName())&&ap.getTypeName().equals(proofHandler.getTypeName())){
 								reuseProof = ap;
 							}
 						}
@@ -115,18 +121,18 @@ public class Metaproduct extends AbstractVerification{
 							System.out.println(defaultName + ": not reused... no file");
 					}
 					try {
-						keyHandler.startMetaProductProof(a,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
-						if(!a.isClosed()){
-							a.removeProof();
-							keyHandler.startAbstractProof(a,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
+						keyHandler.startMetaProductProof(proofHandler,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath,"Metaproduct");
+						if(!proofHandler.isClosed()){
+							proofHandler.removeProof();
+							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 
-							File restartProof = a.saveProof(savePartialProofsPath);
-							keyHandler.startMetaProductProof(a,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
+							File restartProof = proofHandler.saveProof(savePartialProofsPath);
+							keyHandler.startMetaProductProof(proofHandler,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath,"Metaproduct");
 						}
 
-						a.saveProof(metaproductPath);
-						ProofInformation aTotal = new ProofInformation(a.getTypeName(),
-								a.getTargetName(),a.getFeaturestub(),a.getStat(),a.getReusedStat(),a.isClosed());
+						proofHandler.saveProof(metaproductPath);
+						ProofInformation aTotal = new ProofInformation(proofHandler.getTypeName(),
+								proofHandler.getTargetName(),proofHandler.getFeaturestub(),proofHandler.getStat(),proofHandler.getReusedStat(),proofHandler.isClosed());
 						if(reuseProof!=null){
 							aTotal.getStat().addStatistics(reuseProof.getStat());
 							aTotal.getReusedStat().addStatistics(reuseProof.getReusedStat());
@@ -137,5 +143,6 @@ public class Metaproduct extends AbstractVerification{
 						e.printStackTrace();
 					}
 				}
+				setProofList(metaproductProofs);
 	}
 }

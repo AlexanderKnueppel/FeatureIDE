@@ -18,10 +18,13 @@
  *
  * See http://featureide.cs.ovgu.de/ for further information.
  */
-package de.ovgu.featureide.core.featurehouse.proofautomation.keyAE;
+package de.ovgu.featureide.core.featurehouse.proofautomation.key2_7;
 
 import java.io.File;
+import java.util.List;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
 import de.uka.ilkd.key.control.KeYEnvironment;
 import de.uka.ilkd.key.control.ProofControl;
 import de.uka.ilkd.key.proof.Proof;
@@ -83,11 +86,52 @@ public class AbstractExecution extends KeyHandler{
 	 * @param maxRuleApplication
 	 * @param defaultSettingsForMetaproduct
 	 */
-	public static void startMetaProductProof(ProofHandler account, int maxRuleApplication,
-			StrategyProperties defaultSettingsForMetaproduct) {
-		// TODO Auto-generated method stub
-		
+	public static void startMetaProductProof(ProofHandler proofHandler,File reuseProof, int maxRuleApplication,
+			StrategyProperties sp) {
+		boolean reusedAProof = false;
+		KeYEnvironment<?> environment = proofHandler.getEnvironment();
+		Proof proof = proofHandler.getProof();
+		Contract contract = proofHandler.getContract();
+		try{
+			
+		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
+		    proof = environment.getUi().createProof(environment.getInitConfig(), input);
+
+        	proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+        	proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+	        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
+	        if(reuseProof!=null){
+	        	if(reuseProof.getName().endsWith(".proof")){
+		        	ProofControl proofControl = environment.getUi().getProofControl();
+					int previousNodes;
+					do{
+						previousNodes = proof.countNodes();
+			
+						proofControl.waitWhileAutoMode();
+			
+					}while(proof.countNodes()==previousNodes);
+			        if(proof.openGoals().isEmpty()){
+			            System.out.println("Contract '" + contract.getDisplayName() + "' of " + contract.getTarget() + " is " + (proofHandler.isClosed() ? "verified" : "still open") + ".");
+			            proofHandler.setClosed(true);
+			        }
+	        	}
+
+	        }
+	        
+
+		} catch (ProofInputException e) {
+            System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
+            e.printStackTrace();
+		}
+		proofHandler.setStatistics();
 	}
+	
+	public void replayFeatureStubProof(ProofHandler proofHandler,File oldPartialProof, String savePath, int maxRuleApplication,
+			StrategyProperties defaultSettingsForFeatureStub) {
+
+		}	
 
 	
 }

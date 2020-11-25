@@ -55,7 +55,7 @@ public class ProofAutomationComposite extends Composite{
 	
 	private Text key;
 	private Label keyLabel;
-	
+	private String method;
 	private Text source;
 	private Label loadLabel;
 	private Combo verificationApproach;
@@ -66,6 +66,8 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
+	private Button methodAbstractContract;
+	private Button methodAbstractExecution;
 	private Button sandbox;
 	private Button open;
 	Composite loadComposite;
@@ -101,28 +103,40 @@ public class ProofAutomationComposite extends Composite{
 	}
 	
 	private Group generateLoadPart(){
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
 		Group load = new Group(this, 1);
 		load.setText("Directory for Evaluation");
 		load.setLayout(new GridLayout(1,false));
-		load.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		load.setLayoutData(gridData);
+
 		loadComposite = new Composite(load, SWT.NONE);
 		loadComposite.setLayout(new GridLayout(3,false));
-		loadComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		loadComposite.setLayoutData(gridData);
 		loadLabel = new Label(loadComposite, SWT.NONE);
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
-		source.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		source.setLayoutData(gridData);
 		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)");
 		open = new Button(loadComposite, SWT.PUSH);
 		open.setText("Open");
-		open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		//open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
 		vaLabel = new Label(loadComposite, SWT.NONE);
 		vaLabel.setText("Verification Approach:");
 		verificationApproach = new Combo(loadComposite, SWT.DROP_DOWN | SWT.READ_ONLY);
 		//verificationApproach = new Text(loadComposite, SWT.BORDER);
-		verificationApproach.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		verificationApproach.setLayoutData(gridData);
 		verificationApproach.setItems(approaches);
 		verificationApproach.select(0);
+
+		methodAbstractContract = new Button(loadComposite,SWT.RADIO);
+		methodAbstractContract.setText("Abstract Contract");
+		methodAbstractContract.setSelection(true);
+		methodAbstractExecution = new Button(loadComposite,SWT.RADIO);
+		methodAbstractExecution.setText("Abstract Excution");
 		//verificationApproach.setText("1");
 		
 	    open.addSelectionListener(new SelectionAdapter() {
@@ -137,17 +151,17 @@ public class ProofAutomationComposite extends Composite{
 		
 		Composite buttonComposite = new Composite(load, SWT.NONE);
 		buttonComposite.setLayout(new GridLayout(4,true));
-		buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		loadVerificationDir = new Button (buttonComposite, SWT.PUSH);
-		loadVerificationDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		buttonComposite.setLayoutData(new GridData(GridData.FILL));
+		//loadVerificationDir = new Button (buttonComposite, SWT.PUSH);
+		//loadVerificationDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		loadPhaseDir = new Button (buttonComposite, SWT.PUSH);
 		loadPhaseDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		loadProjectDir = new Button (buttonComposite, SWT.PUSH);
 		loadProjectDir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		loadVerificationDir.setText("Start Evaluation");
-		loadPhaseDir.setText("Start Evaluation of a single Phase");
+		//loadVerificationDir.setText("Start Evaluation");
+		loadPhaseDir.setText("Start Evaluation");
 		loadProjectDir.setText("Start Project Evaluation");
-		loadVerificationDir.addSelectionListener( new SelectionListener() {
+		/*loadVerificationDir.addSelectionListener( new SelectionListener() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				
@@ -161,7 +175,7 @@ public class ProofAutomationComposite extends Composite{
 					ce.performEvaluation();
 				}
 			}
-		} );
+		} );*/
 		loadProjectDir.addSelectionListener( new SelectionListener() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -172,9 +186,15 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
+				if(methodAbstractContract.getSelection()) {
+					method = "AbstractContract";
+				}
+				if(methodAbstractExecution.getSelection()) {
+					method = "AbstractExecution";
+				}
 				SingleProject s = new SingleProject(f,verificationApproach.getText());
 				if(Configuration.performVerification){
-					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath);
+					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath,method);
 					
 				}
 			}
@@ -189,8 +209,14 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
+				if(methodAbstractContract.getSelection()) {
+					method = "AbstractContract";
+				}
+				if(methodAbstractExecution.getSelection()) {
+					method = "AbstractExecution";
+				}
 				//EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());
-				CompleteApproachesEvaluation ep =  new CompleteApproachesEvaluation(f,verificationApproach.getText());
+				CompleteApproachesEvaluation ep =  new CompleteApproachesEvaluation(f,verificationApproach.getText(),method);
 				if(Configuration.performVerification){
 					ep.performEvaluation();
 				}

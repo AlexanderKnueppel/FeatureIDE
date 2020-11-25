@@ -21,7 +21,6 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.evaluation;
 
 import java.io.File;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,7 +29,6 @@ import org.eclipse.core.resources.IProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofStatistics;
 
@@ -64,26 +62,14 @@ public class ApproachData {
 	public ApproachData(File f,String name,File evalPathComplete){
 		toEvaluate = f;
 		evaluatePath = evalPathComplete;
+		if(name.startsWith("VA")) {
+			evaluatePath = FileManager.createDir(new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name));
+		}
 		statistics = new File (evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"Evaluation Results-A"+getVersionNumber()+".xlsx");
 		setProjectVersion();
 
 	}
 	
-	public void startEvaluationOverProjects() {
-		generateCode();
-		for(SingleApproachEvaluation s : projectVersions){		
-			startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath);
-		}
-		for(SingleApproachEvaluation s: projectVersions){
-		
-			ExcelManager2.updateSingleProjectsWithReuse(s);
-			updateStatistics(s);
-
-			this.addFailedProofs(s);
-			this.addProofsCount(s);
-		}
-			createXLS();	
-	}
 	
 	/**
 	 * Generates the metaproduct and if necessary the featurestub for all projects of the approach

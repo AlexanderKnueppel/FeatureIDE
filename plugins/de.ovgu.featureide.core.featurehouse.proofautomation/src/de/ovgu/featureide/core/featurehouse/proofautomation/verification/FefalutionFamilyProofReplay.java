@@ -21,18 +21,10 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 
 import java.io.File;
-import java.util.List;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.AbstractExecution;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
-import de.uka.ilkd.key.java.reference.ThisConstructorReference;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
@@ -41,7 +33,6 @@ import de.uka.ilkd.key.java.reference.ThisConstructorReference;
  */
 public class FefalutionFamilyProofReplay extends AbstractVerification{
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	String verificationType;
 	public static final FefalutionFamilyProofReplay FAMILY_PROOF_REPLAY = new FefalutionFamilyProofReplay();
 	
 	public static FefalutionFamilyProofReplay getInstance() {

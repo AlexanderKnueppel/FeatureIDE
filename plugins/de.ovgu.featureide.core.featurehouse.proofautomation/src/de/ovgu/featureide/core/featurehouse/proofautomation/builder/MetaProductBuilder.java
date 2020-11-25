@@ -84,44 +84,46 @@ public class MetaProductBuilder {
 	 * @param projectDir Directory of the Project contains Directory "Partial Proofs for Metaproduct" with proofs of the featurestub
 	 */
 	public static void preparePartialProofs(File projectDir, File evalPath){
-		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
+		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+		System.out.println("Prepare" + partialProofs);
 		File[] featurestubs = partialProofs.listFiles();
 		for(File f : featurestubs){
 			if(f.isDirectory()){
 				File[] proofs = f.listFiles();
 				for(File proof: proofs){
-					String methodname = getMethodName(proof);//undoUpdate
-					String method_to_replace = methodname + "_original_" + f.getName();
-					//f.getName() interest
-					//
-					File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proof)+".java");
-					if(checkForOriginal(proof,f.getName())){
-						String replace_with = "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
-						if(!checkForMethod(replace_with,metaproduct)) {
-							replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+					if(proof.getName().endsWith(".proof")) {
+						String methodname = getMethodName(proof);//undoUpdate
+						String method_to_replace = methodname + "_original_" + f.getName();
+						//f.getName() interest
+						//
+						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proof)+".java");
+						if(checkForOriginal(proof,f.getName())){
+							String replace_with = "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+							if(!checkForMethod(replace_with,metaproduct)) {
+								replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+							}
+						//	replaceMethodNamesInPartialProofs(methodname,replace_with,f.getName(),proof);
+							replaceMethodNamesInPartialProofsTest(method_to_replace,replace_with,f.getName(),proof);
+							renameAbstractKeywords(proof, f, methodname);
+							renameRemainingStuff(proof, f, methodname);
+							renameProof(proof,f,methodname+"_"+f.getName());
 						}
-					//	replaceMethodNamesInPartialProofs(methodname,replace_with,f.getName(),proof);
-						replaceMethodNamesInPartialProofsTest(method_to_replace,replace_with,f.getName(),proof);
-					//	renameAbstractKeywords(proof, f, methodname);
-						renameRemainingStuff(proof, f, methodname);
-						renameProof(proof,f,methodname+"_"+f.getName());
-					}
-					else{
-						String extensionForBankAccount = "";
-						List<String> whitelist = new ArrayList<String>();
-						whitelist.add("update");
-						whitelist.add("undoUpdate");
-						whitelist.add("nextDay");
-						whitelist.add("nextYear");
-						if(whitelist.contains(methodname) && f.getName().equals("BankAccount")) {
-							extensionForBankAccount += "_BankAccount";
+						else{
+							String extensionForBankAccount = "";
+							List<String> whitelist = new ArrayList<String>();
+							whitelist.add("update");
+							whitelist.add("undoUpdate");
+							whitelist.add("nextDay");
+							whitelist.add("nextYear");
+							if(whitelist.contains(methodname) && f.getName().equals("BankAccount")) {
+								extensionForBankAccount += "_BankAccount";
+							}
+							renameAbstractKeywords(proof, f, methodname);
+						//	renameRemainingStuff(proof, f, methodname);
+							renameProof(proof,f,methodname+extensionForBankAccount);
 						}
-						//renameAbstractKeywords(proof, f, methodname);
-						//renameRemainingStuff(proof, f, methodname);
-						renameProof(proof,f,methodname+extensionForBankAccount);
+					
 					}
-					
-					
 					
 					//replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
 					//renameProof(proof,f,methodname+"_"+f.getName());
@@ -132,7 +134,8 @@ public class MetaProductBuilder {
 	
 	private static void renameRemainingStuff(File proof, File stub, String methodname){
 		StringBuffer sbuffer = new StringBuffer();
-		String newmethodname = methodname + "_original_" + stub.getName();
+		//String newmethodname = methodname + "_" + stub.getName();
+		String newmethodname = methodname ;
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
             String line = bReader.readLine();
@@ -147,7 +150,10 @@ public class MetaProductBuilder {
             	
             	if(line.contains("methodBodyExpand")){
             		line = line.replaceAll(methodname, newmethodname);
-            	} 
+            	}
+            	if(line.startsWith("\\javaSource")) {
+            		line = "\\javaSource \"\";";
+            	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();
             }
@@ -169,9 +175,8 @@ public class MetaProductBuilder {
             		line = line.replaceAll(methodname + "E", newmethodname + "E");
             	} else if(line.contains(methodname + "R")) {
             		line = line.replaceAll(methodname + "R", newmethodname + "R");
-        /*    	} else if(line.contains(methodname + "A")) {
-            		System.out.println("MetaProductBuilder Line 174: " +line +" new name: "+ newmethodname);
-            		line = line.replaceAll(methodname + "A", newmethodname + "A");*/
+          	} else if(line.contains(methodname + "A")) {
+            		line = line.replaceAll(methodname + "A", newmethodname + "A");
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();

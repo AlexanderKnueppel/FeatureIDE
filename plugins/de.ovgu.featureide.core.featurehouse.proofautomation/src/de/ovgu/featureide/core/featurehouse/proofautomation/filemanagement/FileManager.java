@@ -151,7 +151,7 @@ public class FileManager {
 		File[] saved = savedProofs.listFiles();
 		for(File f: saved){
 			if(f.isDirectory()){
-				File newDir = new File(evalDir.getAbsolutePath()+FILE_SEPERATOR+partialProofsDir+FILE_SEPERATOR+f.getName());
+				File newDir = new File(evalDir.getAbsolutePath()+FILE_SEPERATOR+featureStubDir+FILE_SEPERATOR+f.getName());
 				createDir(newDir);
 				File[] inDir = f.listFiles();
 				for(File i : inDir){

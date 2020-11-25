@@ -26,8 +26,10 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.keyAE.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 
 /**
  * TODO description
@@ -50,9 +52,17 @@ public class ThuemEtAlReuse extends AbstractVerification{
 	 */
 	public void performVerification(File loc, File evalPath){
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
-		List<ProofHandler> proofList = KeyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
+		KeyHandler keyHandler = null;
+		if( method.equals("AbstractContract")) {
+			System.out.println("Starte Proof with Abstract Contracts");
+			keyHandler = new AbstractContract();
+		}else if(method.equals("AbstractExecution")) {
+			System.out.println("Starte Proof with Abstract Execution");
+			keyHandler = new AbstractExecution();
+		}
+		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath,"ThuemReuse",keyHandler);
 
 	}
 }

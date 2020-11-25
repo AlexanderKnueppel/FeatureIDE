@@ -18,42 +18,31 @@
  *
  * See http://featureide.cs.ovgu.de/ for further information.
  */
-package de.ovgu.featureide.core.featurehouse.proofautomation.keyAE;
+package de.ovgu.featureide.core.featurehouse.proofautomation.key2_7;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import org.key_project.util.collection.ImmutableSet;
-import org.stringtemplate.v4.compiler.CodeGenerator.primary_return;
-
-import bibliothek.gui.dock.themes.StationCombinerValue;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
-import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
-import de.uka.ilkd.key.control.ProofControl;
-import de.uka.ilkd.key.control.UserInterfaceControl;
 import de.uka.ilkd.key.gui.ClassTree;
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
-import de.uka.ilkd.key.java.declaration.modifier.Static;
+import de.uka.ilkd.key.java.declaration.ClassDeclaration;
+import de.uka.ilkd.key.java.declaration.InterfaceDeclaration;
+import de.uka.ilkd.key.java.declaration.TypeDeclaration;
 import de.uka.ilkd.key.logic.op.IObserverFunction;
-import de.uka.ilkd.key.macros.CompleteAbstractProofMacro;
-import de.uka.ilkd.key.proof.Proof;
-import de.uka.ilkd.key.proof.init.InitConfig;
-import de.uka.ilkd.key.proof.init.ProofInputException;
-import de.uka.ilkd.key.proof.init.ProofOblInput;
-import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
 import de.uka.ilkd.key.proof.io.ProblemLoaderException;
 import de.uka.ilkd.key.settings.ChoiceSettings;
 import de.uka.ilkd.key.settings.ProofSettings;
 import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.StrategyProperties;
-import de.uka.ilkd.key.util.KeYTypeUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
 /**
@@ -64,7 +53,7 @@ import de.uka.ilkd.key.util.MiscTools;
 public abstract class KeyHandler {
 	
 
-	public static void main(String[] args) {
+	public void main(String[] args) {
 		loadInKeY(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/features/DailyLimit"));
 	}
 	
@@ -75,7 +64,7 @@ public abstract class KeyHandler {
 	 * @param location
 	 * @return
 	 */	
-	public static List<ProofHandler> loadInKeY(File location) {
+	public List<ProofHandler> loadInKeY(File location) {
 		List<ProofHandler> proofs =  new LinkedList<ProofHandler>();
 		try {
 			//removes existing Settings
@@ -91,10 +80,18 @@ public abstract class KeyHandler {
 			
             KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
 
-            
+            boolean skipLibraryClasses = true;
             final List<Contract> proofContracts = new LinkedList<Contract>();
             Set<KeYJavaType> kjts = env.getJavaInfo().getAllKeYJavaTypes();
-            
+			final Iterator<KeYJavaType> it = kjts.iterator();
+	        while (it.hasNext()) {
+		           KeYJavaType kjt = it.next();
+		           if (!(kjt.getJavaType() instanceof ClassDeclaration || 
+		                 kjt.getJavaType() instanceof InterfaceDeclaration) || 
+		               (((TypeDeclaration)kjt.getJavaType()).isLibraryClass() && skipLibraryClasses)) {
+		              it.remove();
+		           }
+		        }
             //sort for size
 	        final KeYJavaType[] kjtsarr = kjts.toArray(new KeYJavaType[kjts.size()]);
 	        Arrays.sort(kjtsarr, new Comparator<KeYJavaType>() {
@@ -104,7 +101,6 @@ public abstract class KeyHandler {
 	         });
 	        
             for (KeYJavaType type : kjtsarr) {
-               if (!KeYTypeUtil.isLibraryClass(type)) {
                   ImmutableSet<IObserverFunction> targets = env.getSpecificationRepository().getContractTargets(type);
                   for (IObserverFunction target : targets) {
                      ImmutableSet<Contract> contracts = env.getSpecificationRepository().getContracts(type, target);
@@ -124,7 +120,7 @@ public abstract class KeyHandler {
                         proofContracts.add(contract);
                      }
                   }
-               }
+               
             }
 
 		}catch (ProblemLoaderException e) {
@@ -153,7 +149,17 @@ public abstract class KeyHandler {
 		}
 		proofs.removeAll(removeDispatcher);
 	}
-	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath) 
+	
+	/**
+	 * 
+	 * @param proofHandler
+	 * @param reuseProof
+	 * @param sp
+	 * @param maxRuleApplication
+	 * @param savePath
+	 * @return
+	 */
+	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath, String analyseTypes) 
 	{	
 		return false;
 	}
@@ -166,6 +172,14 @@ public abstract class KeyHandler {
 	public void startAbstractProof(ProofHandler proofHandler,int maxRuleApplication, StrategyProperties sp) {
 	}
 	
+	/**
+	 * 
+	 * @param proofHandler
+	 * @param oldPartialProof
+	 * @param savePath
+	 * @param maxRuleApplication
+	 * @param defaultSettingsForFeatureStub
+	 */
 	public void replayFeatureStubProof(ProofHandler proofHandler,File oldPartialProof, String savePath, int maxRuleApplication,
 			StrategyProperties defaultSettingsForFeatureStub) {	}
 
