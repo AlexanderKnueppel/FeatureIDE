@@ -567,7 +567,7 @@ public class AutomatingProject{
 			try {
 				Set<Thread> threadsBefore;
 				File reuse = getFeatureStubProof(a,featurestubs);
-				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForAbstractMetaproduct(),maxRuleApplication,metaproductPath);
+				a.startMetaProductProof(reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 				threadsBefore =Thread.getAllStackTraces().keySet();
 				a.saveProof(metaproductPath);
 				a.waitForNewThread(threadsBefore);

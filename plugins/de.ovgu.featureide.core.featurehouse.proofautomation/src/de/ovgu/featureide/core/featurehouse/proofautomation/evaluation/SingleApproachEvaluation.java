@@ -28,6 +28,8 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.AbstractVerification;
@@ -53,8 +55,8 @@ public class SingleApproachEvaluation extends Evaluation{
 	private List<ProofInformation> proofList = new LinkedList<ProofInformation>(); //contains all Automating proofs of this project
 	private List<ProofInformation> proofList1And2Phase = new LinkedList<ProofInformation>();
 public static void main(String[] args) {
-	SingleApproachEvaluation s = new SingleApproachEvaluation(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/BankAccountv1"), 1, 
-			"/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Evaluation/2020-11-12 19-09-19/1 Fefalution + Family Proof Replay/BankAccountv1", "AbstractContract");
+	SingleApproachEvaluation s = new SingleApproachEvaluation(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/BankAccountv1"), 1, 
+			"/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/Evaluation/BankAccountv1", "AbstractExecution");
 	s.performEvaluation();
 }
 
@@ -91,11 +93,17 @@ public static void main(String[] args) {
 		}
 		FileManager.initFolders(evaluatePath, evalVersion);
 		if(evalVersion == 1){
+			
 			File fstubPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
 			//Fix here instead of in performVa1 (i.e., before copy)
 			File transactionAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
 			File lockAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
-			FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
+			if( method.equals("AbstractContract")) {
+				FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
+			}else if(method.equals("AbstractExecution")) {
+
+			}
+			
 			//copy
 			FileManager.copyCompleteFolderContent(fstubPath,new File(evaluatePath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir));
 

@@ -25,5 +25,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="de.ovgu.featureide.core.featurehouse.proofautomation/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/javaparser-core-3.17.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

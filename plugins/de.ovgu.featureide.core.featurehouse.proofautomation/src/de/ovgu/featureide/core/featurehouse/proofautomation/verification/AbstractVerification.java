@@ -73,7 +73,7 @@ public abstract class AbstractVerification {
 				}else if(method == "AbstractExecution") {
 					keyHandler = new AbstractExecution();
 				}
-				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForAbstractMetaproduct(), maxRuleApplication, null,"WarmUp");
+				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, null,"WarmUp");
 				account.removeProof();	
 			}
 		}
@@ -104,7 +104,6 @@ public abstract class AbstractVerification {
 			FileManager.createDir(new File (saveFeatureStubPath));
 			List<ProofHandler> proofHandlers = keyHandler.loadInKeY(f);
 			//setphase1ProofList(proofHandlers);
-
 			for(ProofHandler proofHandler : proofHandlers) {
 				//Replay feature stub proof
 				if(firstVersion||!proofAlreadyExists(proofHandler,evalPath,f.getParentFile())){
@@ -116,6 +115,7 @@ public abstract class AbstractVerification {
 						proofHandler.setFeaturestub(f.getParentFile().getName());
 					} else {
 						try {
+							System.out.println("AbstractVerification 118 performFeaturestubVerification: starte: " + proofHandler.getTargetName() +" mit contract: "+ proofHandler.getContract().getDisplayName());
 							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 							System.out.println("AbstractVerification 120 performFeaturestubVerification: closed: "+ proofHandler.isClosed() +" target: " + proofHandler.getTargetName() +" number of open goals: "+ proofHandler.getProof().openGoals().size());
 
@@ -323,8 +323,7 @@ public abstract class AbstractVerification {
 	 */
 	protected static File getFeatureStubProof(ProofHandler proofHandler, List<File> featureStubProofs){
 		List<File> fittingProofs = new LinkedList<File>();
-		for(File proof: featureStubProofs){
-			
+		for(File proof: featureStubProofs){		
 			if(isProofForMethod(proofHandler,proof)){
 				fittingProofs.add(proof);
 			}
@@ -337,6 +336,7 @@ public abstract class AbstractVerification {
 		}
 		if(biggestFile == null) {
 			System.out.println("Biggestfile is null! Target name was: " + proofHandler.getTargetName() + "; Type name was: " + proofHandler.getTypeName());
+
 			System.out.println("Possible proof files: ");
 			featureStubProofs.stream().forEach(f -> System.out.println("    -" + f.getName()));
 		}

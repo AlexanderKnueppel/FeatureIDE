@@ -25,6 +25,9 @@ import java.io.File;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
@@ -39,12 +42,22 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 		return FAMILY_PROOF_REPLAY;
 	}
 	
+	private FefalutionFamilyProofReplay() {
+		keyHandler = new AbstractContract();
+	}
+	public static void  main(String[] args){
+		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Sandbox/BankAccountv1");
+		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Sandbox/Evaluation/BankAccountv1");
+		getInstance().performMetaproductVerification(locFile, evalPathFile);
+		}
+	
 
 	/**
 	 * Performs the evaluation
 	 * @param loc
 	 */
 	public void performVerification(File loc, File evalPath){
+
 		boolean firstVersion = loc.getName().contains("1");
 		if(!firstVersion){
 			FileManager.reuseFeaturestub(evalPath, loc);

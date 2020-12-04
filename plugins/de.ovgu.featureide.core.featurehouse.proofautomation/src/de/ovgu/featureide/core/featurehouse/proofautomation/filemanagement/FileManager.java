@@ -106,6 +106,11 @@ public class FileManager {
 	 */
 	private static File getFirstJavaFile(File path,String[] srcDir){
 		for(String file : srcDir){
+			if(file.matches(".*\\.key")) {
+				return new File (path.getAbsolutePath()+FILE_SEPERATOR+file);
+			}
+		}
+		for(String file : srcDir){
 			if(file.matches(".*\\.java")){
 				return new File (path.getAbsolutePath()+FILE_SEPERATOR+file);
 			}

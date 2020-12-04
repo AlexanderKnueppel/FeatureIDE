@@ -127,7 +127,7 @@ public class AbstractContract extends KeyHandler{
 		} catch (ProofInputException e1) {
 			e1.printStackTrace();
 		}
-		
+		 
         ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
 		HashMap<String,String> choices = new HashMap<String,String>();
         choices.put("assertions", "assertions:safe");
@@ -138,16 +138,17 @@ public class AbstractContract extends KeyHandler{
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
         proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
         proof.setActiveStrategy(keYEnvironment.getProfile().getDefaultStrategyFactory().create(proof, sp));
-        	        
+        ProofControl proofControl = keYEnvironment.getProofControl();	        
 		 try {              	 
 	        if(reuseProof!=null){
-		        if(reuseProof.getName().endsWith(".proof")){    
+		        if(reuseProof.getName().endsWith(".proof")){   
+		        	replaceJavaSource(reuseProof);
 		        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 	    			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 					InitConfig initConfig = loader.getInitConfig();	
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
 	            	proof = keYEnvironment.getLoadedProof();
-	            	ProofControl proofControl = keYEnvironment.getProofControl();
+	            	proofControl = keYEnvironment.getProofControl();
 	            	
 	            	//proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
 
@@ -171,9 +172,11 @@ public class AbstractContract extends KeyHandler{
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
 	            	reusedProof.delete();
 	            	proof = keYEnvironment.getLoadedProof();
+	            	proofControl = keYEnvironment.getProofControl();
+	            	//proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
 		        }      
 	        }	        
-            ProofControl proofControl = keYEnvironment.getProofControl();    
+               
 	        while(!proof.openEnabledGoals().isEmpty() && goalHasApplicableRules(proof)){	        	
 	        	int previousNodes = proof.countNodes();   
 	        	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);

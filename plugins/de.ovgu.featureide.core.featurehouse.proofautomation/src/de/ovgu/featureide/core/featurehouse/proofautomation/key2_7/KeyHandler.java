@@ -31,13 +31,19 @@ import java.util.Set;
 
 import org.key_project.util.collection.ImmutableSet;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
+import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
+import de.uka.ilkd.key.control.UserInterfaceControl;
 import de.uka.ilkd.key.gui.ClassTree;
+
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
 import de.uka.ilkd.key.java.declaration.InterfaceDeclaration;
 import de.uka.ilkd.key.java.declaration.TypeDeclaration;
 import de.uka.ilkd.key.logic.op.IObserverFunction;
+import de.uka.ilkd.key.proof.init.InitConfig;
+import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
+import de.uka.ilkd.key.proof.io.ProblemLoader;
 import de.uka.ilkd.key.proof.io.ProblemLoaderException;
 import de.uka.ilkd.key.settings.ChoiceSettings;
 import de.uka.ilkd.key.settings.ProofSettings;
@@ -77,9 +83,10 @@ public abstract class KeyHandler {
 			choices.putAll(MiscTools.getDefaultTacletOptions());
 			choices.put("assertions", "assertions:safe");
 			choiceSettings.setDefaultChoices(choices);
-			
             KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
 
+
+        	
             boolean skipLibraryClasses = true;
             final List<Contract> proofContracts = new LinkedList<Contract>();
             Set<KeYJavaType> kjts = env.getJavaInfo().getAllKeYJavaTypes();

@@ -79,13 +79,29 @@ public class MetaProductBuilder {
 		}
 	}
 	
+	public static void preparePartialProofsForAE(File projectDir, File evalPath) {
+		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+		System.out.println("Prepare" + partialProofs);
+		File[] featurestubs = partialProofs.listFiles();
+		for(File f : featurestubs){
+			if(f.isDirectory()){
+				File[] proofs = f.listFiles();
+				for(File proof: proofs){
+					if(proof.getName().endsWith(".proof")) {
+						
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Performs the proof transformation for all partial proofs if necessary
 	 * @param projectDir Directory of the Project contains Directory "Partial Proofs for Metaproduct" with proofs of the featurestub
 	 */
 	public static void preparePartialProofs(File projectDir, File evalPath){
 		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
-		System.out.println("Prepare" + partialProofs);
+		System.out.println("Prepare " + partialProofs + " for Partialproofs");
 		File[] featurestubs = partialProofs.listFiles();
 		for(File f : featurestubs){
 			if(f.isDirectory()){
@@ -124,6 +140,9 @@ public class MetaProductBuilder {
 						}
 					
 					}
+					if(proof.getName().endsWith(".key")) {
+						replaceUnderscoresStuff(proof);
+					}
 					
 					//replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
 					//renameProof(proof,f,methodname+"_"+f.getName());
@@ -131,6 +150,26 @@ public class MetaProductBuilder {
 			}
 		}
 	}
+	private static void replaceUnderscoresStuff(File proof){
+		StringBuffer sbuffer = new StringBuffer();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.contains("_")){
+            		line = line.replaceAll("_", "");
+            	} 
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
+	}
+	
+	
 	
 	private static void renameRemainingStuff(File proof, File stub, String methodname){
 		StringBuffer sbuffer = new StringBuffer();
