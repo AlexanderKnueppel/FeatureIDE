@@ -32,4 +32,4 @@ Bundle-ClassPath: src/,
  lib/poi-3.16-beta1/poi-ooxml-3.16-beta1.jar,
  lib/poi-3.16-beta1/poi-ooxml-schemas-3.16-beta1.jar,
  lib/poi-3.16-beta1/poi-scratchpad-3.16-beta1.jar,
- lib/key-2.7-exe.jar
+ lib/key-2.7-abstract-contracts-exe.jar

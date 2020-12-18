@@ -71,12 +71,12 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
 	private void setAllEvaluationApproaches(){
-		allProjects.add(new ApproachData(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA4 (Method Inlining)",this.evaluatePath));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA6 (Thuem et al. with Reuse)",this.evaluatePath));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA4 (Method Inlining)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA6 (Thuem et al. with Reuse)",this.evaluatePath,method));
 		
 	}
 	
@@ -84,7 +84,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * Adds one subdirectorie which contains a evaluation Approach to the list 
 	 */
 	private void setOneEvaluationApproach(){
-		allProjects.add(new ApproachData(this.toEvaluate,verificationType,this.evaluatePath));
+		allProjects.add(new ApproachData(this.toEvaluate,verificationType,this.evaluatePath,method));
 	}
 	
 	/**

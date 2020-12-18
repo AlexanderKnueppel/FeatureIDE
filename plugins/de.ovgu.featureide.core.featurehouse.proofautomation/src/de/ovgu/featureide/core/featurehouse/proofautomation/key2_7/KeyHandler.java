@@ -166,7 +166,7 @@ public abstract class KeyHandler {
 	 * @param savePath
 	 * @return
 	 */
-	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath, String analyseTypes) 
+	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) 
 	{	
 		return false;
 	}

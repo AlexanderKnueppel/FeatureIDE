@@ -28,8 +28,8 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
@@ -37,13 +37,13 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInfo
 import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**
- * TODO description
+ * Abstract Verification is the abstract super Class for all verification methods.
  * 
  * @author marlen
  */
 public abstract class AbstractVerification {
 	
-	KeyHandler keyHandler = null;
+	public KeyHandler keyHandler = null;
 	protected static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	String method;
 	protected static List<ProofInformation> proofList = new LinkedList<ProofInformation>();;
@@ -54,10 +54,6 @@ public abstract class AbstractVerification {
 
 	
 	public void performVerification(File loc, File evalPath){};
-	/**
-	 * 
-	 * @return proofList
-	 */
 
 	/**
 	 * 
@@ -68,12 +64,7 @@ public abstract class AbstractVerification {
 		if(Configuration.warmUp){
 			ProofHandler account = getAccountConstructor(location);
 			if(account!=null){
-				if( method == "AbstractContract") {
-					keyHandler = new AbstractContract();
-				}else if(method == "AbstractExecution") {
-					keyHandler = new AbstractExecution();
-				}
-				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, null,"WarmUp");
+				keyHandler.startMetaProductProof(account, location, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, null);
 				account.removeProof();	
 			}
 		}
@@ -90,13 +81,6 @@ public abstract class AbstractVerification {
 		String currentFeatureStub;
 		String saveFeatureStubPath;
 		
-		if( method.equals("AbstractContract")) {
-			System.out.println("Starte Proof with Abstract Contracts");
-			keyHandler = new AbstractContract();
-		}else if(method.equals("AbstractExecution")) {
-			System.out.println("Starte Proof with Abstract Execution");
-			keyHandler = new AbstractExecution();
-		}
 		for(File f: featurestubs){
 			String[] seperatedPath = f.getAbsolutePath().split(FILE_SEPERATOR);
 			currentFeatureStub = seperatedPath[seperatedPath.length-2];
@@ -146,7 +130,7 @@ public abstract class AbstractVerification {
 			try {
 				File reuse = getFeatureStubProof(proofHandler,featurestubs);
 				
-				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, metaproductPath,"Fefalution");
+				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, metaproductPath);
 				proofHandler.saveProof(metaproductPath);
 				
 				ProofInformation reusedProof = null;
@@ -368,7 +352,7 @@ public abstract class AbstractVerification {
 	 * @return
 	 */
 	protected static List<File> getAllPartialProofs(File projectDir, File evalPath){
-		File featurestub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+		File featurestub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		File[] featurestubs = featurestub.listFiles();
 		List<File> proofs = new LinkedList<File>();
 		for(File f : featurestubs){
@@ -430,16 +414,16 @@ public abstract class AbstractVerification {
 	 * @param savePath
 	 */
 	public void fullProofReuse(File evalPath, List<ProofHandler> proofList,StrategyProperties s,
-			 boolean firstVersion, String savePath, String analyseType, KeyHandler keyHandler) {
+			 boolean firstVersion, String savePath, KeyHandler keyHandler) {
 
 		if(firstVersion){
 			for(ProofHandler aproof: proofList){
-				keyHandler.startMetaProductProof(aproof,null, s, maxRuleApplication,savePath,analyseType);
+				keyHandler.startMetaProductProof(aproof,null, s, maxRuleApplication,savePath);
 				aproof.saveProof(savePath);
 			}
 		}else{
 			for(ProofHandler aproof: proofList){
-				keyHandler.startMetaProductProof(aproof,reuseFullProof(evalPath,aproof), s, maxRuleApplication,savePath,analyseType);
+				keyHandler.startMetaProductProof(aproof,reuseFullProof(evalPath,aproof), s, maxRuleApplication,savePath);
 				aproof.saveProof(savePath);
 			}
 		}

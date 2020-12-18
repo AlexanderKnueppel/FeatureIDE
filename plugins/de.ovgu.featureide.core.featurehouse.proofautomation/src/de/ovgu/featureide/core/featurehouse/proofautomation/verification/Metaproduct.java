@@ -27,8 +27,8 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
@@ -40,7 +40,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInfo
  */
 public class Metaproduct extends AbstractVerification{
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	KeyHandler keyHandler;
 	public static final Metaproduct METAPRODUCT = new Metaproduct();
 	
 	public static Metaproduct getInstance() {
@@ -59,16 +58,8 @@ public class Metaproduct extends AbstractVerification{
 					FileManager.copyFolderContent(version1,new File(savePartialProofsPath));
 				}
 				File metaproduct = getMetaproduct(loc);
-				KeyHandler keyHandler = null;
 
 				List<File> abstractProofPart = new LinkedList<File>();
-				if( method.equals("AbstractContract")) {
-					System.out.println("Starte Proof with Abstract Contracts");
-					keyHandler = new AbstractContract();
-				}else if(method.equals("AbstractExecution")) {
-					System.out.println("Starte Proof with Abstract Execution");
-					keyHandler = new AbstractExecution();
-				}
 				List<ProofHandler> abstractProofs = keyHandler.loadInKeY(metaproduct);
 				
 				for(ProofHandler proofHandler : abstractProofs){
@@ -121,13 +112,13 @@ public class Metaproduct extends AbstractVerification{
 							System.out.println(defaultName + ": not reused... no file");
 					}
 					try {
-						keyHandler.startMetaProductProof(proofHandler,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath,"Metaproduct");
+						keyHandler.startMetaProductProof(proofHandler,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 						if(!proofHandler.isClosed()){
 							proofHandler.removeProof();
 							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 
 							File restartProof = proofHandler.saveProof(savePartialProofsPath);
-							keyHandler.startMetaProductProof(proofHandler,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath,"Metaproduct");
+							keyHandler.startMetaProductProof(proofHandler,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
 						}
 
 						proofHandler.saveProof(metaproductPath);

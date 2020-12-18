@@ -53,14 +53,16 @@ public class ApproachData {
 	public File evaluatePath; //contains a subdirectory Evaluation/date time
 	//File where the result of the evaluation is saved
 	public File statistics;
+	String method;
 	private List<SingleApproachEvaluation> projectVersions = new LinkedList<SingleApproachEvaluation>(); //contains all project versions
 	/**
 	 * Constructor for single execution of a verification approach
 	 * @param f
 	 * @param name
 	 */
-	public ApproachData(File f,String name,File evalPathComplete){
+	public ApproachData(File f,String name,File evalPathComplete, String method){
 		toEvaluate = f;
+		this.method = method;
 		evaluatePath = evalPathComplete;
 		if(name.startsWith("VA")) {
 			evaluatePath = FileManager.createDir(new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name));
@@ -95,7 +97,7 @@ public class ApproachData {
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				projectVersions.add(new SingleApproachEvaluation(f,getVersionNumber(),evaluatePath.getAbsolutePath()+FILE_SEPERATOR+f.getName(),null));
+				projectVersions.add(new SingleApproachEvaluation(f,getVersionNumber(),evaluatePath.getAbsolutePath()+FILE_SEPERATOR+f.getName(),method));
 			}
 		}
 	}

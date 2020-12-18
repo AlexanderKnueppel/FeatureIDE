@@ -79,28 +79,12 @@ public class MetaProductBuilder {
 		}
 	}
 	
-	public static void preparePartialProofsForAE(File projectDir, File evalPath) {
-		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
-		System.out.println("Prepare" + partialProofs);
-		File[] featurestubs = partialProofs.listFiles();
-		for(File f : featurestubs){
-			if(f.isDirectory()){
-				File[] proofs = f.listFiles();
-				for(File proof: proofs){
-					if(proof.getName().endsWith(".proof")) {
-						
-					}
-				}
-			}
-		}
-	}
-	
 	/**
 	 * Performs the proof transformation for all partial proofs if necessary
 	 * @param projectDir Directory of the Project contains Directory "Partial Proofs for Metaproduct" with proofs of the featurestub
 	 */
 	public static void preparePartialProofs(File projectDir, File evalPath){
-		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
+		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		System.out.println("Prepare " + partialProofs + " for Partialproofs");
 		File[] featurestubs = partialProofs.listFiles();
 		for(File f : featurestubs){
@@ -112,6 +96,7 @@ public class MetaProductBuilder {
 						String method_to_replace = methodname + "_original_" + f.getName();
 						//f.getName() interest
 						//
+						replaceJavaSource(proof);
 						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proof)+".java");
 						if(checkForOriginal(proof,f.getName())){
 							String replace_with = "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
@@ -123,6 +108,7 @@ public class MetaProductBuilder {
 							renameAbstractKeywords(proof, f, methodname);
 							renameRemainingStuff(proof, f, methodname);
 							renameProof(proof,f,methodname+"_"+f.getName());
+							
 						}
 						else{
 							String extensionForBankAccount = "";
@@ -137,11 +123,12 @@ public class MetaProductBuilder {
 							renameAbstractKeywords(proof, f, methodname);
 						//	renameRemainingStuff(proof, f, methodname);
 							renameProof(proof,f,methodname+extensionForBankAccount);
+							
 						}
 					
 					}
 					if(proof.getName().endsWith(".key")) {
-						replaceUnderscoresStuff(proof);
+						removeUnderscoresStuff(proof);
 					}
 					
 					//replaceMethodNamesInPartialProofs(methodname,methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),f.getName(),proof);
@@ -150,7 +137,12 @@ public class MetaProductBuilder {
 			}
 		}
 	}
-	private static void replaceUnderscoresStuff(File proof){
+	
+	/**
+	 * Removes underscores in KeY-file
+	 * @param proof
+	 */
+	private static void removeUnderscoresStuff(File proof){
 		StringBuffer sbuffer = new StringBuffer();
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
@@ -169,12 +161,40 @@ public class MetaProductBuilder {
         BuilderUtil.rewriteFile(sbuffer,proof);
 	}
 	
+	/**
+	 * replaces the javasource in the proof-File with ../../../../../../BankAccountv1/src
+	 * otherwise it won't find the correct folder 
+	 * @param proof
+	 */
+	private static void replaceJavaSource(File proof){
+		StringBuffer sbuffer = new StringBuffer();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            while(line != null) {
+            	if(line.startsWith("\\javaSource")) {
+            		line = "\\javaSource \"../../../../../../BankAccountv1/src\";";
+            	}
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
+	}
 	
-	
+	/**
+	 * 
+	 * @param proof
+	 * @param stub
+	 * @param methodname
+	 */
 	private static void renameRemainingStuff(File proof, File stub, String methodname){
 		StringBuffer sbuffer = new StringBuffer();
-		//String newmethodname = methodname + "_" + stub.getName();
-		String newmethodname = methodname ;
+		String newmethodname = methodname + "_" + stub.getName();
+		//String newmethodname = methodname ;
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
             String line = bReader.readLine();
@@ -190,9 +210,6 @@ public class MetaProductBuilder {
             	if(line.contains("methodBodyExpand")){
             		line = line.replaceAll(methodname, newmethodname);
             	}
-            	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \"\";";
-            	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();
             }
@@ -202,7 +219,12 @@ public class MetaProductBuilder {
         }
         BuilderUtil.rewriteFile(sbuffer,proof);
 	}
-	
+	/**
+	 * 
+	 * @param proof
+	 * @param stub
+	 * @param methodname
+	 */
 	private static void renameAbstractKeywords(File proof, File stub, String methodname){
 		StringBuffer sbuffer = new StringBuffer();
 		String newmethodname = methodname + "_" + stub.getName();
@@ -354,6 +376,14 @@ public class MetaProductBuilder {
 		}
 		return "";
 	}
+	
+	/**
+	 * Replaces methodnames of featurestubs to methodnames of the metaproduct
+	 * @param oldName
+	 * @param newName
+	 * @param featurestub
+	 * @param proof
+	 */
 	private static void replaceMethodNamesInPartialProofsTest(String oldName, String newName
 			,String featurestub, File proof){
 		System.out.println("Replace " + oldName + " in  " + getMethodName(proof)+ "_"+featurestub  + " with " + newName);

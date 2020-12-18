@@ -25,6 +25,7 @@ import java.io.File;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 
 /**
  * TODO description
@@ -33,7 +34,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
  */
 public class Fefalution extends AbstractVerification{
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	String verificationType;
 	
 	public static final Fefalution FEFALUTION =  new Fefalution();
 

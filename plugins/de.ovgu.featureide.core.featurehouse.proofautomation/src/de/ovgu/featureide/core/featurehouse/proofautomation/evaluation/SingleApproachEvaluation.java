@@ -28,8 +28,9 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.AbstractVerification;
@@ -56,7 +57,7 @@ public class SingleApproachEvaluation extends Evaluation{
 	private List<ProofInformation> proofList1And2Phase = new LinkedList<ProofInformation>();
 public static void main(String[] args) {
 	SingleApproachEvaluation s = new SingleApproachEvaluation(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/BankAccountv1"), 1, 
-			"/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/Evaluation/BankAccountv1", "AbstractExecution");
+			"/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/Evaluation/BankAccountv1", "AbstractContract");
 	s.performEvaluation();
 }
 
@@ -69,7 +70,7 @@ public static void main(String[] args) {
 	 */
 	public SingleApproachEvaluation(File f, int evalVersion, String evaluatePath, String method){
 		super(f);
-		System.out.println("Init SingleApproachEvaluation");
+		System.out.println("Init SingleApproachEvaluation with Method " + method + "with Eval Version " + evalVersion);
 		this.method = method;
 		this.evaluatePath = FileManager.createDir(new File(evaluatePath));
 		if(evalVersion>0){
@@ -98,11 +99,8 @@ public static void main(String[] args) {
 			//Fix here instead of in performVa1 (i.e., before copy)
 			File transactionAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
 			File lockAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Lock"+FILE_SEPERATOR+"Account.java");
-			if( method.equals("AbstractContract")) {
-				FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
-			}else if(method.equals("AbstractExecution")) {
+			FeatureStubBuilder.prepareForVerification(transactionAccount,lockAccount);
 
-			}
 			
 			//copy
 			FileManager.copyCompleteFolderContent(fstubPath,new File(evaluatePath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir));
@@ -125,7 +123,15 @@ public static void main(String[] args) {
 				break;
 		case 6 :abstractVerification = ThuemEtAlReuse.getInstance();
 				break;
-		}		
+		}
+
+		if( method.equals("AbstractContract")) {
+			System.out.println("Starte Proof with Abstract Contracts");
+			abstractVerification.keyHandler = new AbstractContracts();
+		}else if(method.equals("DefaultKeY")) {
+			System.out.println("Starte Proof with DefaultKeY");
+			abstractVerification.keyHandler = new DefaultKeY();
+		}
 		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), method);
 		abstractVerification.performVerification(toEvaluate,evaluatePath);
 		

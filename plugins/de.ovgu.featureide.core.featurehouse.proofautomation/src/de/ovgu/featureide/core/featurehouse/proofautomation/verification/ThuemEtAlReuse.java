@@ -26,10 +26,11 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContract;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractExecution;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
+import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**
  * TODO description
@@ -38,7 +39,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
  */
 public class ThuemEtAlReuse extends AbstractVerification{
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	String verificationType;
 	
 	public static final ThuemEtAlReuse THUEM_ET_AL_REUSE =  new ThuemEtAlReuse();
 
@@ -52,17 +52,33 @@ public class ThuemEtAlReuse extends AbstractVerification{
 	 */
 	public void performVerification(File loc, File evalPath){
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
-		KeyHandler keyHandler = null;
-		if( method.equals("AbstractContract")) {
-			System.out.println("Starte Proof with Abstract Contracts");
-			keyHandler = new AbstractContract();
-		}else if(method.equals("AbstractExecution")) {
-			System.out.println("Starte Proof with Abstract Execution");
-			keyHandler = new AbstractExecution();
-		}
 		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath,"ThuemReuse",keyHandler);
-
+		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+	}
+	
+	
+	/**
+	 * Performs a Verification where the proofs of the first version are reused for the other versions
+	 * @param location : path of the evaluation of the current project 
+	 * @param proofHandlerList : list of all proofs of the current project
+	 * @param sp : used StrategyProperties for the verification
+	 * @param firstVersion : true if the current project is the first version in this approach
+	 * @param savePath : path where the proofs should be saved
+	 */
+	private void fullProofReuse(File location, List<ProofHandler> proofHandlerList, StrategyProperties sp, boolean firstVersion, String savePath){
+		if(firstVersion){
+			for(ProofHandler proofHandler: proofHandlerList){
+				keyHandler.startMetaProductProof(proofHandler,null, sp, maxRuleApplication,savePath);
+				proofHandler.saveProof(savePath);
+			}
+		}
+		else{
+			for(ProofHandler proofHandler: proofHandlerList){
+				keyHandler.startMetaProductProof(proofHandler,reuseFullProof(location,proofHandler), sp, maxRuleApplication,savePath);
+				proofHandler.saveProof(savePath);
+			}
+		}
+		setProofList(proofHandlerList);
 	}
 }

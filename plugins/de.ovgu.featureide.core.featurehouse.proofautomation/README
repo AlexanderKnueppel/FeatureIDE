@@ -10,13 +10,13 @@ Installation for KeY 2.7
 3. Install Featurehouse (https://github.com/kruegers/featurehouse), 
    perform the build and add the jar file to 
 	de.ovgu.featureide.core.featurehouse/lib
-4. Start an eclipse instance
-5. Open the ProofAutomation View
-6. Add the projects to workspace
 7. Add KeY.jar to the Java Build-Path of de.ovgu.featureide.core.featurehouse.proofautomation,
  make sure in Order and Export that the key.jar is checked
 8. Add the key.jar to plugin.xml ->Runtime -> Classpath
 9. Add key.jar Path in Configuration to keybinpath
+4. Start an eclipse instance
+5. Open the ProofAutomation View
+6. Add the projects to workspace
 10. Add the folder which contains all projects to Field "Directory"
 11. Press Button "Start Evaluation"
 

@@ -55,7 +55,7 @@ import de.uka.ilkd.key.util.MiscTools;
  * 
  * @author marlen
  */
-public class AbstractContract extends KeyHandler{
+public class AbstractContracts extends KeyHandler{
 	private Proof proof;
 	/**
 	 * Starts the proof 
@@ -81,6 +81,7 @@ public class AbstractContract extends KeyHandler{
 			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
 			proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
 	        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
+	        
 	        ProofControl proofControl = environment.getUi().getProofControl();
 			int previousNodes;
 			do{
@@ -115,7 +116,7 @@ public class AbstractContract extends KeyHandler{
 	 * @return
 	 */
 	@Override
-	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath, String analyseType) {
+	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof, StrategyProperties sp, int maxRuleApplication, String savePath) {
 		boolean reusedAProof = false;
 		System.out.println("Start startMetaProductProof of target: " + proofHandler.getTargetName());
 	
@@ -141,32 +142,30 @@ public class AbstractContract extends KeyHandler{
         ProofControl proofControl = keYEnvironment.getProofControl();	        
 		 try {              	 
 	        if(reuseProof!=null){
-		        if(reuseProof.getName().endsWith(".proof")){   
-		        	replaceJavaSource(reuseProof);
+		        if(reuseProof.getName().endsWith(".proof")){
 		        	UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 	    			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 					InitConfig initConfig = loader.getInitConfig();	
+					
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
 	            	proof = keYEnvironment.getLoadedProof();
 	            	proofControl = keYEnvironment.getProofControl();
 	            	
-	            	//proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
+	            	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
 
-	            	proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
+	            	//proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
 	            	proofControl.waitWhileAutoMode();
 	            	reusedAProof = true;
 	            	
 		            proofHandler.setProof(proof);
 		            System.out.println("Reused: "+proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
 		            proofHandler.setReusedStatistics();
-		            File reusedProof = null;
-		            if(analyseType.equals("Fefalution")) {		            	
-		            	reusedProof = proofHandler.saveProof(reuseProof.getParentFile().getAbsolutePath());
-		            	replaceJavaSource(reusedProof);
-		            }else {
-		            	reusedProof = proofHandler.saveProof(savePath);
-		            }
+		            System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proof.openGoals().size() +" open Goals" );
 		            
+		            //save Proof and load it again for further use
+		            File reusedProof = null;          
+		            reusedProof = proofHandler.saveProof(savePath);
+
 	    			loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 					initConfig = loader.getInitConfig();	
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
@@ -178,8 +177,9 @@ public class AbstractContract extends KeyHandler{
 	        }	        
                
 	        while(!proof.openEnabledGoals().isEmpty() && goalHasApplicableRules(proof)){	        	
-	        	int previousNodes = proof.countNodes();   
-	        	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
+	        	int previousNodes = proof.countNodes();
+	        	proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
+	        //	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
             	proofControl.waitWhileAutoMode();
             	proofHandler.setProof(proof);
 	        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proof.openGoals().size() +" open Goals" );
@@ -197,7 +197,7 @@ public class AbstractContract extends KeyHandler{
 	        proofHandler.setProof(proof);
 	        proofHandler.setStatistics();
 	        
-	        System.out.println("Actual: "+ proofHandler.getTargetName() +"\n" + proof.getStatistics());
+	        System.out.println("Actual: "+ proofHandler.getTargetName()+" has " + proof.openGoals().size() +" open Goals" +"\n" + proof.getStatistics());
 	      //  keYEnvironment.dispose();	
 	        }
 		catch (ProblemLoaderException e) {
@@ -250,8 +250,7 @@ public class AbstractContract extends KeyHandler{
 					}	
 		          //  savePath = oldPartialProof.getParentFile().getAbsolutePath();
 		            File reusedProof = proofHandler.saveProof(savePath);
-	            	try {
-	            		replaceJavaSource(reusedProof);
+	            	try {	            		
 	            		keYEnvironment.load(reusedProof);
 						proofHandler.setProof(keYEnvironment.getLoadedProof());
 					} catch (ProblemLoaderException e) {
@@ -281,25 +280,5 @@ public class AbstractContract extends KeyHandler{
 			}
 		}
 		return false;
-	}
-	
-	private static void replaceJavaSource(File proof){
-		String FILE_SEPERATOR = System.getProperty("file.separator");
-		StringBuffer sbuffer = new StringBuffer();
-		try {
-			BufferedReader bReader = new BufferedReader(new FileReader(proof));
-            String line = bReader.readLine();
-            while(line != null) {
-            	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \"\";";
-            	}
-            	sbuffer.append(line + System.getProperty("line.separator"));
-                line = bReader.readLine();
-            }
-            bReader.close();
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-        BuilderUtil.rewriteFile(sbuffer,proof);
 	}
 }
