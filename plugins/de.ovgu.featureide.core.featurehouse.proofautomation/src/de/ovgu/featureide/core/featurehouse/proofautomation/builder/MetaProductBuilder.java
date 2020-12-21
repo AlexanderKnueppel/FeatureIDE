@@ -162,7 +162,7 @@ public class MetaProductBuilder {
 	}
 	
 	/**
-	 * replaces the javasource in the proof-File with ../../../../../../BankAccountv1/src
+	 * replaces the javasource in the proof-File with ../../../../../../src
 	 * otherwise it won't find the correct folder 
 	 * @param proof
 	 */
@@ -171,9 +171,10 @@ public class MetaProductBuilder {
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
             String line = bReader.readLine();
+            String folderString = proof.getParentFile().getParentFile().getParentFile().getName();
             while(line != null) {
             	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \"../../../../../../BankAccountv1/src\";";
+            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";";
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();
