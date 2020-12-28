@@ -41,7 +41,7 @@ public class ProofHandler {
 	private Contract contract;
 	private String typeName;
 	private String targetName;
-	private Proof proof;
+	public Proof proof;
 	private String featurestub;
 	private ProofStatistics stat = new ProofStatistics();
 	private ProofStatistics reusedStat = new ProofStatistics();

@@ -123,7 +123,7 @@ public abstract class AbstractVerification {
 		List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
 		File java = getMetaproduct(projectDir);
 		List<ProofHandler> proofHandlers = keyHandler.loadInKeY(java);
-		//setProofList(proofHandlers); 
+
 		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 
 		for(ProofHandler proofHandler : proofHandlers){
@@ -149,8 +149,8 @@ public abstract class AbstractVerification {
 					aTotal.getStat().addStatistics(reusedProof.getStat());
 					aTotal.getReusedStat().addStatistics(reusedProof.getReusedStat());
 				}
-				proofHandler.getEnvironment().dispose();
 				proofListWithPhase1And2.add(aTotal);
+				proofHandler.getEnvironment().dispose();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

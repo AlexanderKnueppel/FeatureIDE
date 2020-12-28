@@ -93,8 +93,7 @@ public static void main(String[] args) {
 			Configuration.setCurrentMetaproductwithDispatcher(true);
 		}
 		FileManager.initFolders(evaluatePath, evalVersion);
-		if(evalVersion == 1){
-			
+		if(evalVersion == 1){			
 			File fstubPath = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir);
 			//Fix here instead of in performVa1 (i.e., before copy)
 			File transactionAccount = new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+"Transaction"+FILE_SEPERATOR+"Account.java");
@@ -134,11 +133,10 @@ public static void main(String[] args) {
 		}
 		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), method);
 		abstractVerification.performVerification(toEvaluate,evaluatePath);
-		
+		//sum of all
 		proofList = abstractVerification.getProofList();
 		phase1ProofList = abstractVerification.getPhase1ProofList();
 		proofList1And2Phase = abstractVerification.getProofListWithPhase1And2();
-
 		updateFailedProofs();
 		updateProofCount();
 		updateSum();

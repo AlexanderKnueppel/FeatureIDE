@@ -199,7 +199,7 @@ public class ApproachData {
 			for(ProofInformation proofInformation: allProofs){
 				ProofStats proofStats = getListElement(proofInformation.getTargetName(),proofInformation.getTypeName(),evaluationProofs);
 				if(proofStats == null){
-					proofStats = new ProofStats(proofInformation.getTargetName(),proofInformation.getTypeName());
+					proofStats = new ProofStats(proofInformation.getTargetName(),proofInformation.getTypeName());					
 					evaluationProofs.add(proofStats);
 				}
 				proofStats.addSum(proofInformation.getStat(),proofInformation.getReusedStat());

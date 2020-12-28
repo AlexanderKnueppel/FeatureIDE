@@ -247,11 +247,11 @@ public class ExcelManager2 {
 	}
 	
 	
-	public static void generateSingleApproachEvaluationWithReuseXLS(ApproachData ep){
+	public static void generateSingleApproachEvaluationWithReuseXLS(ApproachData approachData){
 		Workbook wb = new XSSFWorkbook();
 	    Sheet total = wb.createSheet(WorkbookUtil.createSafeSheetName("Total"));
 	    CreationHelper crHelper = wb.getCreationHelper();
-	    createMethodSheet(wb,crHelper,ep.getAllDisjointProofs());
+	    createMethodSheet(wb,crHelper,approachData.getAllDisjointProofs());
 	    Row firstRow = total.createRow(0);
 	    firstRow.createCell(0).setCellValue(crHelper.createRichTextString("Evolution"));
 	    firstRow.createCell(2).setCellValue(crHelper.createRichTextString("Reused Proof Steps"));
@@ -264,7 +264,7 @@ public class ExcelManager2 {
 	    firstRow.createCell(9).setCellValue(crHelper.createRichTextString("Proof Time"));
 	    firstRow.createCell(10).setCellValue(crHelper.createRichTextString("Proof Closed"));
 	    int rowcounter = 1;
-	    for(SingleApproachEvaluation s: ep.getProjectVersion()){
+	    for(SingleApproachEvaluation s: approachData.getProjectVersion()){
 	    	Sheet currentProject = wb.createSheet(WorkbookUtil.createSafeSheetName(s.evaluatePath.getName()));
 	    	createColumnTitles(currentProject,crHelper);
 	    	int rowcount = 1;
@@ -272,7 +272,7 @@ public class ExcelManager2 {
 		    createLastRowForApproach(s.secondPhaseReuse,s.secondPhase,currentProject,crHelper,rowcount,"Total",s);
 		    autosizeColumns(currentProject,11);
 	    }
-	    for(SingleApproachEvaluation s : ep.getProjectVersion()){
+	    for(SingleApproachEvaluation s : approachData.getProjectVersion()){
 	    	Row appraochRow = total.createRow(rowcounter);
 	    	appraochRow.createCell(1).setCellValue(crHelper.createRichTextString(s.evaluatePath.getName()));
 	    	appraochRow.createCell(2).setCellValue(s.secondPhaseReuse.getNodes());
@@ -288,18 +288,18 @@ public class ExcelManager2 {
 	    }
 	    Row totalTwoRow = total.createRow(rowcounter);
 	    totalTwoRow.createCell(0).setCellValue(crHelper.createRichTextString("Total"));
-	    totalTwoRow.createCell(2).setCellValue(ep.secondPhaseReuse.getNodes());
-	    totalTwoRow.createCell(3).setCellValue(ep.secondPhaseReuse.getBranches());
-	    totalTwoRow.createCell(4).setCellValue(ep.secondPhaseReuse.getAppliedRules());
-	    totalTwoRow.createCell(5).setCellValue(ep.secondPhaseReuse.getAutomodeTime());
-	    totalTwoRow.createCell(6).setCellValue(ep.secondPhase.getNodes());
-	    totalTwoRow.createCell(7).setCellValue(ep.secondPhase.getBranches());
-	    totalTwoRow.createCell(8).setCellValue(ep.secondPhase.getAppliedRules());
-	    totalTwoRow.createCell(9).setCellValue(ep.secondPhase.getAutomodeTime());
-	    totalTwoRow.createCell(10).setCellValue(crHelper.createRichTextString((ep.proofs-ep.failedProofs)+"\\"+ep.proofs));
+	    totalTwoRow.createCell(2).setCellValue(approachData.secondPhaseReuse.getNodes());
+	    totalTwoRow.createCell(3).setCellValue(approachData.secondPhaseReuse.getBranches());
+	    totalTwoRow.createCell(4).setCellValue(approachData.secondPhaseReuse.getAppliedRules());
+	    totalTwoRow.createCell(5).setCellValue(approachData.secondPhaseReuse.getAutomodeTime());
+	    totalTwoRow.createCell(6).setCellValue(approachData.secondPhase.getNodes());
+	    totalTwoRow.createCell(7).setCellValue(approachData.secondPhase.getBranches());
+	    totalTwoRow.createCell(8).setCellValue(approachData.secondPhase.getAppliedRules());
+	    totalTwoRow.createCell(9).setCellValue(approachData.secondPhase.getAutomodeTime());
+	    totalTwoRow.createCell(10).setCellValue(crHelper.createRichTextString((approachData.proofs-approachData.failedProofs)+"\\"+approachData.proofs));
 	    autosizeColumns(total,10);
 	    try {
-	    	FileOutputStream fOut = new FileOutputStream(ep.statistics);
+	    	FileOutputStream fOut = new FileOutputStream(approachData.statistics);
 			wb.write(fOut);
 			fOut.close();
 		} catch (IOException e) {
@@ -465,7 +465,7 @@ public class ExcelManager2 {
 	 */
 	public static void updateSingleProjectsWithReuse(SingleApproachEvaluation s){
 		try{
-			FileInputStream fis = new FileInputStream(s.statistics);
+			FileInputStream fis = new FileInputStream(s.statistics);			
 		    XSSFWorkbook xssfworkbook = new XSSFWorkbook(fis);
 		    XSSFSheet sheet = xssfworkbook.getSheetAt(1);
 		    int lastRowNo = sheet.getLastRowNum();

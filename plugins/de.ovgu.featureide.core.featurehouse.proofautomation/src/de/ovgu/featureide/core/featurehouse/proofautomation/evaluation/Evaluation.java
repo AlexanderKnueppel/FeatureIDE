@@ -72,6 +72,7 @@ public abstract class Evaluation {
 	 * @param approachData
 	 */
 	public void updateStatistics(ApproachData approachData){
+
 		this.firstPhase.addStatistics(approachData.firstPhase);
 		this.secondPhase.addStatistics(approachData.secondPhase);
 		this.firstPhaseReuse.addStatistics(approachData.firstPhaseReuse);

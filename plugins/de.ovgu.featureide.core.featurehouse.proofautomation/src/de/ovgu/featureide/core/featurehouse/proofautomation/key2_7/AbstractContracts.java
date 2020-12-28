@@ -56,7 +56,6 @@ import de.uka.ilkd.key.util.MiscTools;
  * @author marlen
  */
 public class AbstractContracts extends KeyHandler{
-	private Proof proof;
 	/**
 	 * Starts the proof 
 	 */
@@ -65,39 +64,38 @@ public class AbstractContracts extends KeyHandler{
 			KeYEnvironment<?> environment = proofHandler.getEnvironment();
 			Contract contract = proofHandler.getContract();
 			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-				
-			proof = environment.createProof(input);
-			
+			proofHandler.proof	= environment.createProof(input);
+						
 			// Set proof strategy options
 	        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
-	        HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+	        HashMap<String,String> choices = proofHandler.proof.getSettings().getChoiceSettings().getDefaultChoices();
 	        choices.putAll(MiscTools.getDefaultTacletOptions());
 	        choiceSettings.setDefaultChoices(choices);
 
-			proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+	        proofHandler.proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
 			
 			// Make sure that the new options are used
 			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
 			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-			proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-	        proof.setActiveStrategy(proof.getServices().getProfile().getDefaultStrategyFactory().create(proof, sp));
+			proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+			proofHandler.proof.setActiveStrategy(proofHandler.proof.getServices().getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
 	        
 	        ProofControl proofControl = environment.getUi().getProofControl();
 			int previousNodes;
 			do{
-				previousNodes = proof.countNodes();
+				previousNodes = proofHandler.proof.countNodes();
 
 				//proofControl.runMacro(proof.root(), new ContinueAbstractProofMacro(), null);
 
-				proofControl.runMacro(proof.root(), new CompleteAbstractProofMacro(), null);
+				proofControl.runMacro(proofHandler.proof.root(), new CompleteAbstractProofMacro(), null);
 				proofControl.waitWhileAutoMode();
 
-			}while(proof.countNodes()==previousNodes);
-	        if(proof.openGoals().isEmpty()){
-	        	System.out.println("Proof " +proof.name() + " was closed");
+			}while(proofHandler.proof.countNodes()==previousNodes);
+	        if(proofHandler.proof.openGoals().isEmpty()){
+	        	System.out.println("Proof " +proofHandler.proof.name() + " was closed");
 	        	proofHandler.setClosed(true);	        	
 	        }	
-	        proofHandler.setProof(proof);
+	      //  proofHandler.setProof(proof);
 	        proofHandler.setStatistics();
 	        environment.dispose();
 		} 
@@ -124,7 +122,7 @@ public class AbstractContracts extends KeyHandler{
 	    Contract contract = proofHandler.getContract();
 		ProofOblInput input = contract.createProofObl(keYEnvironment.getInitConfig(), contract);	
 		try {
-			proof = keYEnvironment.createProof(input);
+			proofHandler.proof = keYEnvironment.createProof(input);
 		} catch (ProofInputException e1) {
 			e1.printStackTrace();
 		}
@@ -137,8 +135,8 @@ public class AbstractContracts extends KeyHandler{
         
 		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
         ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-        proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-        proof.setActiveStrategy(keYEnvironment.getProfile().getDefaultStrategyFactory().create(proof, sp));
+        proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+        proofHandler.proof.setActiveStrategy(keYEnvironment.getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
         ProofControl proofControl = keYEnvironment.getProofControl();	        
 		 try {              	 
 	        if(reuseProof!=null){
@@ -148,57 +146,55 @@ public class AbstractContracts extends KeyHandler{
 					InitConfig initConfig = loader.getInitConfig();	
 					
 	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-	            	proof = keYEnvironment.getLoadedProof();
+	            	proofHandler.proof = keYEnvironment.getLoadedProof();
 	            	proofControl = keYEnvironment.getProofControl();
 	            	
-	            	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
+	            	proofControl.runMacro(proofHandler.proof.root(),new CompleteAbstractProofMacro(), null);
 
 	            	//proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
 	            	proofControl.waitWhileAutoMode();
 	            	reusedAProof = true;
+
+		            //save Proof and load it again for further use
+		            File reusedProof = proofHandler.saveProof(savePath);
+	    			loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+					reusedProof.delete();
+					
+	    			initConfig = loader.getInitConfig();	
+	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
+	            	proofHandler.proof = keYEnvironment.getLoadedProof();
 	            	
-		            proofHandler.setProof(proof);
 		            System.out.println("Reused: "+proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
 		            proofHandler.setReusedStatistics();
-		            System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proof.openGoals().size() +" open Goals" );
+		            System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
 		            
-		            //save Proof and load it again for further use
-		            File reusedProof = null;          
-		            reusedProof = proofHandler.saveProof(savePath);
-
-	    			loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-					initConfig = loader.getInitConfig();	
-	            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-	            	reusedProof.delete();
-	            	proof = keYEnvironment.getLoadedProof();
 	            	proofControl = keYEnvironment.getProofControl();
 	            	//proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
 		        }      
 	        }	        
                
-	        while(!proof.openEnabledGoals().isEmpty() && goalHasApplicableRules(proof)){	        	
-	        	int previousNodes = proof.countNodes();
-	        	proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
+	        while(!proofHandler.proof.openEnabledGoals().isEmpty() && goalHasApplicableRules(proofHandler.proof)){	        	
+	        	int previousNodes = proofHandler.proof.countNodes();
+	        	proofControl.runMacro(proofHandler.proof.root(),new ContinueAbstractProofMacro(), null);
 	        //	proofControl.runMacro(proof.root(),new CompleteAbstractProofMacro(), null);
             	proofControl.waitWhileAutoMode();
-            	proofHandler.setProof(proof);
-	        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proof.openGoals().size() +" open Goals" );
+            	//proofHandler.setProof(proof);
+	        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
 
-	        	if(proof.countNodes()==previousNodes){
+	        	if(proofHandler.proof.countNodes()==previousNodes){
 	        		break;
 	        	}
 	        }
 	        proofHandler.setClosed(true);
 
-	        if(!proof.openGoals().isEmpty()){
-	        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was not closed with " + proof.openGoals().size() +" open Goals");
+	        if(!proofHandler.proof.openGoals().isEmpty()){
+	        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was not closed with " + proofHandler.proof.openGoals().size() +" open Goals");
 	        	proofHandler.setClosed(false);
 	        }
-	        proofHandler.setProof(proof);
+	      //.setProof(proof);
 	        proofHandler.setStatistics();
 	        
-	        System.out.println("Actual: "+ proofHandler.getTargetName()+" has " + proof.openGoals().size() +" open Goals" +"\n" + proof.getStatistics());
-	      //  keYEnvironment.dispose();	
+	        System.out.println("Actual: "+ proofHandler.getTargetName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" +"\n" + proofHandler.proof.getStatistics());
 	        }
 		catch (ProblemLoaderException e) {
 			// TODO Auto-generated catch block
@@ -223,8 +219,8 @@ public class AbstractContracts extends KeyHandler{
 			Contract contract = proofHandler.getContract();
 			ProofOblInput input = contract.createProofObl(keYEnvironment.getInitConfig(), contract);
 	
-			proof = keYEnvironment.createProof(input);
-			HashMap<String,String> choices = proof.getSettings().getChoiceSettings().getDefaultChoices();
+			proofHandler.proof = keYEnvironment.createProof(input);
+			HashMap<String,String> choices = proofHandler.proof.getSettings().getChoiceSettings().getDefaultChoices();
 	        choices.put("assertions", "assertions:safe");
 	        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
 	        choiceSettings.setDefaultChoices(choices);
@@ -236,11 +232,11 @@ public class AbstractContracts extends KeyHandler{
 		            	AbstractProblemLoader loader = userInterface.load(null, oldPartialProof, null, null, null, null, false);
 		            	InitConfig initConfig = loader.getInitConfig();
 		            	keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-		            	proof = keYEnvironment.getLoadedProof();
+		            	proofHandler.proof = keYEnvironment.getLoadedProof();
 		            	ProofControl proofControl = keYEnvironment.getProofControl();
 		            	
 		            	//proofControl.runMacro(proof.root(),new ContinueAbstractProofMacro(), null);
-						proofControl.runMacro(proof.root(), new CompleteAbstractProofMacro(), null);
+						proofControl.runMacro(proofHandler.proof.root(), new CompleteAbstractProofMacro(), null);
 						proofControl.waitWhileAutoMode();
 						reusedAProof = true;
 		            	
@@ -257,9 +253,9 @@ public class AbstractContracts extends KeyHandler{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-	            	reusedProof.delete();	            	
+	            	reusedProof.delete();	 
 	            	proofHandler.setReusedStatistics();	
-	            //	keYEnvironment.dispose();
+	            	keYEnvironment.dispose();
 		        }
 	        }
 	    }catch (Exception e) {

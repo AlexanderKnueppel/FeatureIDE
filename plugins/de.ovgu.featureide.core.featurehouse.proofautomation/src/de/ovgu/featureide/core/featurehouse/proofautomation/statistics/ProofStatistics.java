@@ -118,8 +118,8 @@ public class ProofStatistics {
 	}
 	
 	public String toString(){
-		String stat = "Nodes:"+ this.nodes+"\n";
-		stat +="Branches:"+this.branches+"\n";
+		String stat = "Nodes:   "+ this.nodes+"\n";
+		stat +="Branches:  "+this.branches+"\n";
 		stat+= "Applied Rules:"+this.appliedRules+"\n";
 		stat+= "Automode Time:"+this.automodeTime+"\n";
 		return stat;
