@@ -454,7 +454,7 @@ public class CorePlugin extends AbstractCorePlugin {
 	public static void setupFeatureProject(final IProject project, String compositionToolID, final String sourcePath, final String configPath,
 			final String buildPath, boolean addCompiler) {
 		createProjectStructure(project, sourcePath, configPath, buildPath);
-
+		System.out.println("CorePlugin 457");
 		if (addCompiler) {
 			try {
 				IConfigurationElement[] config = Platform.getExtensionRegistry().getConfigurationElementsFor(COMPOSERS_ID);

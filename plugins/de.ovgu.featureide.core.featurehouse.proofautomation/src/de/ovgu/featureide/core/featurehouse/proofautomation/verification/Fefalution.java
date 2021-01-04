@@ -25,7 +25,7 @@ import java.io.File;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 
 /**
  * TODO description

@@ -29,7 +29,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductB
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProof;
+
 
 /**
  * TODO description

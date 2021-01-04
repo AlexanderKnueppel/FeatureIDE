@@ -27,6 +27,7 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
@@ -36,7 +37,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofStat
 /**
  * Registers all parameters which are needed for a approach
  * 
- * @author marlen
+ * @author Marlen Herter-Bernier
  */
 public class ApproachData {
 	
@@ -78,16 +79,24 @@ public class ApproachData {
 	 */
 	@SuppressWarnings("restriction")
 	public void generateCode(){
-		LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 		boolean newMetaproduct = true;
 		int version = getVersionNumber();
 		if(version == 5||version == 6){
 			newMetaproduct = false;
 		}
-		projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
-		if(getVersionNumber()==1){
-			projectWorker.generateAllFeatureStubsForApproach(projects);
+		
+		if(method.equals("Non Rigid")) {
+			LinkedList<IProject> projects = projectWorker2.getProjectsByApproach(toEvaluate.getName());
+			projectWorker2.generateAllMetaproductsForApproach(projects, newMetaproduct);
+			projectWorker2.generateAllFeatureStubsForApproach(projects);
+		}else {
+			LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
+			projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
+			if(getVersionNumber()==1){
+				projectWorker.generateAllFeatureStubsForApproach(projects);
+			}
 		}
+
 	}
 	
 	/**
@@ -178,7 +187,7 @@ public class ApproachData {
 	}
 	
 	/**
-	 * 	
+	 * 	gets all Disjoints proofs
 	 * @return
 	 */
 	public List<ProofStats> getAllDisjointProofs(){

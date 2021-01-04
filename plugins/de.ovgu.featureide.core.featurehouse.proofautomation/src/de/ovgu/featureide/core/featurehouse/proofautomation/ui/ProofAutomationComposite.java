@@ -40,11 +40,8 @@ import org.eclipse.swt.widgets.Text;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.evaluation.CompleteApproachesEvaluation;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key.AutomatingProject;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.CompleteEvaluation;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.EvaluationApproach;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
+
 
 /**
  * Prepares the view for eclipse
@@ -66,7 +63,7 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadVerificationDir;
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
-	private Button methodAbstractContract;
+	private Button methodNonRigid;
 	private Button methodAbstractExecution;
 	private Button sandbox;
 	private Button open;
@@ -118,7 +115,7 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(gridData);
-		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)");
+		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval(1)");
 		open = new Button(loadComposite, SWT.PUSH);
 		open.setText("Open");
 		//open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -132,9 +129,9 @@ public class ProofAutomationComposite extends Composite{
 		verificationApproach.setItems(approaches);
 		verificationApproach.select(0);
 
-		methodAbstractContract = new Button(loadComposite,SWT.RADIO);
-		methodAbstractContract.setText("Abstract Contract");
-		methodAbstractContract.setSelection(true);
+		methodNonRigid = new Button(loadComposite,SWT.RADIO);
+		methodNonRigid.setText("Non Rigid");
+		methodNonRigid.setSelection(true);
 		methodAbstractExecution = new Button(loadComposite,SWT.RADIO);
 		methodAbstractExecution.setText("Abstract Excution");
 		//verificationApproach.setText("1");
@@ -186,13 +183,13 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				if(methodAbstractContract.getSelection()) {
-					method = "AbstractContract";
+				if(methodNonRigid.getSelection()) {
+					method = "Non Rigid";
 				}
 				if(methodAbstractExecution.getSelection()) {
 					method = "AbstractExecution";
 				}
-				SingleProject s = new SingleProject(f,verificationApproach.getText());
+				CompleteApproachesEvaluation s = new CompleteApproachesEvaluation(f,verificationApproach.getText(),method);
 				if(Configuration.performVerification){
 					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath,method);
 					
@@ -209,8 +206,8 @@ public class ProofAutomationComposite extends Composite{
 			public void widgetSelected(SelectionEvent e) {
 				setKey();
 				File f = new File(source.getText());
-				if(methodAbstractContract.getSelection()) {
-					method = "AbstractContract";
+				if(methodNonRigid.getSelection()) {
+					method = "Non Rigid";
 				}
 				if(methodAbstractExecution.getSelection()) {
 					method = "AbstractExecution";
@@ -225,6 +222,7 @@ public class ProofAutomationComposite extends Composite{
 		
 		sandbox = new Button (buttonComposite, SWT.PUSH);
 		sandbox.setText("Sandbox");
+		sandbox.setEnabled(false);
 		sandbox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		sandbox.addSelectionListener( new SelectionListener() {
 			@Override
@@ -235,7 +233,7 @@ public class ProofAutomationComposite extends Composite{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				//projectWorker.sandbox();
-				AutomatingProject.sandboxV2();
+				//AutomatingProject.sandboxV2();
 			}
 		} );
 		

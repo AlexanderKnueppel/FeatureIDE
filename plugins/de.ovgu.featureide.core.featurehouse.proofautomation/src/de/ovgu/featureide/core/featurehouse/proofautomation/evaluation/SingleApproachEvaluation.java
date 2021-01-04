@@ -28,10 +28,9 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubB
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultKeY;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.AbstractVerification;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ConcreteContracts;
@@ -125,9 +124,9 @@ public static void main(String[] args) {
 				break;
 		}
 
-		if( method.equals("AbstractContract")) {
+		if( method.equals("Non Rigid")) {
 			System.out.println("Starte Proof with Abstract Contracts");
-			abstractVerification.keyHandler = new AbstractContracts();
+			abstractVerification.keyHandler = new Non_Rigid();
 		}else if(method.equals("DefaultKeY")) {
 			System.out.println("Starte Proof with DefaultKeY");
 			abstractVerification.keyHandler = new DefaultKeY();

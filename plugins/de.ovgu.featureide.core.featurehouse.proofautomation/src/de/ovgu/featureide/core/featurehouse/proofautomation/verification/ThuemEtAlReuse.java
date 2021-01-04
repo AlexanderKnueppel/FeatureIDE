@@ -26,10 +26,7 @@ import java.util.List;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**

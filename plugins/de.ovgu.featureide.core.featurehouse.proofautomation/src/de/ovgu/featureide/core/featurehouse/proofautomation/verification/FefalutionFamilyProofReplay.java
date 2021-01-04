@@ -25,9 +25,8 @@ import java.io.File;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.AbstractContracts;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.DefaultKeY;
-import de.ovgu.featureide.core.featurehouse.proofautomation.key2_7.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
@@ -43,7 +42,7 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 	}
 	
 	private FefalutionFamilyProofReplay() {
-		keyHandler = new AbstractContracts();
+		keyHandler = new Non_Rigid();
 	}
 	public static void  main(String[] args){
 		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Sandbox/BankAccountv1");

@@ -89,7 +89,10 @@ public class KeYWrapper {
 			final LinkedList<FSTFeature> features) {
 		return (isKeYLoaded) ? new KeYWrapper(featureStubsGenerator, signatures, features) : null;
 	}
-
+	public static KeYWrapper createGUIListener(final FeatureStubsGeneratorNonRigid featureStubsGenerator, final ProjectSignatures signatures,
+			final LinkedList<FSTFeature> features) {
+		return (isKeYLoaded) ? new KeYWrapper(featureStubsGenerator, signatures, features) : null;
+	}
 	private KeYWrapper(final FeatureStubsGenerator featureStubsGenerator, final ProjectSignatures signatures,
 			final LinkedList<FSTFeature> features) {
 		final InvocationHandler h = new InvocationHandler() {
@@ -110,7 +113,26 @@ public class KeYWrapper {
 		}
 
 	}
+	private KeYWrapper(final FeatureStubsGeneratorNonRigid featureStubsGenerator, final ProjectSignatures signatures,
+			final LinkedList<FSTFeature> features) {
+		final InvocationHandler h = new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				if (method.getName().equals("shutDown")) {
+					featureStubsGenerator.nextElement(signatures, features);
+				}
+				return null;
+			}
+		};
+		final Class<?> proxyguiL = Proxy.getProxyClass(guilClass.getClassLoader(), guilClass);
+		try {
+			guiL = proxyguiL.getConstructor(InvocationHandler.class).newInstance((Object) h);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
 
+	}
 	public void runKeY(File file) throws IOException {
 		try {
 			Constructor<?> mainC = mainClass.getConstructor(String[].class);

@@ -24,7 +24,6 @@ import java.io.File;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.evaluation.SingleApproachEvaluation;
-import de.ovgu.featureide.core.featurehouse.proofautomation.model.SingleProject;
 
 /**
  * This class starts a new JVM to avoid the key memory leak
