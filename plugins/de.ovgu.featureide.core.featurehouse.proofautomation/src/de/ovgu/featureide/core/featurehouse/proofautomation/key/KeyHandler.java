@@ -71,7 +71,7 @@ public abstract class KeyHandler {
 	 * @return
 	 */	
 	public List<ProofHandler> loadInKeY(File location) {
-		List<ProofHandler> proofs =  new LinkedList<ProofHandler>();
+		List<ProofHandler> proofHandlers =  new LinkedList<ProofHandler>();
 		try {
 			//removes existing Settings
 			if (!ProofSettings.isChoiceSettingInitialised()) {
@@ -84,11 +84,8 @@ public abstract class KeyHandler {
 			choices.put("assertions", "assertions:safe");
 			choiceSettings.setDefaultChoices(choices);
             KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
-
-
-        	
+      	
             boolean skipLibraryClasses = true;
-            final List<Contract> proofContracts = new LinkedList<Contract>();
             Set<KeYJavaType> kjts = env.getJavaInfo().getAllKeYJavaTypes();
 			final Iterator<KeYJavaType> it = kjts.iterator();
 	        while (it.hasNext()) {
@@ -113,28 +110,25 @@ public abstract class KeyHandler {
                      ImmutableSet<Contract> contracts = env.getSpecificationRepository().getContracts(type, target);
                      for (Contract contract : contracts) {
                     	 if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
- 	                		ProofHandler a = new ProofHandler(type.getFullName(), ClassTree.getDisplayName(env.getServices(), contract.getTarget()), contract.getDisplayName(), env, contract);
+                    		 ProofHandler proofHandler = new ProofHandler(type.getFullName(), ClassTree.getDisplayName(env.getServices(), contract.getTarget()), contract.getDisplayName(), env, contract);
  	                		//Checking for dispatch and original contracts, that need to be deleted
- 	                		if(!a.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
- 	                			if(!a.getTargetName().contains("_original_")||Configuration.proveOriginal){
- 	                				proofs.add(a);
+ 	                		if(!proofHandler.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
+ 	                			if(!proofHandler.getTargetName().contains("_original_")||Configuration.proveOriginal){
+ 	                				proofHandlers.add(proofHandler);
  	                			}
  	                			if(!Configuration.proveDispatcher&&Configuration.currentMetaproductwithDispatcher){
- 	                				removeDispatcher(proofs);
+ 	                				removeDispatcher(proofHandlers);
  	                			}
  	                		}
  	                	}
-                        proofContracts.add(contract);
                      }
-                  }
-               
+                  }              
             }
-
 		}catch (ProblemLoaderException e) {
 	         System.out.println("Exception at '" + location + "':");
 	         e.printStackTrace();
 		}
-		return proofs;
+		return proofHandlers;
 	}
 	
 	/**

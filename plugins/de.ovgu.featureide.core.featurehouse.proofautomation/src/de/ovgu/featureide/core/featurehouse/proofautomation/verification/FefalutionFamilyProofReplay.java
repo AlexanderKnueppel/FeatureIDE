@@ -23,15 +23,17 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 import java.io.File;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
+import de.uka.ilkd.key.java.reference.ThisConstructorReference;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
  * 
- * @author marlen
+ * @author Marlen Herter-Bernier
  */
 public class FefalutionFamilyProofReplay extends AbstractVerification{
 	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
@@ -43,12 +45,19 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 	
 	private FefalutionFamilyProofReplay() {
 		keyHandler = new Non_Rigid();
+		method="Non Rigid";
 	}
 	public static void  main(String[] args){
-		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Sandbox/BankAccountv1");
-		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval (1)/Sandbox/Evaluation/BankAccountv1");
+		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/BankAccountv1");
+		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1");
+		
+		FileManager.copySavedProofsToPartialProofs(evalPathFile);
+		MetaProductBuilderNonRigid.preparePartialProofs(locFile,evalPathFile);
 		getInstance().performMetaproductVerification(locFile, evalPathFile);
-		}
+		/*
+		getInstance().performVerification(locFile, evalPathFile);
+		*/
+	}
 	
 
 	/**
@@ -61,9 +70,14 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 		if(!firstVersion){
 			FileManager.reuseFeaturestub(evalPath, loc);
 		}
-		performFeaturestubVerification(loc,evalPath,firstVersion, true); //TODO run with false
+		performFeaturestubVerification(loc,evalPath,firstVersion, true);
 		FileManager.copySavedProofsToPartialProofs(evalPath);
-		MetaProductBuilder.preparePartialProofs(loc,evalPath);
+		if(method.equals("Non Rigid")) {
+			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath);
+		}else {
+			MetaProductBuilder.preparePartialProofs(loc,evalPath);
+		}
+		
 
 		this.performMetaproductVerification(loc,evalPath);
 	}

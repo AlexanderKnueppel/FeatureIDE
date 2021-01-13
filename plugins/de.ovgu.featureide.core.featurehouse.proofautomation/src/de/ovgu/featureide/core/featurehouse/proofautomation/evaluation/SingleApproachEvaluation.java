@@ -45,7 +45,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEt
 /**
  * Represents a Evaluation over one approach
  * 
- * @author marlen
+ * @author Marlen Herter-Bernier
  */
 public class SingleApproachEvaluation extends Evaluation{
 	public int failedProofs = 0;

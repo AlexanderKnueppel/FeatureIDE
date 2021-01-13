@@ -127,7 +127,7 @@ public abstract class AbstractVerification {
 		for(ProofHandler proofHandler : proofHandlers){
 			try {
 				File reuse = getFeatureStubProof(proofHandler,featurestubs);
-				
+				System.out.println("Abstract Verification 130" +reuse.getAbsolutePath());
 				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, metaproductPath);
 				proofHandler.saveProof(metaproductPath);
 				

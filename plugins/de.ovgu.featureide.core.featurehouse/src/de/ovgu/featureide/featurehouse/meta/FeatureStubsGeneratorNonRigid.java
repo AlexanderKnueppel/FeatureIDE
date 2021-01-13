@@ -39,10 +39,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.core.fstmodel.FSTFeature;
+import de.ovgu.featureide.core.fstmodel.FSTField;
 import de.ovgu.featureide.core.fstmodel.FSTMethod;
 import de.ovgu.featureide.core.fstmodel.FSTRole;
 import de.ovgu.featureide.core.signature.ProjectSignatures;
@@ -131,7 +133,7 @@ public class FeatureStubsGeneratorNonRigid {
 						final String roleName = role.getClassFragment().getName();
 						StringBuilder fileTextSB = get(typeSBMap, role.getClassFragment().getFullIdentifier().replace("(default package)", ""));
 						
-						
+						TreeSet<FSTField> set = role.getClassFragment().getFields();
 						for (FSTMethod meth : role.getClassFragment().getMethods()) {
 							boolean contractChanged = false;
 							final SignatureIterator sigIterator = signatures.iterator();
@@ -155,7 +157,7 @@ public class FeatureStubsGeneratorNonRigid {
 
 										if (meth.hasContract() && meth.getContract().contains("\\original")) {
 											contractChanged = true;
-											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()));
+											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set);
 										}
 										
 										for (String typeName : fopFeatureData.getUsedNonPrimitveTypes()) {
@@ -337,7 +339,7 @@ public class FeatureStubsGeneratorNonRigid {
 	 * @param curSig
 	 * @param featureName
 	 */
-	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName) {
+	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set) {
 			
 		final String fileText = fileTextSB.toString();
 		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
@@ -371,6 +373,11 @@ public class FeatureStubsGeneratorNonRigid {
 				if(line.contains("\\original")) {
 					hasOriginal = true;
 					line = line.replace("\\original", "\\dl_OriginalPre");
+					for(FSTField field : set) {
+						line = line.replace(";", "");
+						line = line + " && \\disjoint("+ field.getName() + ", \\dl_OriginalFrame)";
+					}
+					line = line + ";";
 				}
 				aggregateClausesNonRigid(requires, line);
 				
@@ -386,7 +393,7 @@ public class FeatureStubsGeneratorNonRigid {
 
 			} else if (line.startsWith("@ " + ASSIGNABLE)) {
 				if(hasOriginal) {
-					aggregateClausesOriginalFrame(assignable,requires,contracts,i,line);
+					aggregateClausesOriginalFrame(assignable, line);
 				}else {
 					assignable.append(line);
 				}
@@ -474,22 +481,13 @@ public class FeatureStubsGeneratorNonRigid {
 		}
 		clause.append("\t"+line);			
 	}
-	private int aggregateClausesOriginalFrame(StringBuilder clause, StringBuilder requiersClause, String[] contracts, int i, String line) {
+	private void aggregateClausesOriginalFrame(StringBuilder clause, String line) {
 		if (clause.length() > 0) {
 			clause.append("\n"); 
 		}
 		String tempContractString = line.replace("@ assignable", "").trim();
-		String[] variables = tempContractString.split(",");
-		for(String v: variables) {
-			v = v.replace(";", "");
-			requiersClause.replace(requiersClause.length()-1,requiersClause.length(), "");
-			requiersClause.append(" && \\disjoint("+ v + ", \\dl_OriginalFrame)");
-		}
-		requiersClause.append(";");
 		line = "\t@ assignable \\dl_OriginalFrame, " +tempContractString;
 		clause.append(line);			
-	
-		return i;
 	}
 	
 	private void checkForOriginal(StringBuilder fileTextSB, FSTMethod meth, AbstractSignature curSig,

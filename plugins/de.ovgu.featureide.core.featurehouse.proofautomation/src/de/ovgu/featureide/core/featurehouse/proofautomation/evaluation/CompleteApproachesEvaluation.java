@@ -129,7 +129,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){		
 				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
 			}
-			
+		
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){
 				ExcelManager2.updateSingleProjectsWithReuse(s);
 				approachData.addFailedProofs(s);

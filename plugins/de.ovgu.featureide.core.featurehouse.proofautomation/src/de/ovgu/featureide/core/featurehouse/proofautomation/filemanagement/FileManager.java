@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.uka.ilkd.key.parser.KeYLexerTokensUpdaterParser.finallyClause_return;
+
 /**
  * 
  * Contains methods for file organisation
@@ -41,6 +43,7 @@ import java.util.List;
 public class FileManager {
 	//Needed directories for verification
 	public final static String evaluationDir = "Evaluation"; //directory that contains all generated files for evaluation
+	public final static String featuresDir = "features"; //directory of features
 	public final static String metaproductDir = "src"; //directory that contains the metaproduct
 	public final static String featureStubDir = "featurestub"; //directory that contains the Featurestubs
 	public final static String partialProofsDir = "Partial Proofs for Metaproduct";// directory that contains the modified abstract proof part
