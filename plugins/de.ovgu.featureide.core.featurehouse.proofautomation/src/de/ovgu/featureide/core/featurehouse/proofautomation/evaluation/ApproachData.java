@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
@@ -89,6 +90,8 @@ public class ApproachData {
 			LinkedList<IProject> projects = projectWorker2.getProjectsByApproach(toEvaluate.getName());
 			projectWorker2.generateAllMetaproductsForApproach(projects, newMetaproduct);
 			projectWorker2.generateAllFeatureStubsForApproach(projects);
+			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
+
 		}else {
 			LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 			projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);

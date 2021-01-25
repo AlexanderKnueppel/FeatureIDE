@@ -230,8 +230,7 @@ public class FeatureStubsGeneratorNonRigid {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
+		}		
 	}
 	
 	/**
@@ -282,8 +281,10 @@ public class FeatureStubsGeneratorNonRigid {
 	 */
 	private void createPrototypes(StringBuilder fileTextSB, AbstractSignature innerAbs) {
 		if (innerAbs instanceof AbstractMethodSignature) {
-			fileTextSB.append("\n\t/*@ public normal_behaviour\n\t@ requires  \\dl_OriginalPre;\n\t@ ensures "+
-					"\\dl_OriginalPost;\n\t@ assignable \\dl_OriginalFrame;\n\t@*/\n"
+			fileTextSB.append("\n\t/*@ public normal_behaviour"+
+					"\n\t@ requires   \\dl_OriginalPre;"+
+					"\n\t@ ensures    \\dl_OriginalPost;"+
+					"\n\t@ assignable \\dl_OriginalFrame;\n\t@*/\n"
 					+ innerAbs.toString() + "{}\n");
 		} else if (innerAbs instanceof AbstractFieldSignature) {
 			fileTextSB.append("\t/*field prototype*/\n\t"
@@ -375,9 +376,8 @@ public class FeatureStubsGeneratorNonRigid {
 					line = line.replace("\\original", "\\dl_OriginalPre");
 					for(FSTField field : set) {
 						line = line.replace(";", "");
-						line = line + " && \\disjoint("+ field.getName() + ", \\dl_OriginalFrame)";
+						line = line + " && \\disjoint("+ field.getName() + ", \\dl_OriginalFrame)" + ";";
 					}
-					line = line + ";";
 				}
 				aggregateClausesNonRigid(requires, line);
 				
@@ -391,7 +391,7 @@ public class FeatureStubsGeneratorNonRigid {
 				}
 				aggregateClausesNonRigid(ensures, line);
 
-			} else if (line.startsWith("@ " + ASSIGNABLE)) {
+			} else if (line.startsWith("@ " + ASSIGNABLE)) {				
 				if(hasOriginal) {
 					aggregateClausesOriginalFrame(assignable, line);
 				}else {
@@ -400,9 +400,10 @@ public class FeatureStubsGeneratorNonRigid {
 				
 			}
 		}
-		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour\n"
+		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour \n"
 				+ requires.toString()+ "\n"+ ensures.toString()+ "\n" + assignable.toString()  + "\n" + 
 				"\t@");
+		
 	}
 	/**
 	 * 
@@ -410,15 +411,13 @@ public class FeatureStubsGeneratorNonRigid {
 	 * @param curSig
 	 */
 	private void transformIntoAbstractContract(StringBuilder fileTextSB, AbstractSignature curSig) { 
-		final String fileText = fileTextSB.toString();
-		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
-		if (indexOfBody < 1) {
-			indexOfBody = fileText.lastIndexOf(" " + curSig.getName()+"(");
+		int indexOfBody = fileTextSB.toString().lastIndexOf(curSig.toString().trim());		
+		if (indexOfBody < 1) {			
+			indexOfBody = fileTextSB.toString().lastIndexOf(" " + curSig.getName() + "(");
 		}
 		String tmpText = fileTextSB.substring(0, indexOfBody);
 		int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
 		String contractBody = "";
-		
 		int brace = contractBody.indexOf("(");
 		while (!((checkPosition(contractBody, REQUIRES, brace) || checkPosition(contractBody, ENSURES, brace) || 
 				checkPosition(contractBody, ASSIGNABLE, brace)))) {
@@ -485,6 +484,7 @@ public class FeatureStubsGeneratorNonRigid {
 		if (clause.length() > 0) {
 			clause.append("\n"); 
 		}
+
 		String tempContractString = line.replace("@ assignable", "").trim();
 		line = "\t@ assignable \\dl_OriginalFrame, " +tempContractString;
 		clause.append(line);			
@@ -496,13 +496,15 @@ public class FeatureStubsGeneratorNonRigid {
 		final int indexOf = absMethodName.indexOf("(");
 		final String methodName = absMethodName.substring(0, indexOf) + "_original_" + featureName
 				+ absMethodName.substring(indexOf);
-		fileTextSB.append("\n\n\t/*@ public normal_behaviour\n\t@ requires    \\dl_OriginalPre"
-				+ ";\n\t@ ensures  \\dl_OriginalPost"
+		fileTextSB.append("\n\n\t/*@ public normal_behaviour"
+				+  "\n\t@ requires   \\dl_OriginalPre"
+				+ ";\n\t@ ensures    \\dl_OriginalPost"
 				+ ";\n\t@ assignable \\dl_OriginalFrame"
 				+ ";\n\t@*/\n" + methodName + "{}\n");
 		
 		final int indexOfBody = fileTextSB.indexOf(meth.getBody());
-		final int indexOfOriginal = fileTextSB.substring(indexOfBody).indexOf("original(");
+		String tmpString = fileTextSB.substring(indexOfBody);
+		final int indexOfOriginal = tmpString.indexOf("original(");
 		final String methodBody = fileTextSB.substring(indexOfBody + indexOfOriginal);
 		fileTextSB.replace(indexOfBody + indexOfOriginal, indexOfBody + indexOfOriginal + methodBody.indexOf("(") ,curSig.getName()
 				+ "_original_" + featureName); 

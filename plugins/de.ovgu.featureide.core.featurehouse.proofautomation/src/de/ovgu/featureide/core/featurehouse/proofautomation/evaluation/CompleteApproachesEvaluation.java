@@ -125,7 +125,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	public void performEvaluation(){
 		for(ApproachData approachData: allProjects){			
 			approachData.generateCode();
-/*
+
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){		
 				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
 			}
@@ -156,7 +156,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 				updateStatistics(e);
 			}
 			createXLS();
-			*/
+			
 		}
 
 	}

@@ -25,12 +25,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.key_project.util.collection.ImmutableSet;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
@@ -97,10 +100,7 @@ public class MetaProductBuilderNonRigid {
 		File projectDir = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/SandBox/BankAccountv1/");
 		File f = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1/");
 		//preparePartialProofs(projectDir,f);
-		Map<String, String> contractsMap = getContract(proof);
-		if(contractsMap != null) {
-			prepareContracts(contractsMap);
-		}
+
 		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
 		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
 		/*
@@ -126,98 +126,7 @@ public class MetaProductBuilderNonRigid {
 			}
 		}*/
 	}
-	
-	private static void prepareContracts(Map<String, String> contractsMap) {
-		String[] variableString = new String[1];
-		if(contractsMap.containsKey("assignable")) {
-			String assignable = contractsMap.get("assignable").replace(";", "");
-			String[] variables = assignable.split(",");
-			assignable = "";
-			int i =0;
-			variableString = new String[variables.length];
-			for(String var : variables) {
-				if(!var.contains("\nothing")) {
-					variableString[i++] = var.trim();
-					var = "self." + var.trim();					
-				}
-				assignable = assignable +var + ", ";
-			}
-			assignable  = assignable.substring(0,assignable.length()-2);
-			System.out.println(assignable);
-		}
-		if(contractsMap.containsKey("requires")) {			
-			String require = contractsMap.get("requires").replace(";", "");
-			for(String var: variableString) {
-				if(require.contains("\\old("+var+")")) {
-					require = require.replace("\\old("+var+")", "self."+var);
-					System.out.println(require);
-				}
-			}
 
-			require = require.replace("x ", "_x ");
-			require = require.replace(" || ", " |");
-			require = require.replace(" && ", " &");
-			require = require.replace("(\\result)", "result = true");
-			
-		}
-		if(contractsMap.containsKey("ensures")) {
-			String ensures = contractsMap.get("ensures").replace(";", "");
-			for(String var: variableString) {
-				if(ensures.contains("\\old("+var+")")) {
-					ensures = ensures.replace("\\old("+var+")", "self."+var+"@heapAtPre");
-					System.out.println(ensures);
-				}
-			}
-			ensures = ensures.replace("x ", "_x ");
-			ensures = ensures.replace(" || ", " |");
-			ensures = ensures.replace(" && ", " &");
-			ensures = ensures.replace("(\\result)", "result = true");
-			System.out.println(ensures);
-		}
-	}
-	
-	private static Map<String, String> getContract(File reuseProof) {
-		String proofPath = reuseProof.getParentFile().getParentFile().getParentFile().getAbsolutePath()+FILE_SEPERATOR+"src";
-		String[] tmpString = reuseProof.getName().split("\\(");
-		String featureName = tmpString[0];
-		String methodName = tmpString[1].substring(tmpString[1].lastIndexOf("__")+2);
-
-		try {
-			BufferedReader bReader = new BufferedReader(new FileReader(proofPath+FILE_SEPERATOR+featureName+".java"));
-            String line = bReader.readLine();
-            Map<String, String> contractsMap = new HashMap<>();
-            while(line != null) {
-            	System.out.println(line);
-            	if(line.contains("/*@") && !line.contains("/*@pure@*/")){
-            		while(!line.contains("@*/")) {            			 
-            			 String tmp = line.split(" ")[0];
-            			 if(tmp.equals("requires")) {            				 
-            				 line = line.replace(tmp, "").trim();
-            				 contractsMap.put("requires", line);
-            			 }
-            			 if(tmp.equals("ensures")) {
-            				 contractsMap.put("ensures", line.replace(tmp, ""));
-            			 }
-            			 if(tmp.equals("assignable")) {
-            				 contractsMap.put("assignable", line.replace(tmp, ""));
-            			 }
-            			 line = bReader.readLine().trim();
-            		}
-            		line = bReader.readLine().trim();
-            	}
-            	if(line.contains(methodName+"_BankAccount(") && line.endsWith("{")) {
-                 	return contractsMap;
-            	}else {
-            		contractsMap.clear();
-            	}            	
-                line = bReader.readLine();
-            }
-            bReader.close();
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-		return null;
-	}
 	
 	/**
 	 * Performs the proof transformation for all partial proofs if necessary
@@ -227,6 +136,7 @@ public class MetaProductBuilderNonRigid {
 		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		System.out.println("Prepare " + partialProofs + " for Partialproofs");
 		File[] featurestubs = partialProofs.listFiles();
+		//prepareMetaproductForNonRigid(new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 		for(File f : featurestubs){
 			if(f.isDirectory()){
 				File[] proofs = f.listFiles();
@@ -244,14 +154,16 @@ public class MetaProductBuilderNonRigid {
 							String replace_with = "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
 							if(!checkForMethod(replace_with,metaproduct)) {
 								replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+							
 							}
-							//replaceMethodNamesInPartialProofs(method_to_replace,replace_with,f.getName(),proofFile);
-							//renameAbstractKeywords(proofFile, f, methodname);
-							//renameRemainingStuff(proofFile, f, methodname);
+							changeMetaproductContract(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), replace_with);
+							
+							replaceMethodNamesInPartialProofs(method_to_replace,replace_with,f.getName(),proofFile);
+							renameAbstractKeywords(proofFile, f, methodname);
+							renameRemainingStuff(proofFile, f, methodname);
 							renameProof(proofFile,f,methodname+"_"+f.getName());
 
-						}
-						else{
+						}else{
 							String extensionForBankAccount = "";
 							List<String> whitelist = new ArrayList<String>();
 							whitelist.add("update");
@@ -260,13 +172,13 @@ public class MetaProductBuilderNonRigid {
 							whitelist.add("nextYear");
 							if(whitelist.contains(methodname) && f.getName().equals("BankAccount")) {
 								extensionForBankAccount += "_BankAccount";
+								renameRemainingStuff(proofFile, f, methodname);
 							}
-							//renameAbstractKeywords(proofFile, f, methodname);
-						//	renameRemainingStuff(proofFile, f, methodname);
+							renameAbstractKeywords(proofFile, f, methodname);
+							
 							renameProof(proofFile,f,methodname+extensionForBankAccount);
 							
-						}
-						
+						}					
 					
 					}
 					if(proofFile.getName().endsWith(".key")) {
@@ -278,6 +190,132 @@ public class MetaProductBuilderNonRigid {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * finds all abstract contracts stuff and removes it
+	 * @param metaProduct
+	 */
+	public static void prepareMetaproductForNonRigid(File metaProduct) {
+		createKeyFile(Paths.get(metaProduct.getAbsolutePath()+FILE_SEPERATOR+"Meta.key"));
+		
+		for(File source : metaProduct.listFiles()){
+			if(!source.isDirectory()){
+					StringBuffer sbuffer = new StringBuffer();
+					try {
+						BufferedReader bReader = new BufferedReader(new FileReader(source));
+			            String line = bReader.readLine();
+			            while(line != null ) {
+			            	 line = line.replaceAll("//*@ pure @*// ", "");
+			        	     if(line.contains("_abs")) {
+			                	String tmp = line.substring(0,line.indexOf("_abs")); 
+			                	line = bReader.readLine();
+			                	if(line.contains("def ")) {
+				                	int index = line.indexOf(" = " );
+				                	line = tmp + line.substring(index+2);                	
+			                	}
+			                } 
+			            	sbuffer.append(line+ System.getProperty("line.separator"));
+			                line = bReader.readLine();
+
+			            }
+			            BuilderUtil.rewriteFile(sbuffer,source);
+
+			            bReader.close();
+					}catch (Exception e) {
+						 e.printStackTrace();
+					}				
+				}
+			
+		}
+
+	}
+	/**
+	 * Gets the contract of the featurestub and passes it into the metaproduct
+	 * @param methodeName
+	 * @param metaProduct
+	 * @param evalPath
+	 * @param featureName
+	 */
+	private static void changeMetaproductContract(String methodeName, File metaProduct,File evalPath, String featureName, String contractName, String projectName) {
+		File featureStub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+featureName+FILE_SEPERATOR+metaProduct.getName());
+		String contractString = "";
+        contractName = contractName.substring(0,contractName.indexOf("))."));
+        contractName = contractName.substring(contractName.lastIndexOf("(")+1).trim();
+        if(contractName.length()<=1) {
+        	contractName = ")";
+        }
+
+		//search the featurestub for the correct contract and save it
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(featureStub));
+            String line = bReader.readLine();
+            
+            boolean methodFound = false;
+            while(line != null && !methodFound) {          	
+            	if(line.contains("/*@")){
+            		contractString = "";            		
+            	    while(!line.contains("@*/")) {
+            	    	contractString = contractString + line+ System.getProperty("line.separator");
+            			line = bReader.readLine();
+            		}
+            	    contractString = contractString + line+ System.getProperty("line.separator");
+            	} 
+				if(line.contains(methodeName+"(")) {
+					 methodFound = true;
+				}				
+				line = bReader.readLine();
+            }
+            contractString = contractString.replaceAll(methodeName+"_original_"+featureName, projectName);
+          
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+		
+		//search in the metaproduct for the method and change the contract to the one from the featurestub
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(metaProduct));
+            String line = bReader.readLine();
+
+            int lineNr = 0;
+            int j = 0;
+            int contractLineNr = 0;
+            int methodLineNr = 0;
+            while(line != null ) {   
+            	if(line.contains("/*@")){
+            		lineNr = j;
+            	}            	
+            	if(line.contains(" " + methodeName+"_"+featureName+"("+contractName)) {   
+            	    contractLineNr = lineNr;
+            	    methodLineNr = j;
+            	}
+                line = bReader.readLine();
+                j++;
+            }           
+            bReader.close();
+            
+            StringBuffer sbuffer = new StringBuffer();
+            bReader = new BufferedReader(new FileReader(metaProduct));
+            for(int i = 0 ; i <= methodLineNr; i++) {
+            	if(i > contractLineNr) {
+            		line = "";
+            	}else if(line != null){
+            	sbuffer.append(line+ System.getProperty("line.separator"));
+            	}
+            	line = bReader.readLine();
+            }
+            sbuffer.append(contractString+ System.getProperty("line.separator"));
+            while (line != null) {          	
+            	sbuffer.append(line+ System.getProperty("line.separator"));
+				line = bReader.readLine();
+            }
+            BuilderUtil.rewriteFile(sbuffer,metaProduct);
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        
 	}
 	
 	/**
@@ -317,10 +355,10 @@ public class MetaProductBuilderNonRigid {
             String folderString = proof.getParentFile().getParentFile().getParentFile().getName();
             while(line != null) {
             	if(line.startsWith("\\javaSource")) {
-            		//line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";"+
+            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";"+
 
             		//line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+"src\";"+
-            		line = line + 
+            		//line = line + 
             				"\n\n"+ "\\functions {\n" + 
             				"  LocSet OriginalFrame;\n" + 
             				"}\n" + 
@@ -478,7 +516,6 @@ public class MetaProductBuilderNonRigid {
 		
 		String[] filenameParts = filename.split("\\.");
 		if(filenameParts[0].contains("java")){
-			System.out.println(filenameParts[0]);
 			return "inv";
 		}
 		else{
@@ -585,5 +622,30 @@ public class MetaProductBuilderNonRigid {
 		}
 		return contractMap;
 	}
-
+	/**
+	 * 
+	 * @param file
+	 */
+	private static void createKeyFile(Path file) {
+		String text = "\\javaSource \".\";\n" + 
+				"\n" + 
+				"\\functions {\n" + 
+				"  LocSet OriginalFrame;\n" + 
+				"}\n" + 
+				"\n" + 
+				"\\predicates {\n" + 
+				"  \\nonRigid OriginalPre;\n" + 
+				"  \\nonRigid OriginalPost;\n" + 
+				"}\n" + 
+				"\n" + 
+				"\\chooseContract";
+		try {
+			Files.deleteIfExists(file);			
+			Files.write(file, text.getBytes("UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 }

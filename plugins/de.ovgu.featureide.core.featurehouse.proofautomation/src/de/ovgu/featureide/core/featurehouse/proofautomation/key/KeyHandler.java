@@ -20,7 +20,10 @@
  */
 package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.key_project.util.collection.ImmutableSet;
+
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
@@ -183,5 +188,39 @@ public abstract class KeyHandler {
 	 */
 	public void replayFeatureStubProof(ProofHandler proofHandler,File oldPartialProof, String savePath, int maxRuleApplication,
 			StrategyProperties defaultSettingsForFeatureStub) {	}
+	
+	/**
+	 * replaces the javasouce in the proof-File with an empty string, because of a bug in KeY.
+	 * bug:when loading a proof-File it adds the Path of the folder of the file in front of the javasource-String 
+	 * @param proof
+	 */
+	public static void replaceJavaSource(File proof){
+		String FILE_SEPERATOR = System.getProperty("file.separator");
+		StringBuffer sbuffer = new StringBuffer();
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(proof));
+            String line = bReader.readLine();
+            String folderString = proof.getParentFile().getParentFile().getName();
+            while(line != null) {
+            	if(line.startsWith("\\javaSource")) {
+            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";"+
+            				"\n\n"+ "\\functions {\n" + 
+            				"  LocSet OriginalFrame;\n" + 
+            				"}\n" + 
+            				"\n" + 
+            				"\\predicates {\n" + 
+            				"  \\nonRigid OriginalPre;\n" + 
+            				"  \\nonRigid OriginalPost;\n" + 
+            				"}";
+            	}
+            	sbuffer.append(line + System.getProperty("line.separator"));
+                line = bReader.readLine();
+            }
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        BuilderUtil.rewriteFile(sbuffer,proof);
+	}
 
 }

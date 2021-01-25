@@ -140,13 +140,9 @@ public class DefaultKeY extends KeyHandler{
 		            System.out.println("Reused: "+proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
 		            proofHandler.setReusedStatistics();
 		            File reusedProof = null;
-		            if(analyseType.equals("Fefalution")) {		            	
-		            	reusedProof = proofHandler.saveProof(reuseProof.getParentFile().getAbsolutePath());
-		            	replaceJavaSource(reusedProof);
-		            }else {
-		            	reusedProof = proofHandler.saveProof(savePath);
-		            }
-		            
+            	   	reusedProof = proofHandler.saveProof(savePath);
+		            replaceJavaSource(reusedProof);
+	            
 	    			loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 					initConfig = loader.getInitConfig();	
 					environment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
@@ -248,28 +244,5 @@ public class DefaultKeY extends KeyHandler{
 	}
 		}	
 
-	/**
-	 * replaces the javasouce in the proof-File with an empty string, because of a bug in KeY.
-	 * bug:when loading a proof-File it adds the Path of the folder of the file in front of the javasource-String 
-	 * @param proof
-	 */
-	private static void replaceJavaSource(File proof){
-		String FILE_SEPERATOR = System.getProperty("file.separator");
-		StringBuffer sbuffer = new StringBuffer();
-		try {
-			BufferedReader bReader = new BufferedReader(new FileReader(proof));
-            String line = bReader.readLine();
-            while(line != null) {
-            	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \"\";";
-            	}
-            	sbuffer.append(line + System.getProperty("line.separator"));
-                line = bReader.readLine();
-            }
-            bReader.close();
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-        BuilderUtil.rewriteFile(sbuffer,proof);
-	}
+
 }

@@ -247,9 +247,9 @@ public class FeatureStubsGenerator {
 
 	private void createPrototypes(StringBuilder fileTextSB, AbstractSignature innerAbs) {
 		if (innerAbs instanceof AbstractMethodSignature) {
-			fileTextSB.append("\n\n\t/*method prototype*/" + "\t/*@ public normal_behaviour\n\t@ requires_abs   " + innerAbs.getName()
-					+ "R;\n\t@ ensures_abs    " + innerAbs.getName()
-					+ "E;\n\t@ assignable_abs " + innerAbs.getName() + "A;\n\t@*/\n"
+			fileTextSB.append("\n\n\t/*method prototype*/" + "\t/*@ public normal_behaviour\n\t@ requires  " + innerAbs.getName()
+					+ ";\n\t@ ensures    " + innerAbs.getName()
+					+ ";\n\t@ assignable " + innerAbs.getName() + ";\n\t@*/\n"
 					+ innerAbs.toString() + "{}\n");
 		} else if (innerAbs instanceof AbstractFieldSignature) {
 			fileTextSB.append("\t/*field prototype*/\n\t"
@@ -294,8 +294,8 @@ public class FeatureStubsGenerator {
 		final int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
 		final String contractBody = fileTextSB.substring(tmpText.length() - 1);
 		fileTextSB.replace(indexOfStartOfContract, fileTextSB.length(),
-				"\n\t/*@ public normal_behaviour\n\t@ requires_abs   " + curSig.getName() + "R;\n\t@ ensures_abs    "
-				+ curSig.getName() + "E;\n\t@ assignable_abs " + curSig.getName() + "A;\n\t@*/\n"
+				"\n\t/*@ public normal_behaviour\n\t@ requires   " + curSig.getName() + ";\n\t@ ensures    "
+				+ curSig.getName() + ";\n\t@ assignable" + curSig.getName() + ";\n\t@*/\n"
 				+ contractBody);
 	}
 
@@ -335,9 +335,9 @@ public class FeatureStubsGenerator {
 			}
 		}
 		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour\n"
-				+ "\t@ requires_abs   " + curSig.getName() + "R;\n" + ((requires.length() != 0) ? "\t@ def " + curSig.getName() + "R = " + requires.toString().replace(";", "") + ";\n" : "") +
-				"\t@ ensures_abs " + curSig.getName() + "E;\n" + ((ensures.length() != 0) ? "\t@ def " + curSig.getName() + "E = " + ensures.toString().replace(";", "")  + ";\n" : "") + 
-				"\t@ assignable_abs " + curSig.getName() + "A;\n"+ ((assignable.length() != 0) ? "\t@ def " + curSig.getName() + "A = " + assignable.toString()  + "\n" : "") + 
+				+ "\t@ requires   " + ((requires.length() != 0) ? curSig.getName() + " = " + requires.toString().replace(";", "") + ";\n" : "") +
+				"\t@ ensures " +  ((ensures.length() != 0) ? curSig.getName() + " = " + ensures.toString().replace(";", "")  + ";\n" : "") + 
+				"\t@ assignable " + ((assignable.length() != 0) ? curSig.getName() + " = " + assignable.toString()  + "\n" : "") + 
 				"\t@");
 	}
 	
@@ -367,7 +367,7 @@ public class FeatureStubsGenerator {
 		final int indexOf = absMethodName.indexOf("(");
 		final String methodName = absMethodName.substring(0, indexOf) + "_original_" + featureName
 				+ absMethodName.substring(indexOf);
-		fileTextSB.append("\n\n\t/*@ public normal_behaviour\n\t@ requires_abs   " + curSig.getName() + "_original_"
+		fileTextSB.append("\n\n\t/*@ public normal_behaviour \n\t@ requires_abs   " + curSig.getName() + "_original_"
 				+ featureName + "R;\n\t@ ensures_abs    " + curSig.getName() + "_original_"
 				+ featureName + "E;\n\t@ assignable_abs " + curSig.getName() + "_original_"
 				+ featureName + "A;\n\t@*/\n" + methodName + "{}\n");

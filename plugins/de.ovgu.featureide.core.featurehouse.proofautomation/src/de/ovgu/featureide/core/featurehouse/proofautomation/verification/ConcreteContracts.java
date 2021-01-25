@@ -23,6 +23,7 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 import java.io.File;
 import java.util.List;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
@@ -47,12 +48,12 @@ public class ConcreteContracts extends AbstractVerification{
 	 */
 	public void performVerification(File loc, File evalPath){
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+		if(method.equals("Non Rigid")) {
+			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
+		}
 		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
 		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForMetaproduct(),firstVersion,savePath,keyHandler);
 
 	}
-
-
-
 }

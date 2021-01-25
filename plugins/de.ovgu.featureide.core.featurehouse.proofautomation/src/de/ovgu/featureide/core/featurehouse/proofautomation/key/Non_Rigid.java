@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.key_project.util.collection.ImmutableList;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
@@ -44,7 +45,7 @@ import de.uka.ilkd.key.logic.PosInTerm;
 import de.uka.ilkd.key.logic.Sequent;
 import de.uka.ilkd.key.logic.SequentFormula;
 import de.uka.ilkd.key.logic.TermBuilder;
-
+import de.uka.ilkd.key.logic.op.IProgramVariable;
 import de.uka.ilkd.key.logic.op.QuantifiableVariable;
 import de.uka.ilkd.key.parser.ParserException;
 import de.uka.ilkd.key.proof.Goal;
@@ -123,85 +124,121 @@ public class Non_Rigid extends KeyHandler{
 	
 	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) {
 		UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
+		boolean reusedAProof = false;
 		try {
 			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 			InitConfig initConfig = loader.getInitConfig();
 			KeYEnvironment<?> keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(),loader.getResult());		
 			Services services = keYEnvironment.getServices();			
-		//	JavaModel namespaceSet = getFittingNamespace(reuseProof);
-
+			
 			proofHandler.proof = keYEnvironment.getLoadedProof();
-			for(Goal goals : proofHandler.proof.openGoals()) {
-				//System.out.println(goals);
-				
+			for(Goal goal : proofHandler.proof.openGoals()) {
+				Goal oldGoal = goal;
 				SequentFormula cf;
-				
+
 				TermBuilder termBuilder = services.getTermBuilder();				
-				Map<String,String> contractMap = getContract(reuseProof,goals);
-				Sequent seqent = goals.sequent();
+				Map<String,String> contractMap = getContract(reuseProof,goal);
+				Sequent seqent = goal.sequent();
 				
-				int i = 1;
+				boolean allreadyset = false;
 				try {
 					if(contractMap != null) {
+									
 						for(SequentFormula sequentFormula:seqent) {
-							System.out.println("SequentFormula Nr "+ i +" :"+ sequentFormula);
-								if(sequentFormula.toString().contains("OriginalPre")) {	
-									System.out.println("Contract "+ "requires" +" :"+ contractMap.get("requires"));
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> "+contractMap.get("requires"), goals.getLocalNamespaces()));
-									goals.setSequent(seqent.addFormula(cf , new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true)));								
-
-									System.out.println("SequentFormula requires Nr "+ i +" :"+ sequentFormula);
+							PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true);
+							if(! allreadyset && (sequentFormula.toString().contains("OriginalPre")||sequentFormula.toString().contains("OriginalPost"))) {	
+								if(contractMap.containsKey("requires")) {
+									cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> "+contractMap.get("requires"), goal.getLocalNamespaces()));
+									goal.addFormula(cf, posInOccurrence);
+									allreadyset=true;
 								}
-								if(sequentFormula.toString().contains("OriginalPost")&& contractMap.containsKey("ensures")) {
-									System.out.println("Contract "+ "ensures" +" :"+ contractMap.get("ensures"));
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> "+contractMap.get("ensures"), goals.getLocalNamespaces()));	
-									goals.setSequent(seqent.addFormula(cf , new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true)));
-									System.out.println("SequentFormula ensures Nr "+ i +" :"+ sequentFormula);
+								if(contractMap.containsKey("ensures")) {
+									cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> "+contractMap.get("ensures"), goal.getLocalNamespaces()));	
+									goal.addFormula(cf, posInOccurrence);
 								}
-								if(sequentFormula.toString().contains("OriginalFrame")&& contractMap.containsKey("assignable")) {
-									System.out.println("Contract "+ "assignable" +" :"+ contractMap.get("assignable"));
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = "+contractMap.get("assignable"), goals.getLocalNamespaces()));
-									//SequentFormula names = seqent.formulaNumberInSequent(false,sequentFormula);
-									goals.setSequent(seqent.addFormula(cf , new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true)));
-									System.out.println("SequentFormula assignable Nr "+ i +" :"+ sequentFormula);
+								if(contractMap.containsKey("assignable")) {
+									cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = "+contractMap.get("assignable"), goal.getLocalNamespaces()));							
+									goal.addFormula(cf, posInOccurrence);
 								}
-
-							i++;
+							}								
+						}
+						if(allreadyset) {
+							//System.out.println("before:\n"+oldGoal);
+							//System.out.println("after:\n"+goal);
 						}
 					}
-
-					
+			
 				} catch (ParserException e) {
 					System.out.println("Non_Rigid startMetaProductProof failed");
 					e.printStackTrace();
-				}
-				System.out.println(goals);
-				Node node = goals.node();
+				}/*
+				Node node = goal.node();
 				Profile profile = keYEnvironment.getProfile();
 
 				Services newServices = new Services(profile);
 				InitConfig newinitConfig = new InitConfig(newServices);
 				
 				Proof prooNewProof = new Proof(node.name(), newinitConfig);
-				prooNewProof.add(goals);
+				prooNewProof.add(goal);
 				prooNewProof.setRoot(node);				
-				Strategy strategy = goals.getGoalStrategy();
-				prooNewProof.setActiveStrategy(strategy);
+				Strategy strategy = goal.getGoalStrategy();
+				prooNewProof.setActiveStrategy(strategy);*/
 				//prooNewProof.saveToFile(new File(reuseProof.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k));	
-
-				//keYEnvironment.getProofControl().startAndWaitForAutoMode(prooNewProof);
-				
-				//Files.write(Paths.get(reuseProof.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k++), prooNewProof.toString().getBytes());
-				System.out.println("Closed: " + prooNewProof.closed());
+				List<Goal>goals = new LinkedList<>();
+				goals.add(goal);
+				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
+				proofHandler.proof.replace(oldGoal, goalsImmutableList);
+	
 			}
-				
-				proofHandler.setReusedStatistics();
-				
+			keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
+        	proofHandler.setProof(proofHandler.proof);
+			proofHandler.setReusedStatistics();	
+        	reusedAProof = true;
+        	System.out.println("Closed: " + proofHandler.proof.closed());
+            System.out.println("Reused: "+ proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
+            proofHandler.setReusedStatistics();
+            File reusedProof = null;
+            if(!proofHandler.proof.closed()) {
+            	reusedProof = proofHandler.saveProof(savePath);
+	            replaceJavaSource(reusedProof);
+	            /*
+				loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+				initConfig = loader.getInitConfig();	
+				keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
+	        	*/
+	            keYEnvironment = KeYEnvironment.load(reusedProof);
+				reusedProof.delete();
+	        	proofHandler.proof = keYEnvironment.getLoadedProof();
+		        int previousNodes;
+		        int numberofOpenGoal = proofHandler.proof.openGoals().size();	        
+		        do{
+		        	if(proofHandler.proof.closed()) {
+		        		break;
+		        	}
+		        	numberofOpenGoal = proofHandler.proof.openGoals().size();
+					previousNodes = proofHandler.proof.countNodes();	
+					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
+	            	proofHandler.setProof(proofHandler.proof);
+		        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
+		        	System.out.println(previousNodes + " " + proofHandler.proof.countNodes()); 
 
+					}while((numberofOpenGoal != proofHandler.proof.openGoals().size()) || (previousNodes != proofHandler.proof.countNodes()));
+		        
+            }
+
+	        if(proofHandler.proof.openGoals().isEmpty()){
+	        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was closed");
+	            proofHandler.setClosed(true);
+	        }		
 		} catch (ProblemLoaderException e) {
+            System.out.println("Exception at '" + proofHandler.getTargetName() + ":");
 			throw new RuntimeException(e);
-		} 
-		return false;
+		}
+		proofHandler.setProof(proofHandler.proof);
+		proofHandler.setStatistics();
+        System.out.println("Actual: "+ proofHandler.getTargetName() +"\n" + proofHandler.proof.getStatistics());
+
+		return reusedAProof;
 	}
 	/**
 	 * Searches in the Metaproduct for the right contracts
@@ -269,48 +306,60 @@ public class Non_Rigid extends KeyHandler{
         }
 		return null;
 	}
+	/**
+	 * 
+	 * @param contractsMap
+	 * @param goal
+	 */
 	private static void prepareContracts(Map<String, String> contractsMap, Goal goal) {
 		List<String> variableList = new LinkedList<>();
 		for(int i = 0; i<=2;i++) {			
 			if(contractsMap.containsKey(jml[i])) {
 				String value = contractsMap.get(jml[i]);
-				
-				if(jml[i].equals("assignable")) {
-					String[] variables = value.split(",");
+				if(jml[i].equals("assignable")) {					
+					String[] variables = value.split(",");					
 					value = "";
 					for(String var : variables) {
-						if(!var.contains("\\nothing")) {
-							variableList.add(var.trim());
-							
-							var = "self." + var.trim();	
+						var = var.trim();	
+						
+						if(var.contains("\\nothing")) {
+							var = var.replace("\\nothing","");
+							value = "null";
+						}
+						if(!var.isEmpty()) {
+							variableList.add(var);
+							var = "self." + var.trim();
+							//value = String.join(", ", value,var);
 							value = value +var + ", ";
 						}
 					}
-					if(value.length() > 2) {
-						value  = value.substring(0,value.length()-2);
+					
+					if(value.length() != 0) {
+						if(!value.equals("null")) {
+							value  = value.substring(0,value.length()-2);
+						}
 					}else {
 						value = null;
 					}
-				//	System.out.println
-				}else {
+				}else{
 					if(value.trim() != null) {
 						for(String var: variableList) {
 							if(value.contains("\\old("+var+")")) {
 								value = value.replace("\\old("+var+")", "self."+var+"@heapAtPre");
 							}
-						}
-						
+						}						
 						value = value.replace("x ", "_x ");
+						value = value.replace("OVERDRAFT_LIMIT", "self.OVERDRAFT_LIMIT");
 						value = value.replace(" || ", " | ");
 						value = value.replace(" && ", " & ");
 						value = value.replace("(\\result)", "result = TRUE");	
 						value = "("+value+")";
-					}
+					}					
 				}
-				//OriginalPost <-> (!result = TRUE  |  self.balance@heapAtPre + _x >= OVERDRAFT_LIMIT)  &  (!(self.balance@heapAtPre) + _x < OVERDRAFT_LIMIT) |  !(result = TRUE)))
-				
 				if(value != null) {
 					contractsMap.put(jml[i], value);
+				}else {
+					contractsMap.remove(jml[i]);
 				}
 			}
 		}

@@ -23,6 +23,7 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 import java.io.File;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
@@ -50,9 +51,16 @@ public class Fefalution extends AbstractVerification{
 		if(!firstVersion){
 			FileManager.reuseFeaturestub(evalPath, loc);
 		}
-		performFeaturestubVerification(loc,evalPath,firstVersion, true); //TODO run with false
-		FileManager.copySavedProofsToPartialProofs(evalPath);
-		MetaProductBuilder.preparePartialProofs(loc,evalPath);
+		if(method.equals("Non Rigid")) {
+			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
+			performFeaturestubVerification(loc,evalPath,firstVersion, true);
+			FileManager.copySavedProofsToPartialProofs(evalPath);
+			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath);
+		}else {
+			performFeaturestubVerification(loc,evalPath,firstVersion, true);
+			FileManager.copySavedProofsToPartialProofs(evalPath);
+			MetaProductBuilder.preparePartialProofs(loc,evalPath);
+		}
 
 		performMetaproductVerification(loc,evalPath);
 	}

@@ -92,15 +92,11 @@ public abstract class AbstractVerification {
 					File oldPartialProof = getOldFeatureStubProof(proofHandler, FileManager.getProjectv1Path(projectDir));
 					if(!firstVersion && stubReplay && oldPartialProof != null) {
 						keyHandler.replayFeatureStubProof(proofHandler,oldPartialProof, saveFeatureStubPath, maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-						System.out.println("Abstract Verification 115 ReplayResult: closed :"+ proofHandler.isClosed() +" target :" + proofHandler.getTargetName());
 						proofHandler.saveProof(saveFeatureStubPath);
 						proofHandler.setFeaturestub(f.getParentFile().getName());
 					} else {
 						try {
-							System.out.println("AbstractVerification 118 performFeaturestubVerification: starte: " + proofHandler.getTargetName() +" mit contract: "+ proofHandler.getContract().getDisplayName());
 							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
-							System.out.println("AbstractVerification 120 performFeaturestubVerification: closed: "+ proofHandler.isClosed() +" target: " + proofHandler.getTargetName() +" number of open goals: "+ proofHandler.getProof().openGoals().size());
-
 							proofHandler.saveProof(saveFeatureStubPath);
 							proofHandler.setFeaturestub(f.getParentFile().getName());
 						} catch (Exception e) {
@@ -119,15 +115,14 @@ public abstract class AbstractVerification {
 	 */
 	protected void performMetaproductVerification(File projectDir, File evalPath){
 		List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
-		File java = getMetaproduct(projectDir);
-		List<ProofHandler> proofHandlers = keyHandler.loadInKeY(java);
+		File keyFile = getMetaproduct(projectDir);
+		List<ProofHandler> proofHandlers = keyHandler.loadInKeY(keyFile);
 		//setProofList(proofHandlers); 
 		String metaproductPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
 
 		for(ProofHandler proofHandler : proofHandlers){
 			try {
 				File reuse = getFeatureStubProof(proofHandler,featurestubs);
-				System.out.println("Abstract Verification 130" +reuse.getAbsolutePath());
 				keyHandler.startMetaProductProof(proofHandler, reuse, DefaultStrategies.defaultSettingsForMetaproduct(), maxRuleApplication, metaproductPath);
 				proofHandler.saveProof(metaproductPath);
 				
@@ -373,7 +368,8 @@ public abstract class AbstractVerification {
 	protected static File getMetaproduct(File projectDir){
 		File[] metaproduct = (new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir)).listFiles();
 		for(File m :metaproduct){
-			if(m.getName().endsWith(".java")){
+			//if(m.getName().endsWith(".java")){
+			if(m.getName().endsWith(".key")){
 				return m;
 			}
 		}
