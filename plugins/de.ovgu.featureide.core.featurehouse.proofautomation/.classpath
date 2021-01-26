@@ -24,6 +24,7 @@
 			<accessrule kind="accessible" pattern="org/eclipse/core/**"/>
 		</accessrules>
 	</classpathentry>
-	<classpathentry kind="lib" path="/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/javaparser-core-3.17.0.jar"/>
+	<classpathentry kind="lib" path="lib/javaparser-core-3.17.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/de.ovgu.featureide.core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
