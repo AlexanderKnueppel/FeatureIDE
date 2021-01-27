@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.bag.SynchronizedSortedBag;
 import org.junit.Ignore;
 import org.key_project.util.collection.ImmutableSet;
 
@@ -95,10 +99,10 @@ public class MetaProductBuilderNonRigid {
 	}
 
 	public static void main(String[] args) {
-		File proof = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1/Partial Proofs for Metaproduct/InterestEstimation/"+
-	"Account(Account__calculateInterest()).JML normal_behavior operation contract.0.proof");
-		File projectDir = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/SandBox/BankAccountv1/");
-		File f = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1/");
+		//File proof = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1/Partial Proofs for Metaproduct/InterestEstimation/"+
+	//"Account(Account__calculateInterest()).JML normal_behavior operation contract.0.proof");
+		//File projectDir = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/SandBox/BankAccountv1/");
+		//File f = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-04 13-32-35/1 Fefalution + Family Proof Replay/BankAccountv1/");
 		//preparePartialProofs(projectDir,f);
 
 		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
@@ -125,6 +129,62 @@ public class MetaProductBuilderNonRigid {
 				System.out.println("This is the alternative: " + replace_with);
 			}
 		}*/
+		File f = new File("F:\\Homeoffice\\Abschlussarbeiten\\Fefalution\\attempt\\BankAccountv1\\src\\Transaction.java");
+		File evalPath = new File("F:\\Homeoffice\\Abschlussarbeiten\\Fefalution\\\\attempt\\BankAccountv1\\");
+		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+		
+		//System.out.println(getOriginalMethod("update", "DailyLimit", f));
+
+//		enhanceContractWithPredicateDetails("Account",f, evalPath, "BankAccount", "", "");
+////		//enhanceContractWithPredicateDetails("update_BankAccount",f, evalPath, "BankAccount", "", "");
+//		enhanceContractWithPredicateDetails("update",f, evalPath, "BankAccount", "", "");
+//		enhanceContractWithPredicateDetails("update",f, evalPath, "DailyLimit", "", "");
+//		enhanceContractWithPredicateDetails("undoUpdate",f, evalPath, "BankAccount", "", "");
+//		enhanceContractWithPredicateDetails("undoUpdate",f, evalPath, "DailyLimit", "", "");
+//		enhanceContractWithPredicateDetails("calculateInterest",f, evalPath, "Interest", "", "");
+//		enhanceContractWithPredicateDetails("estimatedInterest",f, evalPath, "InterestEstimation", "", "");
+//		enhanceContractWithPredicateDetails("credit",f, evalPath, "CreditWorthiness", "", "");
+//		enhanceContractWithPredicateDetails("lock",f, evalPath, "Lock", "", "");
+//		enhanceContractWithPredicateDetails("unLock",f, evalPath, "Lock", "", "");
+//		enhanceContractWithPredicateDetails("isLocked",f, evalPath, "Lock", "", "");
+		//enhanceContractWithPredicateDetails("nextDay",f, evalPath, "BankAccount", "", "");
+//		
+////		changeMetaproductContract("update",f, evalPath, "DailyLimit", "", getOriginalMethod("update", "DailyLimit", f));
+////		changeMetaproductContract("Account",f, evalPath, "BankAccount", "", "");
+//		changeMetaproductContract("Account",f, evalPath, "BankAccount", "", "");
+////		//enhanceContractWithPredicateDetails("update_BankAccount",f, evalPath, "BankAccount", "", "");
+//		changeMetaproductContract("update",f, evalPath, "BankAccount", "", "");
+//		changeMetaproductContract("update",f, evalPath, "DailyLimit", "", "");
+//		changeMetaproductContract("undoUpdate",f, evalPath, "BankAccount", "", "");
+//		changeMetaproductContract("undoUpdate",f, evalPath, "DailyLimit", "", "");
+//		changeMetaproductContract("calculateInterest",f, evalPath, "Interest", "", "");
+//		changeMetaproductContract("estimatedInterest",f, evalPath, "InterestEstimation", "", "");
+//		changeMetaproductContract("credit",f, evalPath, "CreditWorthiness", "", "");
+//		changeMetaproductContract("lock",f, evalPath, "Lock", "", "");
+//		changeMetaproductContract("unLock",f, evalPath, "Lock", "", "");
+		changeMetaproductContract("lock",f, evalPath, "Transaction", "", "");
+		
+//		System.out.println(isPrototype("isLocked", "Account", "Transaction", evalPath));
+//		System.out.println(isPrototype("transfer", "Transaction", "Transaction", evalPath));
+//		System.out.println(isPrototype("update", "Account", "Transaction", evalPath));
+	}
+	
+	public static boolean isPrototype(String methodName, String classname, String featureName, File evalPath) {
+		File javafile = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+featureName+FILE_SEPERATOR+classname+".java");
+		try {
+			String content = new String(Files.readAllBytes(javafile.toPath()), StandardCharsets.UTF_8);
+        	Pattern pattern = Pattern.compile(".*\\s+"+methodName+"\\s*\\(.*\\)\\{\\}.*");
+        	Matcher matcher = pattern.matcher(content);
+        	if(matcher.find()) { 
+        	    return true;
+        	}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	
@@ -137,17 +197,37 @@ public class MetaProductBuilderNonRigid {
 		System.out.println("Prepare " + partialProofs + " for Partialproofs");
 		File[] featurestubs = partialProofs.listFiles();
 		//prepareMetaproductForNonRigid(new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
+		
+		//Pass 1: Add meta contract information
 		for(File f : featurestubs){
 			if(f.isDirectory()){
 				File[] proofs = f.listFiles();
 				for(File proofFile: proofs){
 					if(proofFile.getName().endsWith(".proof")) {
+						String methodname = getMethodName(proofFile);//undoUpdate
+						String classname = getClassName(proofFile);
+						if(methodname.equals("inv") || isPrototype(methodname, classname,f.getName(),evalPath)) {
+							continue;
+						}
 						
-						
+						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proofFile)+".java");
+						enhanceContractWithPredicateDetails(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), "");
+						System.out.println("Methodname = " + methodname + "; Featurename = " + f.getName());
+					}
+				}
+			}
+		}
+		
+		//Pass 2: Change remaining stuff
+		for(File f : featurestubs){
+			if(f.isDirectory()){
+				File[] proofs = f.listFiles();
+				for(File proofFile: proofs){
+					if(proofFile.getName().endsWith(".proof")) {
+
 						String methodname = getMethodName(proofFile);//undoUpdate
 						String method_to_replace = methodname + "_original_" + f.getName();
 
-						//
 						replaceJavaSource(proofFile);
 						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proofFile)+".java");
 						if(checkForOriginal(proofFile,f.getName())){
@@ -157,13 +237,17 @@ public class MetaProductBuilderNonRigid {
 							
 							}
 							changeMetaproductContract(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), replace_with);
-							
 							replaceMethodNamesInPartialProofs(method_to_replace,replace_with,f.getName(),proofFile);
 							renameAbstractKeywords(proofFile, f, methodname);
 							renameRemainingStuff(proofFile, f, methodname);
 							renameProof(proofFile,f,methodname+"_"+f.getName());
 
 						}else{
+							String classname = getClassName(proofFile);
+							if(!methodname.equals("inv") && !isPrototype(methodname, classname,f.getName(),evalPath)) {
+								changeMetaproductContract(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), "");
+							}
+							
 							String extensionForBankAccount = "";
 							List<String> whitelist = new ArrayList<String>();
 							whitelist.add("update");
@@ -206,7 +290,8 @@ public class MetaProductBuilderNonRigid {
 						BufferedReader bReader = new BufferedReader(new FileReader(source));
 			            String line = bReader.readLine();
 			            while(line != null ) {
-			            	 line = line.replaceAll("//*@ pure @*// ", "");
+			            	 line = line.replace("/*@pure", "/*@ pure")
+			             			.replace("pure@*/", "pure @*/").replaceAll("  ", " ").replace("/*@ pure @*/", "");
 			        	     if(line.contains("_abs")) {
 			                	String tmp = line.substring(0,line.indexOf("_abs")); 
 			                	line = bReader.readLine();
@@ -230,6 +315,133 @@ public class MetaProductBuilderNonRigid {
 		}
 
 	}
+	
+	private static void enhanceContractWithPredicateDetails(String methodeName, File metaProduct,File evalPath, String featureName, String contractName, String projectName) {
+		String realname = methodeName+"_"+featureName;
+		try {
+			if(!(new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8).contains(methodeName+"_"+featureName))) {
+				realname = methodeName;
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try {
+			BufferedReader bReader = new BufferedReader(new FileReader(metaProduct));
+            String line = bReader.readLine();
+            
+            List<String> oldContract = new ArrayList<String>();
+
+            int lineNr = 0;
+            int j = 0;
+            int contractLineNr = 0;
+            boolean done = false;
+            while(line != null ) {   
+            	line = line.replace("/*@pure", "/*@ pure")
+            			.replace("pure@*/", "pure @*/").replaceAll("  ", " ").replace("/*@ pure @*/", "");
+            	
+            	if(line.contains("/*@")){
+            		lineNr = j;
+            		if(!done)
+            			oldContract.clear();
+            	}            
+            	if(line.contains("requires") && line.contains("FM.FeatureModel.") && !done) {
+            		String tmp = line;
+            		int k = tmp.lastIndexOf("FM.FeatureModel.");
+            		
+            		while(k< tmp.length() && tmp.charAt(k) != ' ' &&  tmp.charAt(k) != '&' &&  tmp.charAt(k) != ';') {
+            			k++;
+            		}
+            		
+            		String allowedCombination = tmp.substring(0, k);
+            		String str = allowedCombination.replaceFirst("requires", "").replace("@", "").trim();
+            		if(str.isEmpty())
+            			str = "true";
+            		oldContract.add("combination " + str);
+            	} 
+
+            	Pattern pattern = Pattern.compile(".*\\s+"+realname+"\\s*\\(.*\\)\\s*\\{");
+            	Matcher matcher = pattern.matcher(line);
+            	if(matcher.find()) { 
+            	    contractLineNr = lineNr;
+            	    done = true;
+            	    break;
+            	}
+                line = bReader.readLine();
+                j++;
+            }           
+            bReader.close();
+            
+            StringBuffer sbuffer = new StringBuffer();
+            bReader = new BufferedReader(new FileReader(metaProduct));
+            
+            for(int i = 0 ; i <contractLineNr; i++) {
+               	line = bReader.readLine();
+            	if(line != null){
+            		sbuffer.append(line+ System.getProperty("line.separator"));
+            	}
+            }
+            
+            if(oldContract.isEmpty()) {
+            	oldContract.add("combination true");
+            }
+            
+            if(!realname.equals(methodeName)) { //i.e., realname = methodname_featurename
+	            //Extract contract of original method
+	            String originalMethod = methodeName + "_" + getOriginalMethod(methodeName, featureName, metaProduct);
+	            
+	            String content = new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8);
+	            String contractOfOriginal = "";
+	            for(String sentence : content.split("\n")) {
+	            	
+	            	Pattern pattern = Pattern.compile(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
+	            	Matcher matcher = pattern.matcher(sentence);
+	            	if(matcher.find()) { 
+	            		break;
+	            	}
+	            	System.out.println(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
+	            	if(sentence.contains("/*@")) {
+	            		contractOfOriginal = "/*@";
+	            	} else {
+	            		contractOfOriginal += sentence + "\n";
+	            	}
+	            }
+	
+	        	for(String sentence : contractOfOriginal.split("\n")) {
+	        		if(sentence.contains("requires")) {
+	        			oldContract.add("originalpre " + sentence.replaceAll("requires", "").replaceAll("@", "").replaceAll(";", "").trim());
+	        		} else if(sentence.contains("ensures")) {
+	        			oldContract.add("originalpost " + sentence.replaceAll("ensures", "").replaceAll("@", "").replaceAll(";", "").trim());
+	        		}  else if(sentence.contains("assignable")) {
+	        			oldContract.add("originalframe " + sentence.replaceAll("assignable", "").replaceAll("@", "").replaceAll(";", "").trim());
+	        		}
+	        	}
+            }
+            
+            String oldContractStr = String.join("\n", oldContract);
+            oldContractStr = "/*\n" + oldContractStr + "\n*/";
+            
+            oldContractStr = oldContractStr.replaceAll("@", "");
+            oldContractStr = oldContractStr.replaceAll("combination", "\t _combination_" + realname +" =");
+            oldContractStr = oldContractStr.replaceAll("originalpre", "\t _originalPre_" + realname +" =");
+            oldContractStr = oldContractStr.replaceAll("originalpost", "\t _originalPost_" + realname +" =");
+            oldContractStr = oldContractStr.replaceAll("originalframe", "\t _originalFrame_" + realname +" =");
+             
+            sbuffer.append(oldContractStr+"\n");
+            while (line != null) {      
+            	line = bReader.readLine();
+            	if(line != null)
+            		sbuffer.append(line+System.getProperty("line.separator"));
+            }
+            BuilderUtil.rewriteFile(sbuffer,metaProduct);
+            bReader.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        		
+	}
+	
 	/**
 	 * Gets the contract of the featurestub and passes it into the metaproduct
 	 * @param methodeName
@@ -240,11 +452,6 @@ public class MetaProductBuilderNonRigid {
 	private static void changeMetaproductContract(String methodeName, File metaProduct,File evalPath, String featureName, String contractName, String projectName) {
 		File featureStub = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.featureStubDir+FILE_SEPERATOR+featureName+FILE_SEPERATOR+metaProduct.getName());
 		String contractString = "";
-        contractName = contractName.substring(0,contractName.indexOf("))."));
-        contractName = contractName.substring(contractName.lastIndexOf("(")+1).trim();
-        if(contractName.length()<=1) {
-        	contractName = ")";
-        }
 
 		//search the featurestub for the correct contract and save it
 		try {
@@ -253,17 +460,26 @@ public class MetaProductBuilderNonRigid {
             
             boolean methodFound = false;
             while(line != null && !methodFound) {          	
+            	line = line.replace("/*@pure", "/*@ pure")
+            			.replace("pure@*/", "pure @*/").replaceAll("  ", " ").replace("/*@ pure @*/", "");
+            	
             	if(line.contains("/*@")){
             		contractString = "";            		
-            	    while(!line.contains("@*/")) {
+            	    while(!line.contains("@*/") && !line.contains("*/")) {
             	    	contractString = contractString + line+ System.getProperty("line.separator");
             			line = bReader.readLine();
             		}
             	    contractString = contractString + line+ System.getProperty("line.separator");
+            	    
+            	    if(line != null)
+            	    	line = bReader.readLine();
+            	    
+                	if(line.contains(methodeName+"(")) {
+   					 	methodFound = true;
+                	}
             	} 
-				if(line.contains(methodeName+"(")) {
-					 methodFound = true;
-				}				
+				
+				
 				line = bReader.readLine();
             }
             contractString = contractString.replaceAll(methodeName+"_original_"+featureName, projectName);
@@ -273,23 +489,62 @@ public class MetaProductBuilderNonRigid {
             e.printStackTrace();
         }
 		
+		String realname = methodeName+"_"+featureName;
+		try {
+			if(!(new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8).contains(methodeName+"_"+featureName))) {
+				realname = methodeName;
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		//search in the metaproduct for the method and change the contract to the one from the featurestub
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(metaProduct));
             String line = bReader.readLine();
+            
+            List<String> oldContract = new ArrayList<String>();
 
             int lineNr = 0;
             int j = 0;
             int contractLineNr = 0;
             int methodLineNr = 0;
-            while(line != null ) {   
+            while(line != null ) {
+            	line = line.replace("/*@pure", "/*@ pure")
+            			.replace("pure@*/", "pure @*/").replaceAll("  ", " ").replace("/*@ pure @*/", "");
+            	
             	if(line.contains("/*@")){
             		lineNr = j;
-            	}            	
-            	if(line.contains(" " + methodeName+"_"+featureName+"("+contractName)) {   
+            	}            
+//            	if(line.contains("requires") && line.contains("FM.FeatureModel.") && !done) {
+//            		String tmp = line;
+//            		int k = tmp.lastIndexOf("FM.FeatureModel.");
+//            		
+//            		while(k< tmp.length() && tmp.charAt(k) != ' ' &&  tmp.charAt(k) != '&' &&  tmp.charAt(k) != ';') {
+//            			k++;
+//            		}
+//            		
+//            		String allowedCombination = tmp.substring(0, k);
+//            		String str = allowedCombination.replaceFirst("requires", "").replace("@", "").trim();
+//            		if(str.isEmpty())
+//            			str = "true";
+//            		oldContract.add("combination " + str);
+//            	} 
+
+            	Pattern pattern = Pattern.compile(".*\\s+"+realname+"\\s*\\(.*\\)\\s*\\{");
+            	Matcher matcher = pattern.matcher(line);
+            	if(matcher.find()) { 
             	    contractLineNr = lineNr;
             	    methodLineNr = j;
+            	    //done = true;
+            	    //break;
             	}
+//            	if(line.matches(".*"+realname+"\\s*\\(.*\\)\\s*\\{.*")) { 
+//            	    contractLineNr = lineNr;
+//            	    methodLineNr = j;
+//            	    done = true;
+//            	}
                 line = bReader.readLine();
                 j++;
             }           
@@ -305,7 +560,53 @@ public class MetaProductBuilderNonRigid {
             	}
             	line = bReader.readLine();
             }
-            sbuffer.append(contractString+ System.getProperty("line.separator"));
+            
+//            if(oldContract.isEmpty()) {
+//            	oldContract.add("combination true");
+//            }
+            
+//            if(!realname.equals(methodeName)) { //i.e., realname = methodname_featurename
+//	            //Extract contract of original method
+//	            String originalMethod = methodeName + "_" + getOriginalMethod(methodeName, featureName, metaProduct);
+//	            
+//	            String content = new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8);
+//	            String contractOfOriginal = "";
+//	            for(String sentence : content.split("\n")) {
+//	            	
+//	            	Pattern pattern = Pattern.compile(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
+//	            	Matcher matcher = pattern.matcher(sentence);
+//	            	if(matcher.find()) { 
+//	            		break;
+//	            	}
+//	            	System.out.println(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
+//	            	if(sentence.contains("/*@")) {
+//	            		contractOfOriginal = "/*@";
+//	            	} else {
+//	            		contractOfOriginal += sentence + "\n";
+//	            	}
+//	            }
+	
+//	        	for(String sentence : contractOfOriginal.split("\n")) {
+//	        		if(sentence.contains("requires")) {
+//	        			oldContract.add("originalpre " + sentence.replaceAll("requires", "").replaceAll("@", "").replaceAll(";", "").trim());
+//	        		} else if(sentence.contains("ensures")) {
+//	        			oldContract.add("originalpost " + sentence.replaceAll("ensures", "").replaceAll("@", "").replaceAll(";", "").trim());
+//	        		}  else if(sentence.contains("assignable")) {
+//	        			oldContract.add("originalframe " + sentence.replaceAll("assignable", "").replaceAll("@", "").replaceAll(";", "").trim());
+//	        		}
+//	        	}
+//            }
+            
+//            String oldContractStr = String.join("\n", oldContract);
+//            oldContractStr = "/*\n" + oldContractStr + "\n*/";
+//            
+//            oldContractStr = oldContractStr.replaceAll("@", "");
+//            oldContractStr = oldContractStr.replaceAll("combination", "\t _combination_" + realname +" =");
+//            oldContractStr = oldContractStr.replaceAll("originalpre", "\t _originalPre_" + realname +" =");
+//            oldContractStr = oldContractStr.replaceAll("originalpost", "\t _originalPost_" + realname +" =");
+//            oldContractStr = oldContractStr.replaceAll("originalframe", "\t _originalFrame_" + realname +" =");
+             
+            sbuffer.append(contractString);
             while (line != null) {          	
             	sbuffer.append(line+ System.getProperty("line.separator"));
 				line = bReader.readLine();
@@ -355,7 +656,7 @@ public class MetaProductBuilderNonRigid {
             String folderString = proof.getParentFile().getParentFile().getParentFile().getName();
             while(line != null) {
             	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";"+
+            		line = "\\javaSource \"../../../../../../"+folderString+"/src\";" +
 
             		//line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+"src\";"+
             		//line = line + 
@@ -366,6 +667,7 @@ public class MetaProductBuilderNonRigid {
             				"\\predicates {\n" + 
             				"  \\nonRigid OriginalPre;\n" + 
             				"  \\nonRigid OriginalPost;\n" + 
+            				"  \\nonRigid AllowedFeatureCombination;\n" + 
             				"}";
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
@@ -636,6 +938,7 @@ public class MetaProductBuilderNonRigid {
 				"\\predicates {\n" + 
 				"  \\nonRigid OriginalPre;\n" + 
 				"  \\nonRigid OriginalPost;\n" + 
+				"  \\nonRigid AllowedFeatureCombination;\n" + 
 				"}\n" + 
 				"\n" + 
 				"\\chooseContract";
