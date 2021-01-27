@@ -125,6 +125,9 @@ public class Non_Rigid extends KeyHandler{
 	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) {
 		UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 		boolean reusedAProof = false;
+		
+		System.out.println("\n Reuse proof: " + reuseProof.getName());
+		
 		try {
 			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 			InitConfig initConfig = loader.getInitConfig();
@@ -132,6 +135,7 @@ public class Non_Rigid extends KeyHandler{
 			Services services = keYEnvironment.getServices();			
 			
 			proofHandler.proof = keYEnvironment.getLoadedProof();
+			
 			for(Goal goal : proofHandler.proof.openGoals()) {
 				Goal oldGoal = goal;
 				SequentFormula cf;
@@ -240,6 +244,12 @@ public class Non_Rigid extends KeyHandler{
 
 		return reusedAProof;
 	}
+	
+//	private static Map<String, String> getOriginalInformation(File reuseProof, Goal goal) { //new version
+//		proofHandler.proof.
+//	}
+	
+	
 	/**
 	 * Searches in the Metaproduct for the right contracts
 	 * @param reuseProof
