@@ -23,6 +23,7 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
@@ -80,7 +81,7 @@ public abstract class AbstractVerification {
 		String saveFeatureStubPath;
 		
 		for(File f: featurestubs){
-			String[] seperatedPath = f.getAbsolutePath().split(FILE_SEPERATOR);
+			String[] seperatedPath = f.getAbsolutePath().split(Pattern.quote(File.separator));
 			currentFeatureStub = seperatedPath[seperatedPath.length-2];
 			saveFeatureStubPath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.savedProofsDir+FILE_SEPERATOR+currentFeatureStub;
 			FileManager.createDir(new File (saveFeatureStubPath));
