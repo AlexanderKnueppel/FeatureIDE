@@ -125,119 +125,130 @@ public class Non_Rigid extends KeyHandler{
 	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) {
 		UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 		boolean reusedAProof = false;
+		System.out.println("Start startMetaProductProof of target: " + proofHandler.getTargetName());
+		
+		KeYEnvironment<?> keYEnvironment = proofHandler.getEnvironment();
+	    Contract contract = proofHandler.getContract();
+		ProofOblInput input = contract.createProofObl(keYEnvironment.getInitConfig(), contract);	
 		try {
-			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-			InitConfig initConfig = loader.getInitConfig();
-			KeYEnvironment<?> keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(),loader.getResult());		
-			Services services = keYEnvironment.getServices();			
-			
-			proofHandler.proof = keYEnvironment.getLoadedProof();
-			for(Goal goal : proofHandler.proof.openGoals()) {
-				Goal oldGoal = goal;
-				SequentFormula cf;
+			proofHandler.proof = keYEnvironment.createProof(input);
+		} catch (ProofInputException e1) {
+			e1.printStackTrace();
+		}
+        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+		HashMap<String,String> choices = new HashMap<String,String>();
+        choices.put("assertions", "assertions:safe");
+        choices.putAll(MiscTools.getDefaultTacletOptions());
+        choiceSettings.setDefaultChoices(choices);
+        
+		ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+        ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+        proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+        proofHandler.proof.setActiveStrategy(keYEnvironment.getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
+        ProofControl proofControl = keYEnvironment.getProofControl();	
+		
+		try { 	        
+			if(reuseProof!=null){		
+	        	if(reuseProof.getName().endsWith(".proof")){
+					AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+					InitConfig initConfig = loader.getInitConfig();
+					keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(),loader.getResult());		
+					Services services = keYEnvironment.getServices();	
+					proofHandler.proof = keYEnvironment.getLoadedProof();
+		            System.out.println("Before Reused: "+ proofHandler.getTargetName()+"\n"+ proofHandler.proof.getStatistics());
 
-				TermBuilder termBuilder = services.getTermBuilder();				
-				Map<String,String> contractMap = getContract(reuseProof,goal);
-				Sequent seqent = goal.sequent();
-				
-				boolean allreadyset = false;
-				try {
-					if(contractMap != null) {
-									
-						for(SequentFormula sequentFormula:seqent) {
-							PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true);
-							if(! allreadyset && (sequentFormula.toString().contains("OriginalPre")||sequentFormula.toString().contains("OriginalPost"))) {	
-								if(contractMap.containsKey("requires")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> "+contractMap.get("requires"), goal.getLocalNamespaces()));
-									goal.addFormula(cf, posInOccurrence);
-									allreadyset=true;
+					for(Goal goal : proofHandler.proof.openGoals()) {
+						Goal oldGoal = goal;
+						SequentFormula cf;
+
+						TermBuilder termBuilder = services.getTermBuilder();				
+						Map<String,String> contractMap = getContract(reuseProof,goal);
+						Sequent seqent = goal.sequent();
+						
+						boolean allreadyset = false;
+						try {
+							if(contractMap != null) {
+											
+								for(SequentFormula sequentFormula:seqent) {
+									PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true);
+									if(! allreadyset && (sequentFormula.toString().contains("OriginalPre")||sequentFormula.toString().contains("OriginalPost"))) {	
+										if(contractMap.containsKey("requires")) {
+											cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> "+contractMap.get("requires"), goal.getLocalNamespaces()));
+											goal.addFormula(cf, posInOccurrence);
+											allreadyset=true;
+										}
+										if(contractMap.containsKey("ensures")) {
+											cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> "+contractMap.get("ensures"), goal.getLocalNamespaces()));	
+											goal.addFormula(cf, posInOccurrence);
+											allreadyset=true;
+										}
+										if(contractMap.containsKey("assignable")) {
+											cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = "+contractMap.get("assignable"), goal.getLocalNamespaces()));							
+											goal.addFormula(cf, posInOccurrence);
+										}
+									}								
 								}
-								if(contractMap.containsKey("ensures")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> "+contractMap.get("ensures"), goal.getLocalNamespaces()));	
-									goal.addFormula(cf, posInOccurrence);
+								if(allreadyset) {
+									//System.out.println("before:\n"+oldGoal);
+									//System.out.println("after:\n"+goal);
 								}
-								if(contractMap.containsKey("assignable")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = "+contractMap.get("assignable"), goal.getLocalNamespaces()));							
-									goal.addFormula(cf, posInOccurrence);
-								}
-							}								
+							}
+					
+						} catch (ParserException e) {
+							System.out.println("Non_Rigid startMetaProductProof failed");
+							e.printStackTrace();
 						}
-						if(allreadyset) {
-							//System.out.println("before:\n"+oldGoal);
-							//System.out.println("after:\n"+goal);
-						}
+						List<Goal>goals = new LinkedList<>();
+						goals.add(goal);
+						ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
+						proofHandler.proof.replace(oldGoal, goalsImmutableList);
+			
 					}
-			
-				} catch (ParserException e) {
-					System.out.println("Non_Rigid startMetaProductProof failed");
-					e.printStackTrace();
-				}/*
-				Node node = goal.node();
-				Profile profile = keYEnvironment.getProfile();
-
-				Services newServices = new Services(profile);
-				InitConfig newinitConfig = new InitConfig(newServices);
-				
-				Proof prooNewProof = new Proof(node.name(), newinitConfig);
-				prooNewProof.add(goal);
-				prooNewProof.setRoot(node);				
-				Strategy strategy = goal.getGoalStrategy();
-				prooNewProof.setActiveStrategy(strategy);*/
-				//prooNewProof.saveToFile(new File(reuseProof.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k));	
-				List<Goal>goals = new LinkedList<>();
-				goals.add(goal);
-				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
-				proofHandler.proof.replace(oldGoal, goalsImmutableList);
-	
-			}
-			keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-        	proofHandler.setProof(proofHandler.proof);
-			proofHandler.setReusedStatistics();	
-        	reusedAProof = true;
-        	System.out.println("Closed: " + proofHandler.proof.closed());
-            System.out.println("Reused: "+ proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
-            proofHandler.setReusedStatistics();
-            File reusedProof = null;
-            if(!proofHandler.proof.closed()) {
-            	reusedProof = proofHandler.saveProof(savePath);
-	            replaceJavaSource(reusedProof);
-	            /*
-				loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-				initConfig = loader.getInitConfig();	
-				keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-	        	*/
-	            keYEnvironment = KeYEnvironment.load(reusedProof);
-				reusedProof.delete();
-	        	proofHandler.proof = keYEnvironment.getLoadedProof();
-		        int previousNodes;
-		        int numberofOpenGoal = proofHandler.proof.openGoals().size();	        
-		        do{
-		        	if(proofHandler.proof.closed()) {
-		        		break;
-		        	}
-		        	numberofOpenGoal = proofHandler.proof.openGoals().size();
-					previousNodes = proofHandler.proof.countNodes();	
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-	            	proofHandler.setProof(proofHandler.proof);
-		        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
-		        	System.out.println(previousNodes + " " + proofHandler.proof.countNodes()); 
-
-					}while((numberofOpenGoal != proofHandler.proof.openGoals().size()) || (previousNodes != proofHandler.proof.countNodes()));
-		        
-            }
-
-	        if(proofHandler.proof.openGoals().isEmpty()){
-	        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was closed");
-	            proofHandler.setClosed(true);
-	        }		
+		        	//proofHandler.setProof(proofHandler.proof);
+					
+					proofHandler.setReusedStatistics();	
+		        	reusedAProof = true;
+		        	
+		            System.out.println("Reused: "+ proofHandler.getTargetName()+"\n"+ proofHandler.proof.getStatistics());
+		            System.out.println("Closed: " + proofHandler.proof.closed());
+		            File reusedProof = null;
+		            reusedProof = proofHandler.saveProof(savePath);
+		            replaceJavaSource(reusedProof);
+		            keYEnvironment = KeYEnvironment.load(reusedProof);
+		            reusedProof.delete();
+	        	}
+		            
+				if(!proofHandler.proof.closed()) {            	
+		        	proofHandler.proof = keYEnvironment.getLoadedProof();
+			        int previousNodes;
+			        int numberofOpenGoal;	        
+			        do{
+			        	if(proofHandler.proof.closed()) {
+			        		break;
+			        	}
+			        	numberofOpenGoal = proofHandler.proof.openGoals().size();
+						previousNodes = proofHandler.proof.countNodes();	
+						keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
+		            	//proofHandler.setProof(proofHandler.proof);
+			        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
+						}while((numberofOpenGoal != proofHandler.proof.openGoals().size()) || (previousNodes != proofHandler.proof.countNodes()));
+			        
+	            }
+	
+		        if(proofHandler.proof.openGoals().isEmpty()){
+		        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was closed");
+		            proofHandler.setClosed(true);
+		        }					    
+			}		
 		} catch (ProblemLoaderException e) {
             System.out.println("Exception at '" + proofHandler.getTargetName() + ":");
 			throw new RuntimeException(e);
 		}
-		proofHandler.setProof(proofHandler.proof);
+		//proofHandler.setProof(proofHandler.proof);
 		proofHandler.setStatistics();
         System.out.println("Actual: "+ proofHandler.getTargetName() +"\n" + proofHandler.proof.getStatistics());
-
+            
 		return reusedAProof;
 	}
 	/**

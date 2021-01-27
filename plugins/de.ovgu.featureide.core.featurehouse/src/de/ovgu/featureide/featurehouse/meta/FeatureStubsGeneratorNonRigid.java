@@ -34,12 +34,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
+
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.prop4j.Node;
 
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
@@ -56,6 +61,7 @@ import de.ovgu.featureide.core.signature.base.FOPFeatureData;
 import de.ovgu.featureide.core.signature.filter.MethodFilter;
 import de.ovgu.featureide.featurehouse.ExtendedFujiSignaturesJob;
 import de.ovgu.featureide.featurehouse.FeatureHouseCorePlugin;
+import de.ovgu.featureide.fm.core.FeatureDependencies;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
 import de.ovgu.featureide.fm.core.job.IJob;
 import de.ovgu.featureide.fm.core.job.IRunner;
@@ -128,9 +134,21 @@ public class FeatureStubsGeneratorNonRigid {
 						}
 						typeSBMap.put(role.getClassFragment().getFullIdentifier().replace("(default package)", ""), new StringBuilder(readALLTHEBytes.substring(0, readALLTHEBytes.lastIndexOf("}"))));
 					}
-					
+					FeatureDependencies dependencies = signatures.getFeatureModel().getAnalyser().getDependencies();
+					Node rootNode = dependencies.getRootNode();
+					Node[] rootNodes = rootNode.getChildren();
+					List<String> originalClass = new LinkedList<>();
+					for(Node node : rootNodes) {
+						List<String> features = node.getContainedFeatures();
+						if(features.size() >1 && features.get(1).equals(feat.getName())){
+							System.out.println("FeatName: " + features.toString());
+							originalClass.add(features.get(0));
+						}						
+					}
 					for (FSTRole role : feat.getRoles()) {
+						//System.out.println(rootNodes.toString());
 						final String roleName = role.getClassFragment().getName();
+						
 						StringBuilder fileTextSB = get(typeSBMap, role.getClassFragment().getFullIdentifier().replace("(default package)", ""));
 						
 						TreeSet<FSTField> set = role.getClassFragment().getFields();
@@ -138,11 +156,11 @@ public class FeatureStubsGeneratorNonRigid {
 							boolean contractChanged = false;
 							final SignatureIterator sigIterator = signatures.iterator();
 							sigIterator.addFilter(new MethodFilter());
-
+							
 							while (sigIterator.hasNext()) {
 								AbstractSignature curSig = sigIterator.next();
 								for (int i = 0; i < curSig.getFeatureData().length; i++) {
-
+									
 									if ((curSig.getFeatureData())[i].getID() == featureID && curSig.getName().equals(meth.getName())
 											&& curSig.getFeatureData()[i].getStartLineNumber() == meth.getLine()) {
 										final FOPFeatureData fopFeatureData = ((FOPFeatureData[])curSig.getFeatureData())[i];
@@ -157,7 +175,7 @@ public class FeatureStubsGeneratorNonRigid {
 
 										if (meth.hasContract() && meth.getContract().contains("\\original")) {
 											contractChanged = true;
-											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set);
+											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set, originalClass);
 										}
 										
 										for (String typeName : fopFeatureData.getUsedNonPrimitveTypes()) {
@@ -340,7 +358,7 @@ public class FeatureStubsGeneratorNonRigid {
 	 * @param curSig
 	 * @param featureName
 	 */
-	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set) {
+	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set,List<String> originalClass) {
 			
 		final String fileText = fileTextSB.toString();
 		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
@@ -400,7 +418,12 @@ public class FeatureStubsGeneratorNonRigid {
 				
 			}
 		}
-		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour \n"
+		for(String origin: originalClass) {
+			originalClass.remove(origin);
+			originalClass.add(origin+ "_" + curSig.getName());
+		}
+		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , 
+				"//* Original "+originalClass.toString()+"*// \n /*@ public normal_behaviour \n"
 				+ requires.toString()+ "\n"+ ensures.toString()+ "\n" + assignable.toString()  + "\n" + 
 				"\t@");
 		

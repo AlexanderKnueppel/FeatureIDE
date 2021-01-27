@@ -25,13 +25,13 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.model;
  * 
  * @author Stefanie
  */
-public class ProofStatistics {
+public class ProofStatisticsOld {
 	private int nodes=0;
 	private int branches=0;
 	private int appliedRules=0;
 	private long automodeTime=0;
 	
-	public ProofStatistics(int nodeSum, int branchesSum, int appliedRulesSum, long automodeTimeSum){
+	public ProofStatisticsOld(int nodeSum, int branchesSum, int appliedRulesSum, long automodeTimeSum){
 		this.nodes= nodeSum;
 		this.branches = branchesSum;
 		this.appliedRules = appliedRulesSum;
@@ -41,7 +41,7 @@ public class ProofStatistics {
 	/**
 	 * 
 	 */
-	public ProofStatistics() {
+	public ProofStatisticsOld() {
 		this.nodes= 0;
 		this.branches = 0;
 		this.appliedRules = 0;
@@ -55,14 +55,14 @@ public class ProofStatistics {
 		this.automodeTime = 0;
 	}
 
-	public void addStatistics(ProofStatistics toAdd){
+	public void addStatistics(ProofStatisticsOld toAdd){
 		this.nodes+=toAdd.nodes;
 		this.branches+=toAdd.branches;
 		this.appliedRules+=toAdd.appliedRules;
 		this.automodeTime+=toAdd.automodeTime;
 	}
 	
-	public void removeStatistics(ProofStatistics toAdd){
+	public void removeStatistics(ProofStatisticsOld toAdd){
 		this.nodes-=toAdd.nodes;
 		this.branches-=toAdd.branches;
 		this.appliedRules-=toAdd.appliedRules;

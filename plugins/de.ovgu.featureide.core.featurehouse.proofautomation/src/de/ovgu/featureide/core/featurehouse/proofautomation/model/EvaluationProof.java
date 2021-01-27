@@ -28,16 +28,16 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.model;
 public class EvaluationProof {
 	private String type;
 	private String target;
-	private ProofStatistics sum;
-	private ProofStatistics reusedSum;
+	private ProofStatisticsOld sum;
+	private ProofStatisticsOld reusedSum;
 	private int count;
 	private boolean closed;
 	
 	public EvaluationProof(String target, String type){
 		this.type = type;
 		this.target = target;
-		sum = new ProofStatistics();
-		reusedSum = new ProofStatistics();
+		sum = new ProofStatisticsOld();
+		reusedSum = new ProofStatisticsOld();
 		count = 0;
 		closed = true;
 	}
@@ -46,27 +46,27 @@ public class EvaluationProof {
 		count++;
 	}
 	
-	public void addSum(ProofStatistics s, ProofStatistics r){
+	public void addSum(ProofStatisticsOld s, ProofStatisticsOld r){
 		this.sum.addStatistics(s);
 		this.reusedSum.addStatistics(r);
 	}
 	/**
 	 * @return the sum
 	 */
-	public ProofStatistics getSum() {
+	public ProofStatisticsOld getSum() {
 		return sum;
 	}
 	/**
 	 * @return the reusedSum
 	 */
-	public ProofStatistics getReusedSum() {
+	public ProofStatisticsOld getReusedSum() {
 		return reusedSum;
 	}
 
 	/**
 	 * @param sum the sum to set
 	 */
-	public void setSum(ProofStatistics sum) {
+	public void setSum(ProofStatisticsOld sum) {
 		this.sum = sum;
 	}
 	/**

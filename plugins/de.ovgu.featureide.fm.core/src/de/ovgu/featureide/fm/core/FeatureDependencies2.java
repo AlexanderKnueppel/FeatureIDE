@@ -54,7 +54,7 @@ public class FeatureDependencies2 {
 	    + "\n";
 
     private IFeatureModel fm;
-    private Node rootNode;
+    protected Node rootNode;
     
     protected Map<IFeature, Set<IFeature>> always = new HashMap<IFeature, Set<IFeature>>();
     protected Map<IFeature, Set<IFeature>> never = new HashMap<IFeature, Set<IFeature>>();
@@ -108,6 +108,10 @@ public class FeatureDependencies2 {
 		    }
 		}
     }
+    
+    public Node getRootNode() {
+		return rootNode;
+	}
     
     
     

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
@@ -126,7 +127,9 @@ public class CompleteApproachesEvaluation extends Evaluation{
 		for(ApproachData approachData: allProjects){			
 			approachData.generateCode();
 
-			for(SingleApproachEvaluation s : approachData.getProjectVersion()){		
+	/*		for(SingleApproachEvaluation s : approachData.getProjectVersion()){
+				MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(s.toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
+
 				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
 			}
 		
@@ -156,7 +159,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 				updateStatistics(e);
 			}
 			createXLS();
-			
+			*/
 		}
 
 	}

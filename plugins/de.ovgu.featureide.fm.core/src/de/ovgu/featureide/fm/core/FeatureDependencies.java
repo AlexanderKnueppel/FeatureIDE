@@ -22,6 +22,8 @@ package de.ovgu.featureide.fm.core;
 
 import java.util.Set;
 
+import org.prop4j.Node;
+
 import de.ovgu.featureide.fm.core.base.FeatureUtilsLegacy;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
@@ -54,5 +56,9 @@ public class FeatureDependencies extends FeatureDependencies2 {
 
 	public Set<IFeature> maybe(Feature feature) {
 		return maybe.get(FeatureUtilsLegacy.convert(feature));
+	}
+    
+    public Node getRootNode() {
+		return rootNode;
 	}
 }

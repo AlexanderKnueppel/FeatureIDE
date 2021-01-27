@@ -37,10 +37,10 @@ public abstract class Evaluation {
 	//File where the result of the evaluation is saved
 	public File statistics;
 	//Statistics used for Evaluation
-	public ProofStatistics firstPhase = new ProofStatistics();
-	public ProofStatistics secondPhase = new ProofStatistics(); 
-	public ProofStatistics firstPhaseReuse = new ProofStatistics(); 
-	public ProofStatistics secondPhaseReuse = new ProofStatistics();
+	public ProofStatisticsOld firstPhase = new ProofStatisticsOld();
+	public ProofStatisticsOld secondPhase = new ProofStatisticsOld(); 
+	public ProofStatisticsOld firstPhaseReuse = new ProofStatisticsOld(); 
+	public ProofStatisticsOld secondPhaseReuse = new ProofStatisticsOld();
 	public int failedProofs = 0;
 	public int proofs = 0;
 	
