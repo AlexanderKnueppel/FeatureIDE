@@ -160,6 +160,15 @@ public class FeatureStubsGeneratorNonRigid {
 											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set);
 										}
 										
+										if (meth.hasContract() && !meth.getContract().contains("\\original")) {
+//											if(meth.getName().equals("lock")) {
+//												System.out.println("Encountered lock");
+//											}
+//											
+											addPredicateForFeatureCombination(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set);
+										}
+	
+										
 										for (String typeName : fopFeatureData.getUsedNonPrimitveTypes()) {
 											get(typeSBMap, typeName);
 										}
@@ -221,6 +230,7 @@ public class FeatureStubsGeneratorNonRigid {
 				"\\predicates {\n" + 
 				"  \\nonRigid OriginalPre;\n" + 
 				"  \\nonRigid OriginalPost;\n" + 
+				"  \\nonRigid AllowedFeatureCombination;\n" +
 				"}\n" + 
 				"\n" + 
 				"\\chooseContract";
@@ -282,7 +292,7 @@ public class FeatureStubsGeneratorNonRigid {
 	private void createPrototypes(StringBuilder fileTextSB, AbstractSignature innerAbs) {
 		if (innerAbs instanceof AbstractMethodSignature) {
 			fileTextSB.append("\n\t/*@ public normal_behaviour"+
-					"\n\t@ requires   \\dl_OriginalPre;"+
+					"\n\t@ requires   \\dl_OriginalPre && \\dl_AllowedFeatureCombination;"+
 					"\n\t@ ensures    \\dl_OriginalPost;"+
 					"\n\t@ assignable \\dl_OriginalFrame;\n\t@*/\n"
 					+ innerAbs.toString() + "{}\n");
@@ -333,6 +343,66 @@ public class FeatureStubsGeneratorNonRigid {
 			FeatureHouseCorePlugin.getDefault().logError(e);
 		}
 	}
+	
+	/**
+	 * Add predicate for feature combination
+	 * @param fileTextSB
+	 * @param curSig
+	 * @param featureName
+	 */
+	private void addPredicateForFeatureCombination(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set) {
+		
+		final String fileText = fileTextSB.toString();
+		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
+		if (indexOfBody < 1) {
+			indexOfBody = fileText.lastIndexOf(" " + curSig.getName()+"(");
+		}
+		String tmpText = fileTextSB.substring(0, indexOfBody);
+		int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
+		String contractBody = "";
+		
+		int brace = contractBody.indexOf("(");
+		while (!((checkPosition(contractBody, REQUIRES, brace) || checkPosition(contractBody, ENSURES, brace) || 
+				checkPosition(contractBody, ASSIGNABLE, brace)))) {
+			if (!contractBody.isEmpty()) {
+				indexOfStartOfContract = fileTextSB.substring(0, fileTextSB.indexOf(contractBody) - 2).lastIndexOf("/*@");
+			}
+			if (indexOfStartOfContract < 0) {
+				return;
+			}
+			contractBody = fileTextSB.substring(indexOfStartOfContract);
+			brace = contractBody.indexOf("(");
+		}
+		contractBody = contractBody.substring(0, contractBody.indexOf("*/"));
+		StringBuilder ensures = new StringBuilder(), requires = new StringBuilder(), assignable = new StringBuilder();
+		String [] contracts = contractBody.split("\n");
+		boolean allowedFeaturesAdded = false;
+		for (int i = 0; i < contracts.length; i++) {			
+			String line = contracts[i].trim();
+			if (line.startsWith("@ " + REQUIRES) || line.startsWith("/*@ " + REQUIRES)) {
+				line = line.replace("/*@", "@");
+				
+				if(!allowedFeaturesAdded) {
+					line = line.replace(";", "");
+					line = line + " && \\dl_AllowedFeatureCombination;";
+					allowedFeaturesAdded = true; 
+				}
+				aggregateClausesNonRigid(requires, line);
+			} else if (line.startsWith("@ " + ENSURES)) {
+				aggregateClausesNonRigid(ensures, line);
+			} else if (line.startsWith("@ " + ASSIGNABLE)) {				
+				assignable.append(line);
+			}
+		}
+		
+		if(requires.length() == 0) {
+			requires.append("\t@ " + REQUIRES + " true  && \\dl_AllowedFeatureCombination;");
+		}
+		
+		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour \n"
+				+ requires.toString()+ "\n"+ ensures.toString()+ "\n" + assignable.toString()  + "\n" + 
+				"\t@");
+	}
 
 	/**
 	 * checks if \original is used in the contract and replaces it with the dynamic Element of non-Rigid
@@ -367,6 +437,8 @@ public class FeatureStubsGeneratorNonRigid {
 		StringBuilder ensures = new StringBuilder(), requires = new StringBuilder(), assignable = new StringBuilder();
 		String [] contracts = contractBody.split("\n");
 		boolean hasOriginal = false;
+		boolean frameConditionAdded = false;
+		boolean allowedFeaturesAdded = false;
 		for (int i = 0; i < contracts.length; i++) {			
 			String line = contracts[i].trim();
 			if (line.startsWith("@ " + REQUIRES) || line.startsWith("/*@ " + REQUIRES)) {
@@ -374,10 +446,21 @@ public class FeatureStubsGeneratorNonRigid {
 				if(line.contains("\\original")) {
 					hasOriginal = true;
 					line = line.replace("\\original", "\\dl_OriginalPre");
-					for(FSTField field : set) {
-						line = line.replace(";", "");
-						line = line + " && \\disjoint("+ field.getName() + ", \\dl_OriginalFrame)" + ";";
+					
+					/*TODO is this the right location? -> Should we add a disjoint even without keyword original?*/
+					if(!frameConditionAdded) {
+						for(FSTField field : set) {
+							line = line.replace(";", "");
+							line = line + " && \\disjoint("+ field.getName() + ", \\dl_OriginalFrame)" + ";";
+						}
+						frameConditionAdded = true; 
 					}
+				}
+				
+				if(!allowedFeaturesAdded) {
+					line = line.replace(";", "");
+					line = line + " && \\dl_AllowedFeatureCombination;";
+					allowedFeaturesAdded = true; 
 				}
 				aggregateClausesNonRigid(requires, line);
 				
@@ -497,7 +580,7 @@ public class FeatureStubsGeneratorNonRigid {
 		final String methodName = absMethodName.substring(0, indexOf) + "_original_" + featureName
 				+ absMethodName.substring(indexOf);
 		fileTextSB.append("\n\n\t/*@ public normal_behaviour"
-				+  "\n\t@ requires   \\dl_OriginalPre"
+				+  "\n\t@ requires   \\dl_OriginalPre && \\dl_AllowedFeatureCombination"
 				+ ";\n\t@ ensures    \\dl_OriginalPost"
 				+ ";\n\t@ assignable \\dl_OriginalFrame"
 				+ ";\n\t@*/\n" + methodName + "{}\n");
