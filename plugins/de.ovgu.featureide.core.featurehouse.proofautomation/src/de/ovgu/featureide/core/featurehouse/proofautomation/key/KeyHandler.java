@@ -203,7 +203,7 @@ public abstract class KeyHandler {
             String folderString = proof.getParentFile().getParentFile().getName();
             while(line != null) {
             	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";"+
+            		line = "\\javaSource \"../../../../../"+folderString+"/src\";" +
             				"\n\n"+ "\\functions {\n" + 
             				"  LocSet OriginalFrame;\n" + 
             				"}\n" + 
@@ -211,6 +211,7 @@ public abstract class KeyHandler {
             				"\\predicates {\n" + 
             				"  \\nonRigid OriginalPre;\n" + 
             				"  \\nonRigid OriginalPost;\n" + 
+            				"  \\nonRigid AllowedFeatureCombination;\n" + 
             				"}";
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
