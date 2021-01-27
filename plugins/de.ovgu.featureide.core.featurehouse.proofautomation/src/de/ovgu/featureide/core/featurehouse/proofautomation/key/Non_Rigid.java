@@ -69,14 +69,16 @@ import de.uka.ilkd.key.util.MiscTools;
 
 /**
  * TODO description
+ * 
  * @author Marlen Herter-Bernier
  */
-public class Non_Rigid extends KeyHandler{
+public class Non_Rigid extends KeyHandler {
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
-	private static String[] jml = {"assignable","requires","ensures"};	
+	private static String[] jml = { "combination", "originalFrame", "originalPre", "originalPost" };
 
-	
-	/** Initializes the abstract execution proof  
+	/**
+	 * Initializes the abstract execution proof
+	 * 
 	 * @param oldPartialProof
 	 * @param maxRuleApplication
 	 * @param defaultSettingsForFeatureStub
@@ -84,238 +86,256 @@ public class Non_Rigid extends KeyHandler{
 	public void startAbstractProof(ProofHandler proofHandler, int maxRuleApplication, StrategyProperties sp) {
 		KeYEnvironment<?> environment = proofHandler.getEnvironment();
 		Contract contract = proofHandler.getContract();
-		
-		try{
-			
-		    ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
-		    proofHandler.proof = environment.createProof(input);
+
+		try {
+
+			ProofOblInput input = contract.createProofObl(environment.getInitConfig(), contract);
+			proofHandler.proof = environment.createProof(input);
 
 			// Set proof strategy options
-	        ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
-	        HashMap<String,String> choices = proofHandler.proof.getSettings().getChoiceSettings().getDefaultChoices();
-	        choices.putAll(MiscTools.getDefaultTacletOptions());
-	        choiceSettings.setDefaultChoices(choices);
-	        
-	        proofHandler.proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
-        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
-        	ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
-        	proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
-        	proofHandler.proof.setActiveStrategy(proofHandler.proof.getServices().getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
-			
-	        ProofControl proofControl = environment.getUi().getProofControl();
+			ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+			HashMap<String, String> choices = proofHandler.proof.getSettings().getChoiceSettings().getDefaultChoices();
+			choices.putAll(MiscTools.getDefaultTacletOptions());
+			choiceSettings.setDefaultChoices(choices);
+
+			proofHandler.proof.getSettings().getStrategySettings().setActiveStrategyProperties(sp);
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+			proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+			proofHandler.proof.setActiveStrategy(proofHandler.proof.getServices().getProfile()
+					.getDefaultStrategyFactory().create(proofHandler.proof, sp));
+
+			ProofControl proofControl = environment.getUi().getProofControl();
 			int previousNodes;
-			do{
+			do {
 				previousNodes = proofHandler.proof.countNodes();
-	
+
 				proofControl.startAndWaitForAutoMode(proofHandler.proof);
-	
-			}while(proofHandler.proof.countNodes()==previousNodes);
-	        if(proofHandler.proof.openGoals().isEmpty()){
-	        	System.out.println("Proof " +proofHandler.proof.name() + " was closed");
-	        	proofHandler.setClosed(true);
-	        }
-	        proofHandler.setStatistics();
-	        environment.dispose();
+
+			} while (proofHandler.proof.countNodes() == previousNodes);
+			if (proofHandler.proof.openGoals().isEmpty()) {
+				System.out.println("Proof " + proofHandler.proof.name() + " was closed");
+				proofHandler.setClosed(true);
+			}
+			proofHandler.setStatistics();
+			environment.dispose();
 		} catch (ProofInputException e) {
-            System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
-            e.printStackTrace();
-		}	
+			System.out.println("Exception at '" + contract.getDisplayName() + "' of " + contract.getTarget() + ":");
+			e.printStackTrace();
+		}
 	}
-	
-	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) {
+
+	public boolean startMetaProductProof(ProofHandler proofHandler, File reuseProof, StrategyProperties sp,
+			int maxRuleApplication, String savePath) {
 		UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 		boolean reusedAProof = false;
-		
+
 		System.out.println("\n Reuse proof: " + reuseProof.getName());
-		
+
 		try {
 			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 			InitConfig initConfig = loader.getInitConfig();
-			KeYEnvironment<?> keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(),loader.getResult());		
-			Services services = keYEnvironment.getServices();			
-			
+			KeYEnvironment<?> keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(),
+					loader.getProofScript(), loader.getResult());
+			Services services = keYEnvironment.getServices();
+
 			proofHandler.proof = keYEnvironment.getLoadedProof();
-			
-			for(Goal goal : proofHandler.proof.openGoals()) {
+			proofHandler.setReusedStatistics();
+			System.out.println(
+					"Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.getProof().getStatistics());
+			for (Goal goal : proofHandler.proof.openGoals()) {
 				Goal oldGoal = goal;
 				SequentFormula cf;
 
-				TermBuilder termBuilder = services.getTermBuilder();				
-				Map<String,String> contractMap = getContract(reuseProof,goal);
+				TermBuilder termBuilder = services.getTermBuilder();
+				Map<String, String> contractMap = getContract(reuseProof, goal);
 				Sequent seqent = goal.sequent();
-				
-				boolean allreadyset = false;
+
+				boolean allreadysetOriginalPre = false;
+				boolean allreadysetOriginalPost = false;
+				boolean allreadysetOriginalFrame = false;
+				boolean allreadysetCombination = false;
 				try {
-					if(contractMap != null) {
-									
-						for(SequentFormula sequentFormula:seqent) {
-							PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,PosInTerm.getTopLevel(), true);
-							if(! allreadyset && (sequentFormula.toString().contains("OriginalPre")||sequentFormula.toString().contains("OriginalPost"))) {	
-								if(contractMap.containsKey("requires")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> "+contractMap.get("requires"), goal.getLocalNamespaces()));
-									goal.addFormula(cf, posInOccurrence);
-									allreadyset=true;
-								}
-								if(contractMap.containsKey("ensures")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> "+contractMap.get("ensures"), goal.getLocalNamespaces()));	
-									goal.addFormula(cf, posInOccurrence);
-								}
-								if(contractMap.containsKey("assignable")) {
-									cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = "+contractMap.get("assignable"), goal.getLocalNamespaces()));							
-									goal.addFormula(cf, posInOccurrence);
-								}
-							}								
+					if (contractMap != null) {
+
+						for (SequentFormula sequentFormula : seqent) {
+							PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,
+									PosInTerm.getTopLevel(), true);
+							if (!allreadysetOriginalPre && sequentFormula.toString().contains("OriginalPre")
+									&& contractMap.containsKey("originalPre")) {
+								cf = new SequentFormula(
+										termBuilder.parseTerm("OriginalPre <-> " + contractMap.get("originalPre"),
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, posInOccurrence);
+								allreadysetOriginalPre = true;
+							}
+							if (!allreadysetOriginalPost && sequentFormula.toString().contains("OriginalPost")
+									&& contractMap.containsKey("originalPost")) {
+								cf = new SequentFormula(
+										termBuilder.parseTerm("OriginalPost <-> " + contractMap.get("originalPost"),
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, posInOccurrence);
+								allreadysetOriginalPost = true;
+							}
+							if (!allreadysetOriginalFrame && sequentFormula.toString().contains("OriginalFrame")
+									&& contractMap.containsKey("originalFrame")) {
+								cf = new SequentFormula(
+										termBuilder.parseTerm("OriginalFrame = " + contractMap.get("originalFrame"),
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, posInOccurrence);
+								allreadysetOriginalFrame = true;
+							}
+							if (!allreadysetCombination
+									&& sequentFormula.toString().contains("AllowedFeatureCombination")
+									&& contractMap.containsKey("combination")) {
+								cf = new SequentFormula(termBuilder.parseTerm(
+										"AllowedFeatureCombination <-> " + contractMap.get("combination"),
+										goal.getLocalNamespaces()));
+								goal.addFormula(cf, posInOccurrence);
+								allreadysetCombination = true;
+
+							}
+
 						}
-						if(allreadyset) {
-							//System.out.println("before:\n"+oldGoal);
-							//System.out.println("after:\n"+goal);
-						}
+
 					}
-			
+
 				} catch (ParserException e) {
 					System.out.println("Non_Rigid startMetaProductProof failed");
 					e.printStackTrace();
-				}/*
-				Node node = goal.node();
-				Profile profile = keYEnvironment.getProfile();
-
-				Services newServices = new Services(profile);
-				InitConfig newinitConfig = new InitConfig(newServices);
-				
-				Proof prooNewProof = new Proof(node.name(), newinitConfig);
-				prooNewProof.add(goal);
-				prooNewProof.setRoot(node);				
-				Strategy strategy = goal.getGoalStrategy();
-				prooNewProof.setActiveStrategy(strategy);*/
-				//prooNewProof.saveToFile(new File(reuseProof.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k));	
-				List<Goal>goals = new LinkedList<>();
+				} /*
+					 * Node node = goal.node(); Profile profile = keYEnvironment.getProfile();
+					 * 
+					 * Services newServices = new Services(profile); InitConfig newinitConfig = new
+					 * InitConfig(newServices);
+					 * 
+					 * Proof prooNewProof = new Proof(node.name(), newinitConfig);
+					 * prooNewProof.add(goal); prooNewProof.setRoot(node); Strategy strategy =
+					 * goal.getGoalStrategy(); prooNewProof.setActiveStrategy(strategy);
+					 */
+				// prooNewProof.saveToFile(new
+				// File(reuseProof.getParentFile().getParentFile().getAbsolutePath() +
+				// FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k));
+				List<Goal> goals = new LinkedList<>();
 				goals.add(goal);
 				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
 				proofHandler.proof.replace(oldGoal, goalsImmutableList);
-	
+
 			}
 			keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-        	proofHandler.setProof(proofHandler.proof);
-			proofHandler.setReusedStatistics();	
-        	reusedAProof = true;
-        	System.out.println("Closed: " + proofHandler.proof.closed());
-            System.out.println("Reused: "+ proofHandler.getTargetName()+"\n"+ proofHandler.getProof().getStatistics());
-            proofHandler.setReusedStatistics();
-            File reusedProof = null;
-            if(!proofHandler.proof.closed()) {
-            	reusedProof = proofHandler.saveProof(savePath);
-	            replaceJavaSource(reusedProof);
-	            /*
-				loader = userInterface.load(null, reuseProof, null, null, null, null, false);
-				initConfig = loader.getInitConfig();	
-				keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(), loader.getProofScript(), loader.getResult());
-	        	*/
-	            keYEnvironment = KeYEnvironment.load(reusedProof);
+			proofHandler.setProof(proofHandler.proof);
+
+			reusedAProof = true;
+			System.out.println("Closed: " + proofHandler.proof.closed());
+
+			proofHandler.setReusedStatistics();
+			File reusedProof = null;
+			if (!proofHandler.proof.closed()) {
+				reusedProof = proofHandler.saveProof(savePath);
+				replaceJavaSource(reusedProof);
+				/*
+				 * loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+				 * initConfig = loader.getInitConfig(); keYEnvironment = new
+				 * KeYEnvironment<>(userInterface, initConfig, loader.getProof(),
+				 * loader.getProofScript(), loader.getResult());
+				 */
+				keYEnvironment = KeYEnvironment.load(reusedProof);
 				reusedProof.delete();
-	        	proofHandler.proof = keYEnvironment.getLoadedProof();
-		        int previousNodes;
-		        int numberofOpenGoal = proofHandler.proof.openGoals().size();	        
-		        do{
-		        	if(proofHandler.proof.closed()) {
-		        		break;
-		        	}
-		        	numberofOpenGoal = proofHandler.proof.openGoals().size();
-					previousNodes = proofHandler.proof.countNodes();	
+				proofHandler.proof = keYEnvironment.getLoadedProof();
+				int previousNodes;
+				int numberofOpenGoal = proofHandler.proof.openGoals().size();
+				do {
+					if (proofHandler.proof.closed()) {
+						break;
+					}
+					numberofOpenGoal = proofHandler.proof.openGoals().size();
+					previousNodes = proofHandler.proof.countNodes();
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-	            	proofHandler.setProof(proofHandler.proof);
-		        	System.out.println("Open goals of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" has " + proofHandler.proof.openGoals().size() +" open Goals" );
-		        	System.out.println(previousNodes + " " + proofHandler.proof.countNodes()); 
+					proofHandler.setProof(proofHandler.proof);
+					System.out.println(
+							"Open goals of " + proofHandler.getTargetName() + " in " + proofHandler.getTypeName()
+									+ " has " + proofHandler.proof.openGoals().size() + " open Goals");
+					System.out.println(previousNodes + " " + proofHandler.proof.countNodes());
 
-					}while((numberofOpenGoal != proofHandler.proof.openGoals().size()) || (previousNodes != proofHandler.proof.countNodes()));
-		        
-            }
+				} while ((numberofOpenGoal != proofHandler.proof.openGoals().size())
+						|| (previousNodes != proofHandler.proof.countNodes()));
 
-	        if(proofHandler.proof.openGoals().isEmpty()){
-	        	System.out.println("Metaproductproof of " + proofHandler.getTargetName()+" in " +proofHandler.getTypeName()+" was closed");
-	            proofHandler.setClosed(true);
-	        }		
+			}
+
+			if (proofHandler.proof.openGoals().isEmpty()) {
+				System.out.println("Metaproductproof of " + proofHandler.getTargetName() + " in "
+						+ proofHandler.getTypeName() + " was closed");
+				proofHandler.setClosed(true);
+			}
 		} catch (ProblemLoaderException e) {
-            System.out.println("Exception at '" + proofHandler.getTargetName() + ":");
+			System.out.println("Exception at '" + proofHandler.getTargetName() + ":");
 			throw new RuntimeException(e);
 		}
 		proofHandler.setProof(proofHandler.proof);
 		proofHandler.setStatistics();
-        System.out.println("Actual: "+ proofHandler.getTargetName() +"\n" + proofHandler.proof.getStatistics());
+		System.out.println("Actual: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());
 
 		return reusedAProof;
 	}
-	
+
 //	private static Map<String, String> getOriginalInformation(File reuseProof, Goal goal) { //new version
 //		proofHandler.proof.
 //	}
-	
-	
+
 	/**
 	 * Searches in the Metaproduct for the right contracts
+	 * 
 	 * @param reuseProof
 	 * @return
 	 */
 	private static Map<String, String> getContract(File reuseProof, Goal goal) {
-        String folderString = reuseProof.getParentFile().getParentFile().getParentFile().getName();
-        String projectName = folderString.substring(0,folderString.length()-2);
-		String proofPath = reuseProof.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getAbsolutePath()+FILE_SEPERATOR+folderString +FILE_SEPERATOR+FileManager.metaproductDir;
-		String[] tmpString = reuseProof.getName().split("\\(");
+		String folderString = reuseProof.getParentFile().getParentFile().getParentFile().getName();
+		String projectName = folderString.substring(0, folderString.length() - 2);
+		String proofPath = reuseProof.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
+				.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + folderString + FILE_SEPERATOR
+				+ FileManager.metaproductDir;
+		String[] tmpString = reuseProof.getName().split("_");
 		String methodName = "";
-		if(tmpString.length < 2) {
-			tmpString = reuseProof.getName().split("_");
-			methodName = tmpString[1];
-		}else {
-			methodName = tmpString[1].substring(tmpString[1].lastIndexOf("__")+2);
+		if (tmpString.length <= 2) {
+			methodName = tmpString[1].replace(".proof", "");
+		} else {
+			methodName = tmpString[1] + "_" + tmpString[2];
 		}
-		String featureName = tmpString[0];
-			
-		try {
-			if(new File(proofPath+FILE_SEPERATOR+featureName+".java").exists()) {
-		
-				BufferedReader bReader = new BufferedReader(new FileReader(proofPath+FILE_SEPERATOR+featureName+".java"));
-	            String line = bReader.readLine();
-	            Map<String, String> contractsMap = new HashMap<>();
-	            while(line != null) {
-	            	if(line.contains("/*@")){
-	            		contractsMap.clear();
-	            		line = line.replace("/*@","");
-	            		while(!line.contains("@*/")&& !line.contains("/*@pure@*/")) {	            			             			 
-	            			 String tmp = line.replace("@", "").trim();
-	            			 for(int i = 0; i<=2;i++) {
-	            				 if(tmp.contains(jml[i])) {	            					 
-	            					 tmp = tmp.replace(jml[i], "");
-		            				 String entry = contractsMap.get(jml[i]);
-		            				 if(entry != null) {
-		            					 entry = "(" + entry +") && ("+tmp.replaceAll(";", "")+")";
-		            				 }else {
-		            					 entry = tmp.replaceAll(";", "");
-		            				 }
-		            				 contractsMap.put(jml[i], entry);	
-	            				 }
-	            			 }
-	            			 line = bReader.readLine().trim();
-	            		}	            		
-	            		line = bReader.readLine().trim();
+		String className = tmpString[0];
 
-		            	if(line.contains(methodName+"_" + projectName +"(") && line.endsWith("{")) {
-		                 	prepareContracts(contractsMap,goal);
-		                 	return contractsMap;
-		            	}
-	            	}          	
-          	           	
-	                line = bReader.readLine();
-	            }
-	            bReader.close();
-			}else {
-				System.out.println("Non_Rigid Line 199: File " +featureName+".java"+ " does not exist");
+		try {
+			if (new File(proofPath + FILE_SEPERATOR + className + ".java").exists()) {
+
+				BufferedReader bReader = new BufferedReader(
+						new FileReader(proofPath + FILE_SEPERATOR + className + ".java"));
+				String line = bReader.readLine();
+				Map<String, String> contractsMap = new HashMap<>();
+				contractsMap.clear();
+				while (line != null) {
+					for (int i = 0; i < jml.length; i++) {
+						if (line.contains("_" + jml[i] + "_" + methodName)) {
+							String[] contract = line.split(" = ", 2);
+							if (contract.length > 1) {
+								contractsMap.put(jml[i], contract[1]);
+							}
+						}
+					}
+					line = bReader.readLine();
+				}
+				bReader.close();
+				prepareContracts(contractsMap, goal);
+				return contractsMap;
+			} else {
+				System.out.println("Non_Rigid Line 199: File " + className + ".java" + " does not exist");
 			}
-			
-        } catch(IOException e) {
-        	System.out.println("Non_Rigid getContract");
-            e.printStackTrace();
-        }
+
+		} catch (IOException e) {
+			System.out.println("Non_Rigid getContract");
+			e.printStackTrace();
+		}
 		return null;
 	}
+
 	/**
 	 * 
 	 * @param contractsMap
@@ -323,83 +343,89 @@ public class Non_Rigid extends KeyHandler{
 	 */
 	private static void prepareContracts(Map<String, String> contractsMap, Goal goal) {
 		List<String> variableList = new LinkedList<>();
-		for(int i = 0; i<=2;i++) {			
-			if(contractsMap.containsKey(jml[i])) {
+		for (int i = 0; i <= 3; i++) {
+			if (contractsMap.containsKey(jml[i])) {
 				String value = contractsMap.get(jml[i]);
-				if(jml[i].equals("assignable")) {					
-					String[] variables = value.split(",");					
+				if (jml[i].equals("originalFrame")) {
+					String[] variables = value.split(",");
 					value = "";
-					for(String var : variables) {
-						var = var.trim();	
-						
-						if(var.contains("\\nothing")) {
-							var = var.replace("\\nothing","");
+					for (String var : variables) {
+						var = var.trim();
+
+						if (var.contains("\\nothing")) {
+							var = var.replace("\\nothing", "");
 							value = "null";
 						}
-						if(!var.isEmpty()) {
+						if (!var.isEmpty()) {
 							variableList.add(var);
 							var = "self." + var.trim();
-							//value = String.join(", ", value,var);
-							value = value +var + ", ";
+							value = value + var + ", ";
 						}
 					}
-					
-					if(value.length() != 0) {
-						if(!value.equals("null")) {
-							value  = value.substring(0,value.length()-2);
+
+					if (value.length() != 0) {
+						if (!value.equals("null")) {
+							value = value.substring(0, value.length() - 2);
 						}
-					}else {
+					} else {
 						value = null;
 					}
-				}else{
-					if(value.trim() != null) {
-						for(String var: variableList) {
-							if(value.contains("\\old("+var+")")) {
-								value = value.replace("\\old("+var+")", "self."+var+"@heapAtPre");
+				}		
+				else {
+					if (value.trim() != null) {
+						for (String var : variableList) {
+							if (value.contains("\\old(" + var + ")")) {
+								value = value.replace("\\old(" + var + ")", "self." + var + "@heapAtPre");
 							}
-						}						
+						}
+						
 						value = value.replace("x ", "_x ");
 						value = value.replace("OVERDRAFT_LIMIT", "self.OVERDRAFT_LIMIT");
 						value = value.replace(" || ", " | ");
 						value = value.replace(" && ", " & ");
-						value = value.replace("(\\result)", "result = TRUE");	
-						value = "("+value+")";
-					}					
+						value = value.replace("(\\result)", "result = TRUE");
+						value = "(" + value + ")";
+					}
+					if(jml[i].equals("combination")) {
+						value = value.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
+					}
 				}
-				if(value != null) {
+				if (value != null) {
 					contractsMap.put(jml[i], value);
-				}else {
+				} else {
 					contractsMap.remove(jml[i]);
 				}
 			}
 		}
 	}
-	
+
 	private JavaModel getFittingNamespace(File reuseProof) {
 		String folderString = reuseProof.getParentFile().getParentFile().getParentFile().getName();
-		String metaPath = reuseProof.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getAbsolutePath()+FILE_SEPERATOR+folderString +FILE_SEPERATOR+FileManager.metaproductDir;
+		String metaPath = reuseProof.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
+				.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + folderString + FILE_SEPERATOR
+				+ FileManager.metaproductDir;
 		String[] tmpString = reuseProof.getName().split("\\(");
 		String methodName = "";
-		if(tmpString.length < 2) {
+		if (tmpString.length < 2) {
 			tmpString = reuseProof.getName().split("_");
 			methodName = tmpString[1];
-		}else {
-			methodName = tmpString[1].substring(tmpString[1].lastIndexOf("__")+2);
+		} else {
+			methodName = tmpString[1].substring(tmpString[1].lastIndexOf("__") + 2);
 		}
 		String featureName = tmpString[0];
-		if(new File(metaPath+FILE_SEPERATOR+featureName+".java").exists()) {
-			
-				//System.out.print(initConfig.getServices().getNamespaces());
-			List<ProofHandler> proofList = loadInKeY(new File(metaPath+FILE_SEPERATOR+featureName+".java"));
-			for(ProofHandler proofHandler : proofList) {
+		if (new File(metaPath + FILE_SEPERATOR + featureName + ".java").exists()) {
+
+			// System.out.print(initConfig.getServices().getNamespaces());
+			List<ProofHandler> proofList = loadInKeY(new File(metaPath + FILE_SEPERATOR + featureName + ".java"));
+			for (ProofHandler proofHandler : proofList) {
 				KeYEnvironment<?> environment = proofHandler.getEnvironment();
 				Contract contract = proofHandler.getContract();
 				String name = contract.getTarget().toString();
-				if(name.contains(methodName+"_BankAccount")) {
+				if (name.contains(methodName + "_BankAccount")) {
 					return environment.getInitConfig().getServices().getJavaModel();
-				}						
-				
-			}	
+				}
+
+			}
 		}
 		return null;
 	}
