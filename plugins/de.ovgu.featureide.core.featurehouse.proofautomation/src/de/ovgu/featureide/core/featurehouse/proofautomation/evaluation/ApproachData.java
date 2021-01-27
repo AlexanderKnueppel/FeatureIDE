@@ -90,8 +90,10 @@ public class ApproachData {
 			LinkedList<IProject> projects = projectWorker2.getProjectsByApproach(toEvaluate.getName());
 			projectWorker2.generateAllMetaproductsForApproach(projects, newMetaproduct);
 			projectWorker2.generateAllFeatureStubsForApproach(projects);
-			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
-
+			
+			for(IProject project : projects) {
+				MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+project.getName()+FILE_SEPERATOR+FileManager.metaproductDir));
+			}
 		}else {
 			LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
 			projectWorker.generateAllMetaproductsForApproach(projects, newMetaproduct);
