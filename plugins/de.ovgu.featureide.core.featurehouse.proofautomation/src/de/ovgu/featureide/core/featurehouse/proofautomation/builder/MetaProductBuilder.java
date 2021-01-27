@@ -50,33 +50,62 @@ public class MetaProductBuilder {
 		BuilderUtil.fixUpdateLoggingInBA5BA6(account);
 	}
 	
+//	public static void main(String[] args) {
+//		File proof = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest\\Application(Application__nextYear()).JML normal_behavior operation contract.0.proof");
+//		File f = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest");
+//		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
+//		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
+//		
+//		String methodname = getMethodName(proof);
+//		String method_to_replace = methodname + "_original_" + f.getName();
+//		
+//		System.out.println("method name : " + methodname);
+//		System.out.println("method to replace : " + method_to_replace);
+//		
+//		System.out.println("Classname : " + getClassName(proof)+".java");
+//		
+//		File metaproduct = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.metaproductDir + "\\"+getClassName(proof)+".java");
+//		
+//		if(checkForOriginal(proof,f.getName())){
+//			System.out.println("Original found! Original method name is " + getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("The original method " + getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("Possible replacement " + "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("Does replacement exist? -> " + (checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct) ? "Yes" : "No"));
+//			
+//			if(!checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct)) {
+//				String replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+//				System.out.println("This is the alternative: " + replace_with);
+//			}
+//		}
+//	}
+	
 	public static void main(String[] args) {
-		File proof = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest\\Application(Application__nextYear()).JML normal_behavior operation contract.0.proof");
-		File f = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.savedProofsDir + "\\Interest");
+		File f = new File("F:\\Homeoffice\\Abschlussarbeiten\\Fefalution\\attempt\\BankAccountv1\\src\\Account.java");
 		//File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
 		//List<File> featurestubs = getAllPartialProofs(projectDir,evalPath);
 		
-		String methodname = getMethodName(proof);
-		String method_to_replace = methodname + "_original_" + f.getName();
-		
-		System.out.println("method name : " + methodname);
-		System.out.println("method to replace : " + method_to_replace);
-		
-		System.out.println("Classname : " + getClassName(proof)+".java");
-		
-		File metaproduct = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.metaproductDir + "\\"+getClassName(proof)+".java");
-		
-		if(checkForOriginal(proof,f.getName())){
-			System.out.println("Original found! Original method name is " + getOriginalMethod(methodname,f.getName(),metaproduct));
-			System.out.println("The original method " + getOriginalMethod(methodname,f.getName(),metaproduct));
-			System.out.println("Possible replacement " + "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct));
-			System.out.println("Does replacement exist? -> " + (checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct) ? "Yes" : "No"));
-			
-			if(!checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct)) {
-				String replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
-				System.out.println("This is the alternative: " + replace_with);
-			}
-		}
+		System.out.println(getOriginalMethod("update", "DailyLimit", f));
+//		String methodname = getMethodName(proof);
+//		String method_to_replace = methodname + "_original_" + f.getName();
+//		
+//		System.out.println("method name : " + methodname);
+//		System.out.println("method to replace : " + method_to_replace);
+//		
+//		System.out.println("Classname : " + getClassName(proof)+".java");
+//		
+//		File metaproduct = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\2019-1127 09-53-48\\VA1 (EVEFI)\\BankAccountv1\\"+FileManager.metaproductDir + "\\"+getClassName(proof)+".java");
+//		
+//		if(checkForOriginal(proof,f.getName())){
+//			System.out.println("Original found! Original method name is " + getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("The original method " + getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("Possible replacement " + "dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct));
+//			System.out.println("Does replacement exist? -> " + (checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct) ? "Yes" : "No"));
+//			
+//			if(!checkForMethod("dispatch_" + methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct),metaproduct)) {
+//				String replace_with = methodname+"_"+getOriginalMethod(methodname,f.getName(),metaproduct);
+//				System.out.println("This is the alternative: " + replace_with);
+//			}
+//		}
 	}
 	
 	/**
@@ -162,7 +191,7 @@ public class MetaProductBuilder {
 	}
 	
 	/**
-	 * replaces the javasource in the proof-File with ../../../../../../src
+	 * replaces the javasource in the proof-File with ../../../../../../src 
 	 * otherwise it won't find the correct folder 
 	 * @param proof
 	 */
@@ -174,7 +203,7 @@ public class MetaProductBuilder {
             String folderString = proof.getParentFile().getParentFile().getParentFile().getName();
             while(line != null) {
             	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+".."+FILE_SEPERATOR+folderString+FILE_SEPERATOR+"src\";";
+            		line = "\\javaSource \"../../../../../../"+folderString+"/src\";"; //This is KeY separation; 
             	}
             	sbuffer.append(line + System.getProperty("line.separator"));
                 line = bReader.readLine();
