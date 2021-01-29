@@ -49,7 +49,7 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 	}
 	public static void  main(String[] args){
 		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/BankAccountv1");
-		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-27 13-45-41/1 Fefalution + Family Proof Replay/BankAccountv1");
+		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-29 12-23-08/1 Fefalution + Family Proof Replay/BankAccountv1");
 		
 		getInstance().performMetaproductVerification(locFile, evalPathFile);
 /*		FileManager.copySavedProofsToPartialProofs(evalPathFile);

@@ -129,60 +129,59 @@ public class Non_Rigid extends KeyHandler {
 			int maxRuleApplication, String savePath) {
 		UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
 		boolean reusedAProof = false;
-
 		System.out.println("\n Reuse proof: " + reuseProof.getName());
 
 		try {
-			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, null, false);
+			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, sp, false);
 			InitConfig initConfig = loader.getInitConfig();
 			KeYEnvironment<?> keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(),
 					loader.getProofScript(), loader.getResult());
 			Services services = keYEnvironment.getServices();
 
 			proofHandler.proof = keYEnvironment.getLoadedProof();
+			
 			proofHandler.setReusedStatistics();
 			System.out.println(
-					"Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.getProof().getStatistics());
+					"Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());			
+			
 			for (Goal goal : proofHandler.proof.openGoals()) {
-				Goal oldGoal = goal;
+				Goal newGoal = goal;
 				SequentFormula cf;
 
 				TermBuilder termBuilder = services.getTermBuilder();
-				Map<String, String> contractMap = getContract(reuseProof, goal);
-				Sequent seqent = goal.sequent();
-
+				Map<String, String> contractMap = getContract(reuseProof, newGoal);
+				Sequent seqent = newGoal.sequent();
 				boolean allreadysetOriginalPre = false;
 				boolean allreadysetOriginalPost = false;
 				boolean allreadysetOriginalFrame = false;
 				boolean allreadysetCombination = false;
 				try {
 					if (contractMap != null) {
-
 						for (SequentFormula sequentFormula : seqent) {
-							PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,
-									PosInTerm.getTopLevel(), true);
+							//PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,
+							//		PosInTerm.getTopLevel(), true);
 							if (!allreadysetOriginalPre && sequentFormula.toString().contains("OriginalPre")
 									&& contractMap.containsKey("originalPre")) {
 								cf = new SequentFormula(
 										termBuilder.parseTerm("OriginalPre <-> " + contractMap.get("originalPre"),
-												goal.getLocalNamespaces()));
-								goal.addFormula(cf, posInOccurrence);
+												newGoal.getLocalNamespaces()));
+								newGoal.addFormula(cf, true, false);
 								allreadysetOriginalPre = true;
 							}
 							if (!allreadysetOriginalPost && sequentFormula.toString().contains("OriginalPost")
 									&& contractMap.containsKey("originalPost")) {
 								cf = new SequentFormula(
 										termBuilder.parseTerm("OriginalPost <-> " + contractMap.get("originalPost"),
-												goal.getLocalNamespaces()));
-								goal.addFormula(cf, posInOccurrence);
+												newGoal.getLocalNamespaces()));
+								newGoal.addFormula(cf, true, false);
 								allreadysetOriginalPost = true;
 							}
 							if (!allreadysetOriginalFrame && sequentFormula.toString().contains("OriginalFrame")
 									&& contractMap.containsKey("originalFrame")) {
 								cf = new SequentFormula(
-										termBuilder.parseTerm("OriginalFrame = " + contractMap.get("originalFrame"),
-												goal.getLocalNamespaces()));
-								goal.addFormula(cf, posInOccurrence);
+										termBuilder.parseTerm("elementOf(self,Account::$balance, OriginalFrame)",
+												newGoal.getLocalNamespaces()));
+								newGoal.addFormula(cf, true, false);
 								allreadysetOriginalFrame = true;
 							}
 							if (!allreadysetCombination
@@ -190,58 +189,40 @@ public class Non_Rigid extends KeyHandler {
 									&& contractMap.containsKey("combination")) {
 								cf = new SequentFormula(termBuilder.parseTerm(
 										"AllowedFeatureCombination <-> " + contractMap.get("combination"),
-										goal.getLocalNamespaces()));
-								goal.addFormula(cf, posInOccurrence);
+										newGoal.getLocalNamespaces()));
+								newGoal.addFormula(cf, true, false);
 								allreadysetCombination = true;
-
 							}
-
 						}
-
 					}
-
 				} catch (ParserException e) {
 					System.out.println("Non_Rigid startMetaProductProof failed");
 					e.printStackTrace();
-				} /*
-					 * Node node = goal.node(); Profile profile = keYEnvironment.getProfile();
-					 * 
-					 * Services newServices = new Services(profile); InitConfig newinitConfig = new
-					 * InitConfig(newServices);
-					 * 
-					 * Proof prooNewProof = new Proof(node.name(), newinitConfig);
-					 * prooNewProof.add(goal); prooNewProof.setRoot(node); Strategy strategy =
-					 * goal.getGoalStrategy(); prooNewProof.setActiveStrategy(strategy);
-					 */
-				// prooNewProof.saveToFile(new
-				// File(reuseProof.getParentFile().getParentFile().getAbsolutePath() +
-				// FILE_SEPERATOR + proofHandler.proof.name()+ "_"+ k));
-				List<Goal> goals = new LinkedList<>();
-				goals.add(goal);
-				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
-				proofHandler.proof.replace(oldGoal, goalsImmutableList);
+				}
+//				List<Goal> goals = new LinkedList<>();
+//				goals.add(newGoal);
+//				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
+				//proofHandler.proof.replace(goal, goalsImmutableList);
 
 			}
 			keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-			proofHandler.setProof(proofHandler.proof);
+			//proofHandler.setProof(proofHandler.proof);
 
 			reusedAProof = true;
 			System.out.println("Closed: " + proofHandler.proof.closed());
-
-			proofHandler.setReusedStatistics();
 			File reusedProof = null;
-			if (!proofHandler.proof.closed()) {
+			/*if (!proofHandler.proof.closed()) {
 				reusedProof = proofHandler.saveProof(savePath);
 				replaceJavaSource(reusedProof);
-				/*
+				
 				 * loader = userInterface.load(null, reuseProof, null, null, null, null, false);
 				 * initConfig = loader.getInitConfig(); keYEnvironment = new
 				 * KeYEnvironment<>(userInterface, initConfig, loader.getProof(),
 				 * loader.getProofScript(), loader.getResult());
-				 */
-				keYEnvironment = KeYEnvironment.load(reusedProof);
-				reusedProof.delete();
+				 
+				keYEnvironment = KeYEnvironment.load(reusedProof);				
 				proofHandler.proof = keYEnvironment.getLoadedProof();
+				reusedProof.delete();
 				int previousNodes;
 				int numberofOpenGoal = proofHandler.proof.openGoals().size();
 				do {
@@ -249,6 +230,10 @@ public class Non_Rigid extends KeyHandler {
 						break;
 					}
 					numberofOpenGoal = proofHandler.proof.openGoals().size();
+					
+					for (Goal goal : proofHandler.proof.openGoals()) {
+						replaceOriginal(goal, reuseProof, services);
+					}
 					previousNodes = proofHandler.proof.countNodes();
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
 					proofHandler.setProof(proofHandler.proof);
@@ -257,11 +242,11 @@ public class Non_Rigid extends KeyHandler {
 									+ " has " + proofHandler.proof.openGoals().size() + " open Goals");
 					System.out.println(previousNodes + " " + proofHandler.proof.countNodes());
 
-				} while ((numberofOpenGoal != proofHandler.proof.openGoals().size())
-						|| (previousNodes != proofHandler.proof.countNodes()));
+				} while (numberofOpenGoal != proofHandler.proof.openGoals().size()
+						);
 
 			}
-
+*/
 			if (proofHandler.proof.openGoals().isEmpty()) {
 				System.out.println("Metaproductproof of " + proofHandler.getTargetName() + " in "
 						+ proofHandler.getTypeName() + " was closed");
@@ -281,7 +266,65 @@ public class Non_Rigid extends KeyHandler {
 //	private static Map<String, String> getOriginalInformation(File reuseProof, Goal goal) { //new version
 //		proofHandler.proof.
 //	}
+	
+	
+private void replaceOriginal(Goal newGoal, File reuseProof, Services services) {
+	SequentFormula cf;
 
+	TermBuilder termBuilder = services.getTermBuilder();
+
+	Map<String, String> contractMap = getContract(reuseProof, newGoal);
+	Sequent seqent = newGoal.sequent();
+	boolean allreadysetOriginalPre = false;
+	boolean allreadysetOriginalPost = false;
+	boolean allreadysetOriginalFrame = false;
+	boolean allreadysetCombination = false;
+	try {
+		if (contractMap != null) {
+			for (SequentFormula sequentFormula : seqent) {
+				PosInOccurrence posInOccurrence = new PosInOccurrence(sequentFormula,
+						PosInTerm.getTopLevel(), true);
+				if (!allreadysetOriginalPre && sequentFormula.toString().contains("OriginalPre")
+						&& contractMap.containsKey("originalPre")) {
+					cf = new SequentFormula(
+							termBuilder.parseTerm("OriginalPre <-> " + contractMap.get("originalPre"),
+									newGoal.getLocalNamespaces()));
+					newGoal.addFormula(cf, true, false);
+					allreadysetOriginalPre = true;
+				}
+				if (!allreadysetOriginalPost && sequentFormula.toString().contains("OriginalPost")
+						&& contractMap.containsKey("originalPost")) {
+					cf = new SequentFormula(
+							termBuilder.parseTerm("OriginalPost <-> " + contractMap.get("originalPost"),
+									newGoal.getLocalNamespaces()));
+					newGoal.addFormula(cf, true, false);
+					allreadysetOriginalPost = true;
+				}
+				if (!allreadysetOriginalFrame && sequentFormula.toString().contains("OriginalFrame")
+						&& contractMap.containsKey("originalFrame")) {
+					cf = new SequentFormula(
+							termBuilder.parseTerm(contractMap.get("originalFrame"),
+									newGoal.getLocalNamespaces()));
+					newGoal.addFormula(cf, true, false);
+					allreadysetOriginalFrame = true;
+				}
+				if (!allreadysetCombination
+						&& sequentFormula.toString().contains("AllowedFeatureCombination")
+						&& contractMap.containsKey("combination")) {
+					cf = new SequentFormula(termBuilder.parseTerm(
+							"AllowedFeatureCombination <-> " + contractMap.get("combination"),
+							newGoal.getLocalNamespaces()));
+					newGoal.addFormula(cf, true, false);
+					allreadysetCombination = true;
+				}
+			}
+		}
+	}catch (ParserException e) {
+		System.out.println("Non_Rigid startMetaProductProof failed");
+		e.printStackTrace();
+	}		
+		
+}
 	/**
 	 * Searches in the Metaproduct for the right contracts
 	 * 
@@ -290,7 +333,6 @@ public class Non_Rigid extends KeyHandler {
 	 */
 	private static Map<String, String> getContract(File reuseProof, Goal goal) {
 		String folderString = reuseProof.getParentFile().getParentFile().getParentFile().getName();
-		String projectName = folderString.substring(0, folderString.length() - 2);
 		String proofPath = reuseProof.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
 				.getParentFile().getParentFile().getAbsolutePath() + FILE_SEPERATOR + folderString + FILE_SEPERATOR
 				+ FileManager.metaproductDir;
@@ -300,6 +342,7 @@ public class Non_Rigid extends KeyHandler {
 			methodName = tmpString[1].replace(".proof", "");
 		} else {
 			methodName = tmpString[1] + "_" + tmpString[2];
+			methodName = methodName.replace(".proof", "");
 		}
 		String className = tmpString[0];
 
@@ -323,10 +366,10 @@ public class Non_Rigid extends KeyHandler {
 					line = bReader.readLine();
 				}
 				bReader.close();
-				prepareContracts(contractsMap, goal);
+				prepareContracts(contractsMap, goal,className);
 				return contractsMap;
 			} else {
-				System.out.println("Non_Rigid Line 199: File " + className + ".java" + " does not exist");
+				System.out.println("Non_Rigid Line 312: File " + className + ".java" + " does not exist");
 			}
 
 		} catch (IOException e) {
@@ -341,7 +384,7 @@ public class Non_Rigid extends KeyHandler {
 	 * @param contractsMap
 	 * @param goal
 	 */
-	private static void prepareContracts(Map<String, String> contractsMap, Goal goal) {
+	private static void prepareContracts(Map<String, String> contractsMap, Goal goal,String className) {
 		List<String> variableList = new LinkedList<>();
 		for (int i = 0; i <= 3; i++) {
 			if (contractsMap.containsKey(jml[i])) {
@@ -354,11 +397,15 @@ public class Non_Rigid extends KeyHandler {
 
 						if (var.contains("\\nothing")) {
 							var = var.replace("\\nothing", "");
-							value = "null";
+							value = "empty";
+						}
+						if(var.contains("\\everything")) {
+							var = var.replace("\\everything", "");
+							value =  "setMinus(allLocs, unusedLocs(heap))";
 						}
 						if (!var.isEmpty()) {
 							variableList.add(var);
-							var = "self." + var.trim();
+							var = "elementOf(self,"+className+"::$" + var.trim()+",OriginalFrame)";
 							value = value + var + ", ";
 						}
 					}
