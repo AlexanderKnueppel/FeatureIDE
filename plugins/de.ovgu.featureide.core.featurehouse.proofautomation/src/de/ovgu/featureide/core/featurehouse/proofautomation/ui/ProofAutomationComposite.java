@@ -64,7 +64,7 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadPhaseDir;
 	private Button loadProjectDir;
 	private Button methodNonRigid;
-	private Button methodAbstractExecution;
+	private Button methodDefaultKey;
 	private Button sandbox;
 	private Button open;
 	Composite loadComposite;
@@ -115,7 +115,7 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(gridData);
-		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval(1)");
+		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval");
 		open = new Button(loadComposite, SWT.PUSH);
 		open.setText("Open");
 		//open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -127,14 +127,14 @@ public class ProofAutomationComposite extends Composite{
 		//verificationApproach = new Text(loadComposite, SWT.BORDER);
 		verificationApproach.setLayoutData(gridData);
 		verificationApproach.setItems(approaches);
-		verificationApproach.select(0);
+		verificationApproach.select(1);
+		verificationApproach.setEnabled(false);		
 
 		methodNonRigid = new Button(loadComposite,SWT.RADIO);
 		methodNonRigid.setText("Non Rigid");
 		methodNonRigid.setSelection(true);
-		methodAbstractExecution = new Button(loadComposite,SWT.RADIO);
-		methodAbstractExecution.setText("Abstract Excution");
-		//verificationApproach.setText("1");
+		methodDefaultKey = new Button(loadComposite,SWT.RADIO);
+		methodDefaultKey.setText("Default KeY");
 		
 	    open.addSelectionListener(new SelectionAdapter() {
 	    	public void widgetSelected(SelectionEvent event) {
@@ -173,6 +173,30 @@ public class ProofAutomationComposite extends Composite{
 				}
 			}
 		} );*/
+		methodNonRigid.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+		
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				verificationApproach.setText("1");
+				verificationApproach.setEnabled(false);						
+			}
+		});
+		
+		methodDefaultKey.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				verificationApproach.setText("0");
+				verificationApproach.setEnabled(true);				
+			}
+		});
 		loadProjectDir.addSelectionListener( new SelectionListener() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -186,7 +210,7 @@ public class ProofAutomationComposite extends Composite{
 				if(methodNonRigid.getSelection()) {
 					method = "Non Rigid";
 				}
-				if(methodAbstractExecution.getSelection()) {
+				if(methodDefaultKey.getSelection()) {
 					method = "AbstractExecution";
 				}
 				CompleteApproachesEvaluation s = new CompleteApproachesEvaluation(f,verificationApproach.getText(),method);
@@ -209,7 +233,7 @@ public class ProofAutomationComposite extends Composite{
 				if(methodNonRigid.getSelection()) {
 					method = "Non Rigid";
 				}
-				if(methodAbstractExecution.getSelection()) {
+				if(methodDefaultKey.getSelection()) {
 					method = "AbstractExecution";
 				}
 				//EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());

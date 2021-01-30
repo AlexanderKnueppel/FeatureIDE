@@ -32,12 +32,14 @@ import java.util.Map;
 
 import org.key_project.util.collection.ImmutableList;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
 import de.uka.ilkd.key.control.KeYEnvironment;
 import de.uka.ilkd.key.control.ProofControl;
 import de.uka.ilkd.key.control.UserInterfaceControl;
 import de.uka.ilkd.key.java.Services;
+import de.uka.ilkd.key.logic.IntIterator;
 import de.uka.ilkd.key.logic.Namespace;
 import de.uka.ilkd.key.logic.NamespaceSet;
 import de.uka.ilkd.key.logic.PosInOccurrence;
@@ -58,7 +60,7 @@ import de.uka.ilkd.key.proof.init.ProofInputException;
 import de.uka.ilkd.key.proof.init.ProofOblInput;
 import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
 import de.uka.ilkd.key.proof.io.ProblemLoaderException;
-
+import de.uka.ilkd.key.proof.mgt.ProofEnvironment;
 import de.uka.ilkd.key.settings.ChoiceSettings;
 import de.uka.ilkd.key.settings.ProofSettings;
 import de.uka.ilkd.key.speclang.Contract;
@@ -143,14 +145,14 @@ public class Non_Rigid extends KeyHandler {
 			proofHandler.setReusedStatistics();
 			System.out.println(
 					"Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());			
-			
+			int i = 0;
 			for (Goal goal : proofHandler.proof.openGoals()) {
-				Goal newGoal = goal;
+				
 				SequentFormula cf;
 
 				TermBuilder termBuilder = services.getTermBuilder();
-				Map<String, String> contractMap = getContract(reuseProof, newGoal);
-				Sequent seqent = newGoal.sequent();
+				Map<String, String> contractMap = getContract(reuseProof, goal);
+				Sequent seqent = goal.sequent();
 				boolean allreadysetOriginalPre = false;
 				boolean allreadysetOriginalPost = false;
 				boolean allreadysetOriginalFrame = false;
@@ -164,54 +166,75 @@ public class Non_Rigid extends KeyHandler {
 									&& contractMap.containsKey("originalPre")) {
 								cf = new SequentFormula(
 										termBuilder.parseTerm("OriginalPre <-> " + contractMap.get("originalPre"),
-												newGoal.getLocalNamespaces()));
-								newGoal.addFormula(cf, true, false);
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, true, false);
 								allreadysetOriginalPre = true;
 							}
 							if (!allreadysetOriginalPost && sequentFormula.toString().contains("OriginalPost")
 									&& contractMap.containsKey("originalPost")) {
+								System.out.println("OriginalPost: " +contractMap.get("originalPost"));
 								cf = new SequentFormula(
 										termBuilder.parseTerm("OriginalPost <-> " + contractMap.get("originalPost"),
-												newGoal.getLocalNamespaces()));
-								newGoal.addFormula(cf, true, false);
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, true, false);
 								allreadysetOriginalPost = true;
 							}
 							if (!allreadysetOriginalFrame && sequentFormula.toString().contains("OriginalFrame")
 									&& contractMap.containsKey("originalFrame")) {
+								System.out.println("OriginalFrame: " +contractMap.get("originalFrame"));
 								cf = new SequentFormula(
-										termBuilder.parseTerm("elementOf(self,Account::$balance, OriginalFrame)",
-												newGoal.getLocalNamespaces()));
-								newGoal.addFormula(cf, true, false);
+										termBuilder.parseTerm(contractMap.get("originalFrame"),
+												goal.getLocalNamespaces()));
+								goal.addFormula(cf, true, false);
 								allreadysetOriginalFrame = true;
 							}
 							if (!allreadysetCombination
 									&& sequentFormula.toString().contains("AllowedFeatureCombination")
 									&& contractMap.containsKey("combination")) {
+								System.out.println("AllowedFeatureCombination: " +contractMap.get("combination"));
 								cf = new SequentFormula(termBuilder.parseTerm(
 										"AllowedFeatureCombination <-> " + contractMap.get("combination"),
-										newGoal.getLocalNamespaces()));
-								newGoal.addFormula(cf, true, false);
+										goal.getLocalNamespaces()));
+								goal.addFormula(cf, true, false);
 								allreadysetCombination = true;
 							}
 						}
 					}
 				} catch (ParserException e) {
-					System.out.println("Non_Rigid startMetaProductProof failed");
+					System.out.println("Parsing the Sequent failed");
 					e.printStackTrace();
 				}
-//				List<Goal> goals = new LinkedList<>();
-//				goals.add(newGoal);
-//				ImmutableList<Goal> goalsImmutableList = ImmutableList.fromList(goals);
-				//proofHandler.proof.replace(goal, goalsImmutableList);
-
+				/*
+				Node goalNode = goal.node();
+				Services services2 = new Services(keYEnvironment.getProfile());
+				InitConfig initConfig2 = new InitConfig(services2);
+				Proof proof = new Proof(proofHandler.proof.name().toString()+i, initConfig2);
+				
+				proof.setRoot(goalNode);
+				ProofEnvironment environment = new ProofEnvironment(initConfig2);
+				
+				proof.setEnv(environment);
+				proof.setActiveStrategy(proofHandler.proof.getActiveStrategy());
+				proof.add(goal);
+				proof.setNamespaces(services2.getNamespaces());
+				
+				keYEnvironment.getProofControl().startAndWaitForAutoMode(proof);
+				System.out.println(proof.name().toString() +" was Closed?: " + proof.closed()+ " \n" + proof.getStatistics());
+				proof.dispose();*/
+				//System.out.println(proof.toString());
+				//File reusedProof = saveProof(savePath, proof);
+				//replaceJavaSource(reusedProof);
+				i++;
+				
 			}
+			
+			
 			keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-			//proofHandler.setProof(proofHandler.proof);
 
 			reusedAProof = true;
-			System.out.println("Closed: " + proofHandler.proof.closed());
-			File reusedProof = null;
-			/*if (!proofHandler.proof.closed()) {
+			System.out.println( proofHandler.getTargetName() +"was Closed?: " + proofHandler.proof.closed());
+			/*File reusedProof = null;
+			if (!proofHandler.proof.closed()) {
 				reusedProof = proofHandler.saveProof(savePath);
 				replaceJavaSource(reusedProof);
 				
@@ -397,21 +420,29 @@ private void replaceOriginal(Goal newGoal, File reuseProof, Services services) {
 
 						if (var.contains("\\nothing")) {
 							var = var.replace("\\nothing", "");
-							value = "empty";
+							value = "";
 						}
 						if(var.contains("\\everything")) {
 							var = var.replace("\\everything", "");
-							value =  "setMinus(allLocs, unusedLocs(heap))";
+							value =  "setMinus(allLocs, unusedLocs(heap))" + ", ";
 						}
 						if (!var.isEmpty()) {
 							variableList.add(var);
-							var = "elementOf(self,"+className+"::$" + var.trim()+",OriginalFrame)";
+							if(var.contains(".")) {
+								System.out.println(var);
+								String[] twoStrings = var.split("\\.");
+								String classString = twoStrings[0].substring(0, 1).toUpperCase() + twoStrings[0].substring(1);
+								var = "elementOf(self,"+classString+"::$" + twoStrings[1]+",OriginalFrame)";
+							}else {
+								var = "elementOf(self,"+className+"::$" + var.trim()+",OriginalFrame)";
+							}
+							
 							value = value + var + ", ";
 						}
 					}
 
 					if (value.length() != 0) {
-						if (!value.equals("null")) {
+						if (!value.equals("empty")) {
 							value = value.substring(0, value.length() - 2);
 						}
 					} else {
@@ -423,6 +454,10 @@ private void replaceOriginal(Goal newGoal, File reuseProof, Services services) {
 						for (String var : variableList) {
 							if (value.contains("\\old(" + var + ")")) {
 								value = value.replace("\\old(" + var + ")", "self." + var + "@heapAtPre");
+							}else if(value.contains(var)){
+								
+							//	String[] twoStrings = var.split(".");
+								value = value.replace(var,"self."+var);
 							}
 						}
 						
@@ -430,13 +465,12 @@ private void replaceOriginal(Goal newGoal, File reuseProof, Services services) {
 						value = value.replace("OVERDRAFT_LIMIT", "self.OVERDRAFT_LIMIT");
 						value = value.replace(" || ", " | ");
 						value = value.replace(" && ", " & ");
+						value = value.replace(" == ", " = ");
 						value = value.replace("(\\result)", "result = TRUE");
 						value = "(" + value + ")";
-					}
-					if(jml[i].equals("combination")) {
 						value = value.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
-					}
-				}
+					}										
+								}
 				if (value != null) {
 					contractsMap.put(jml[i], value);
 				} else {
@@ -475,5 +509,20 @@ private void replaceOriginal(Goal newGoal, File reuseProof, Services services) {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Saves the proof in the given file
+	 * @param proofFile
+	 */
+	public File saveProof(String path, Proof proof){
+		final String defaultName = MiscTools.toValidFileName(proof.name().toString());
+		File proofFile = new File(path+System.getProperty("file.separator")+defaultName+".proof");
+		
+			StringBuffer sbuffer = new StringBuffer();
+			sbuffer.append(proof.toString());
+			BuilderUtil.rewriteFile(sbuffer,proofFile);
+			//proof.saveToFile(proofFile);
+				return proofFile;
 	}
 }
