@@ -22,12 +22,17 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.evaluation;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
+import testbench.TestFillMethodMap;
 
 
 /**
@@ -126,7 +131,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 		for(ApproachData approachData: allProjects){			
 			approachData.generateCode();
 
-			for(SingleApproachEvaluation s : approachData.getProjectVersion()){		
+			for(SingleApproachEvaluation s : approachData.getProjectVersion()){
 				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
 			}
 		

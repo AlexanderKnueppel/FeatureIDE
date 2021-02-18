@@ -115,7 +115,7 @@ public class ProofAutomationComposite extends Composite{
 		loadLabel.setText("Directory:");
 		source = new Text(loadComposite, SWT.BORDER);
 		source.setLayoutData(gridData);
-		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval");
+		source.setText("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox");
 		open = new Button(loadComposite, SWT.PUSH);
 		open.setText("Open");
 		//open.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

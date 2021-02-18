@@ -33,10 +33,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -150,14 +152,14 @@ public class FeatureStubsGeneratorNonRigid {
 											FeatureHouseCorePlugin.getDefault().logError("The method\n"	+ curSig.getFullName() + "\nis not defined within the currently checked SPL. Therefore the process will be aborted." , null);
 											return;
 										}
-
+										List<AbstractSignature> calledSig = fopFeatureData.getCalledSignatures();
 										if (fopFeatureData.usesOriginal()) {
 											checkForOriginal(fileTextSB, meth, curSig, signatures.getFeatureName(fopFeatureData.getID()));
 										}
-
+										
 										if (meth.hasContract() && meth.getContract().contains("\\original")) {
 											contractChanged = true;
-											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set);
+											checkForOriginalInContract(fileTextSB, curSig,signatures.getFeatureName(fopFeatureData.getID()),set,calledSig);
 										}
 										
 										if (meth.hasContract() && !meth.getContract().contains("\\original")) {
@@ -410,8 +412,8 @@ public class FeatureStubsGeneratorNonRigid {
 	 * @param curSig
 	 * @param featureName
 	 */
-	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set) {
-			
+	private void checkForOriginalInContract(StringBuilder fileTextSB, AbstractSignature curSig, final String featureName, TreeSet<FSTField> set,List<AbstractSignature>calledSig) {
+		
 		final String fileText = fileTextSB.toString();
 		int indexOfBody = fileText.lastIndexOf(curSig.toString().trim());
 		if (indexOfBody < 1) {
@@ -479,11 +481,12 @@ public class FeatureStubsGeneratorNonRigid {
 					aggregateClausesOriginalFrame(assignable, line);
 				}else {
 					assignable.append(line);
-				}
-				
+				}				
 			}
 		}
-		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , "/*@ public normal_behaviour \n"
+		fileTextSB.replace(indexOfStartOfContract, indexOfStartOfContract + contractBody.length() , 
+				"// \n"+
+				"/*@ public normal_behaviour \n"
 				+ requires.toString()+ "\n"+ ensures.toString()+ "\n" + assignable.toString()  + "\n" + 
 				"\t@");
 		
