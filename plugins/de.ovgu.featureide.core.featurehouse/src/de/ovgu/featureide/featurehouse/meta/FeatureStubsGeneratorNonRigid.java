@@ -390,9 +390,11 @@ public class FeatureStubsGeneratorNonRigid {
 					allowedFeaturesAdded = true; 
 				}
 				aggregateClausesNonRigid(requires, line);
-			} else if (line.startsWith("@ " + ENSURES)) {
+			} else if (line.startsWith("@ " + ENSURES) || line.startsWith("/*@ " + ENSURES)) {
+				line = line.replace("/*@", "@");
 				aggregateClausesNonRigid(ensures, line);
-			} else if (line.startsWith("@ " + ASSIGNABLE)) {				
+			} else if (line.startsWith("@ " + ASSIGNABLE) || line.startsWith("/*@ " + ASSIGNABLE)) {
+				line = line.replace("/*@", "@");
 				assignable.append(line);
 			}
 		}
