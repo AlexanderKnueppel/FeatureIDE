@@ -52,6 +52,7 @@ import de.uka.ilkd.key.logic.Namespace;
 import de.uka.ilkd.key.logic.NamespaceSet;
 import de.uka.ilkd.key.logic.PosInOccurrence;
 import de.uka.ilkd.key.logic.PosInTerm;
+import de.uka.ilkd.key.logic.Semisequent;
 import de.uka.ilkd.key.logic.Sequent;
 import de.uka.ilkd.key.logic.SequentFormula;
 import de.uka.ilkd.key.logic.Term;
@@ -82,6 +83,7 @@ import de.uka.ilkd.key.speclang.Contract;
 import de.uka.ilkd.key.strategy.Strategy;
 
 import de.uka.ilkd.key.strategy.StrategyProperties;
+import de.uka.ilkd.key.symbolic_execution.util.SymbolicExecutionUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
 /**
@@ -126,7 +128,7 @@ public class Non_Rigid extends KeyHandler {
 			proofHandler.proof.setActiveStrategy(proofHandler.proof.getServices().getProfile()
 					.getDefaultStrategyFactory().create(proofHandler.proof, sp));
 
-			ProofControl proofControl = environment.getUi().getProofControl();
+			ProofControl proofControl = environment.getProofControl();
 			int previousNodes;
 			do {
 				previousNodes = proofHandler.proof.countNodes();
@@ -163,6 +165,18 @@ public class Non_Rigid extends KeyHandler {
 					loader.getResult());
 			Services services = keYEnvironment.getServices();
 			proofHandler.proof = keYEnvironment.getLoadedProof();
+			ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+			HashMap<String, String> choices = new HashMap<String, String>();
+			choices.put("assertions", "assertions:safe");
+			choices.putAll(MiscTools.getDefaultTacletOptions());
+			choiceSettings.setDefaultChoices(choices);
+
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setMaxSteps(maxRuleApplication);
+			ProofSettings.DEFAULT_SETTINGS.getStrategySettings().setActiveStrategyProperties(sp);
+			proofHandler.proof.getSettings().getStrategySettings().setMaxSteps(maxRuleApplication);
+			proofHandler.proof.setActiveStrategy(
+					keYEnvironment.getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
+
 			String methodName = proofHandler.getTargetName();
 			if (!methodName.equals("<inv>")) {
 				methodName = methodName.split("\\(")[0];
@@ -170,124 +184,23 @@ public class Non_Rigid extends KeyHandler {
 
 			System.out.println("Starte proof of  " + proofHandler.proof.name());
 			proofHandler.setReusedStatistics();
-			proofHandler.setStatistics();
+
 			System.out.println("Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());
 			if (!proofHandler.proof.openGoals().isEmpty()) {
 				keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
 				// overwrite the other statistic of the goal-proof because they did not close
 				proofHandler.setStatistics();
 				System.out.println(proofHandler.getTargetName() + "was Closed with first startAndWaitForAutoMode ?: "
-						+ proofHandler.proof.closed()+"\n"+
-						proofHandler.proof.getStatistics());
+						+ proofHandler.proof.closed() + "\n" + proofHandler.proof.getStatistics());
 			}
 			if (!proofHandler.proof.openGoals().isEmpty()) {
 
-				for (Goal goal : proofHandler.proof.openGoals()) {
-
-					SequentFormula cf;
-					TermBuilder termBuilder = services.getTermBuilder();
-					List<SequentFormula> seqents = goal.sequent().asList().toList();
-					int allreadysetOriginalPre = 0;
-					int allreadysetOriginalPost = 0;
-					int allreadysetOriginalFrame = 0;
-					int allreadysetCombination = 0;
-
+				/*for (Goal goal : proofHandler.proof.openGoals()) {
 					changeRecord(proofHandler.getTypeName(), methodName);
-					Record record = recordMap.get(proofHandler.getTypeName()).get(methodName);
+					addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
 
-					try {
-						if (record != null) {
-							for (int j = 1; j < seqents.size(); j++) {
-								PosInOccurrence posInOccurrence = PosInOccurrence.findInSequent(goal.sequent(), j,
-										PosInTerm.getTopLevel());
-								String sequent = seqents.get(j).toString();
-								if (sequent.contains("OriginalPre<<origin") && record.getOriginalPre() != "") {
-									if (allreadysetOriginalPre == 0) {
-										PosInOccurrence pio = new PosInOccurrence(seqents.get(j + 1),
-												PosInTerm.getTopLevel(), true);
-										System.out.println("OriginalPre: " + record.getOriginalPre());
-										cf = new SequentFormula(termBuilder.parseTerm(
-												"OriginalPre <->(" + record.getOriginalPre() + ")",
-												goal.getLocalNamespaces()));
-										goal.addFormula(cf, pio);
-										allreadysetOriginalPre++;
-									}else {
-										String originalpre = getOtherOriginalPreString(record, proofHandler.getTypeName(), methodName);
-										if (!originalpre.isEmpty()) {
-											System.out.println("OriginalPre part 2: " + originalpre);
-											cf = new SequentFormula(
-													termBuilder.parseTerm("OriginalPre <->" + originalpre, goal.getLocalNamespaces()));
-											goal.addFormula(cf, false, false);
-										}
-									}
-
-								}
-								if (sequent.contains("OriginalPost<<origin") && record.getOriginalPost() != "") {
-									if (allreadysetOriginalPost == 0) {
-										System.out.println("OriginalPost: " + record.getOriginalPost());
-										cf = new SequentFormula(termBuilder.parseTerm(
-												"OriginalPost <-> (" + record.getOriginalPost() + ")",
-												goal.getLocalNamespaces()));
-										goal.addFormula(cf, true, false);
-										allreadysetOriginalPost++;
-									}else {
-										String originalpost = getOtherOriginalPreString(record, proofHandler.getTypeName(), methodName);
-										if (!originalpost.isEmpty()) {
-											System.out.println("OriginalPost part 2: " + originalpost);
-											cf = new SequentFormula(
-													termBuilder.parseTerm("OriginalPost <->" + originalpost, goal.getLocalNamespaces()));
-											goal.addFormula(cf, false, false);
-										}
-									}
-
-								}
-								if (sequent.contains("OriginalFrame<<origin") && !record.getOriginalFrame().isEmpty()) {
-									if (allreadysetOriginalFrame == 0) {
-										System.out.println("OriginalFrame: " + record.getOriginalFrame());
-										cf = new SequentFormula(termBuilder.parseTerm(record.getOriginalFrame(),
-												goal.getLocalNamespaces()));
-										goal.addFormula(cf, true, false);
-									}else {
-										String originalframe = getOtherOriginalPreString(record, proofHandler.getTypeName(), methodName);
-										if (!originalframe.isEmpty()) {
-											System.out.println("OriginalFrame part 2: " + originalframe);
-											cf = new SequentFormula(
-													termBuilder.parseTerm("OriginalFrame: " + originalframe, goal.getLocalNamespaces()));
-											goal.addFormula(cf, false, false);
-										}
-									}
-								}
-								if (sequent.contains("AllowedFeatureCombination")
-										&& !record.getCombination().isEmpty()) {
-									if (allreadysetCombination == 0) {
-										System.out.println("AllowedFeatureCombination: " + record.getCombination());
-										if (posInOccurrence.isInAntec()) {
-											cf = new SequentFormula(termBuilder.parseTerm("" + record.getCombination(),
-													goal.getLocalNamespaces()));
-											goal.addFormula(cf, true, false);
-											allreadysetCombination++;
-										}
-
-									} else {
-										String combination = getCombinationString(record, proofHandler.getTypeName(),
-												methodName);
-										if (!combination.isEmpty()) {
-											System.out.println("AllowedFeatureCombination part 2: " + combination);
-											cf = new SequentFormula(
-													termBuilder.parseTerm("" + combination, goal.getLocalNamespaces()));
-											goal.addFormula(cf, false, false);
-										}
-									}
-								}
-							}
-						}
-
-					} catch (ParserException e) {
-						System.out.println("Parsing the Sequent failed");
-						e.printStackTrace();
-					}
 					// create new Proof with goal as root
-					/*
+					
 					 * InitConfig config = proofHandler.proof.getInitConfig().deepCopy();
 					 * 
 					 * Proof proof = new Proof(proofHandler.proof.name().toString(), goal.sequent(),
@@ -312,15 +225,34 @@ public class Non_Rigid extends KeyHandler {
 					 * proofHandler.getTypeName(), proofHandler.proof.getInitConfig(), goal, i,
 					 * recursionNr, proofHandler); if (proof.closed()) {
 					 * proofHandler.proof.closeGoal(goal); } } i++;
-					 */
-				}
+					 
+				}*/
 				reusedAProof = true;
-				if (!proofHandler.proof.openGoals().isEmpty()) {
+				/*
+				 * if (!proofHandler.proof.openGoals().isEmpty()) {
+				 * keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
+				 * // overwrite the other statistic of the goal-proof because they did not close
+				 * proofHandler.setStatistics(); System.out.println(proofHandler.getTargetName()
+				 * + "was Closed with startAndWaitForAutoMode second time?: " +
+				 * proofHandler.proof.closed()); }
+				 */
+				int count = 0;
+				while (!proofHandler.proof.openGoals().isEmpty() && count < 20) {
+					for (Goal goal : proofHandler.proof.openGoals()) {
+						changeRecord(proofHandler.getTypeName(), methodName);
+						addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
+					}
+					int previousNodes = proofHandler.proof.countNodes();
+
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-					// overwrite the other statistic of the goal-proof because they did not close
-					proofHandler.setStatistics();
-					System.out.println(proofHandler.getTargetName() + "was Closed with startAndWaitForAutoMode second time?: "
-							+ proofHandler.proof.closed());
+					count++;
+					System.out.println("Open goals " + proofHandler.proof.openGoals().size() + " open Goals");
+					System.out.println(
+							proofHandler.getTargetName() + "was Closed with startAndWaitForAutoMode second time?: "
+									+ proofHandler.proof.closed() + "\n Nodes:" + proofHandler.proof.countNodes());
+					if (proofHandler.proof.countNodes() - previousNodes < 5) {
+						break;
+					}
 				}
 			}
 			if (proofHandler.proof.openGoals().isEmpty()) {
@@ -338,243 +270,193 @@ public class Non_Rigid extends KeyHandler {
 		return reusedAProof;
 	}
 
-	private String getOtherOriginalPreString(Record record, String classString, String methodName) {
-		String combinationPre = "";
-		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
-		Method method = methodMap.get(classString).get(methodName);
-		if (method == null) {
-			method = methodMap.get(classString).get(methodName.split("_")[0]);
-		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationPre = originalRecord.getOriginalPre();
-		}
+	/**
+	 * 
+	 * @param proofHandler
+	 * @param oldPartialProof
+	 * @param savePath
+	 * @param maxRuleApplication
+	 * @param defaultSettingsForFeatureStub
+	 */
+	public void replayFeatureStubProof(ProofHandler proofHandler, File oldPartialProof, String savePath,
+			int maxRuleApplication, StrategyProperties defaultSettingsForFeatureStub) {
+		System.out.println("Start replayFeatureStubProof of target: " + proofHandler.getTargetName());
+		boolean reusedAProof = false;
+		System.out.println(oldPartialProof.getAbsolutePath());
+		try {
+			KeYEnvironment<?> keYEnvironment = proofHandler.getEnvironment();
+			Contract contract = proofHandler.getContract();
+			ProofOblInput input = contract.createProofObl(keYEnvironment.getInitConfig(), contract);
 
-		List<String> calledMethods = method.getCalledMethod();
-		if (!calledMethods.get(0).isEmpty()) {
-			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
+			proofHandler.proof = keYEnvironment.createProof(input);
+			HashMap<String, String> choices = proofHandler.proof.getSettings().getChoiceSettings().getDefaultChoices();
+			choices.put("assertions", "assertions:safe");
+			ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
+			choiceSettings.setDefaultChoices(choices);
+
+			if (oldPartialProof != null) {
+				if (oldPartialProof.getName().endsWith(".proof")) {
+					UserInterfaceControl userInterface = new DefaultUserInterfaceControl(null);
+					try {
+
+						AbstractProblemLoader loader = userInterface.load(null, oldPartialProof, null, null, null, null,
+								false);
+						InitConfig initConfig = loader.getInitConfig();
+						keYEnvironment = new KeYEnvironment<>(userInterface, initConfig, loader.getProof(),
+								loader.getProofScript(), loader.getResult());
+						proofHandler.proof = keYEnvironment.getLoadedProof();
+						String methodName = proofHandler.getTargetName();
+						if (!methodName.equals("<inv>")) {
+							methodName = methodName.split("\\(")[0];
+						}
+						for (Goal goal : proofHandler.proof.openGoals()) {
+							changeRecord(proofHandler.getTypeName(), methodName);
+							addInformationToGoal(methodName, proofHandler.getTypeName(), keYEnvironment.getServices(),
+									goal);
+						}
+						ProofControl proofControl = keYEnvironment.getProofControl();
+
+						proofControl.startAndWaitForAutoMode(proofHandler.proof);
+						reusedAProof = true;
+
+					} catch (ProblemLoaderException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					if (combinationPre.isEmpty()) {
-						combinationPre = r.getOriginalPre();
-					} else if (!combinationPre.contains(r.getOriginalPre())) {
-						combinationPre = combinationPre + " & " + r.getOriginalPre();
+					// savePath = oldPartialProof.getParentFile().getAbsolutePath();
+					File reusedProof = proofHandler.saveProof(savePath);
+					try {
+						replaceJavaSource(reusedProof);
+						keYEnvironment.load(reusedProof);
+						proofHandler.setProof(keYEnvironment.getLoadedProof());
+					} catch (ProblemLoaderException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationPre.isEmpty()) {
-						combinationPre = r.getOriginalPre();
-					} else if (!combinationPre.contains(r.getOriginalPre())) {
-						combinationPre = combinationPre + " & " + r.getOriginalPre();
-					}
+					reusedProof.delete();
+					proofHandler.setReusedStatistics();
+					// keYEnvironment.dispose();
 				}
 			}
-		}
-		return combinationPre;
-	}
-	
-	private String getOtherOriginalPostString(Record record, String classString, String methodName) {
-		String combinationPost = "";
-		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
-		Method method = methodMap.get(classString).get(methodName);
-		if (method == null) {
-			method = methodMap.get(classString).get(methodName.split("_")[0]);
-		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationPost = originalRecord.getOriginalPost();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
-		List<String> calledMethods = method.getCalledMethod();
-		if (!calledMethods.get(0).isEmpty()) {
-			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combinationPost.isEmpty()) {
-						combinationPost = r.getOriginalPost();
-					} else if (!combinationPost.contains(r.getOriginalPost())) {
-						combinationPost = combinationPost + " & " + r.getOriginalPost();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationPost.isEmpty()) {
-						combinationPost = r.getOriginalPost();
-					} else if (!combinationPost.contains(r.getOriginalPost())) {
-						combinationPost = combinationPost + " & " + r.getOriginalPost();
-					}
-				}
-			}
-		}
-		return combinationPost;
-	}
-	
-	private String getOtherOriginalFrameString(Record record, String classString, String methodName) {
-		String combinationFrame = "";
-		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
-		Method method = methodMap.get(classString).get(methodName);
-		if (method == null) {
-			method = methodMap.get(classString).get(methodName.split("_")[0]);
-		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationFrame = originalRecord.getOriginalFrame();
-		}
-
-		List<String> calledMethods = method.getCalledMethod();
-		if (!calledMethods.get(0).isEmpty()) {
-			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combinationFrame.isEmpty()) {
-						combinationFrame = r.getOriginalFrame();
-					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
-						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationFrame.isEmpty()) {
-						combinationFrame = r.getOriginalFrame();
-					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
-						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
-					}
-				}
-			}
-		}
-		return combinationFrame;
-	}
-	private String getCombinationString(Record record, String classString, String methodName) {
-		String combination = "";
-		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
-		Method method = methodMap.get(classString).get(methodName);
-		if (method == null) {
-			method = methodMap.get(classString).get(methodName.split("_")[0]);
-		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combination = originalRecord.getCombination();
-		}
-
-		List<String> calledMethods = method.getCalledMethod();
-		if (!calledMethods.get(0).isEmpty()) {
-			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combination.isEmpty()) {
-						combination = r.getCombination();
-					} else if (!combination.contains(r.getCombination())) {
-						combination = combination + " & " + r.getCombination();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combination.isEmpty()) {
-						combination = r.getCombination();
-					} else if (!combination.contains(r.getCombination())) {
-						combination = combination + " & " + r.getCombination();
-					}
-				}
-			}
-		}
-		return combination;
 	}
 
 	/**
 	 * 
 	 * @param proof
-	 * @param initConfig
-	 * @param originalGoal
 	 * @param reuseProof
-	 * @param contractMap
-	 * @param i
-	 * @param recursionNr
-	 * @param proofHandler
+	 * @param services
+	 * @param goal
+	 * @param oldgoal
+	 * @param oldContractMap
+	 * @return
 	 */
-	private void proovingWithRecursion(Proof proof, String className, InitConfig initConfig, Goal originalGoal, int i,
-			int recursionNr, ProofHandler proofHandler) {
+	private void addInformationToGoal(String methodName, String className, Services services, Goal goal) {
+		SequentFormula cf;
+		TermBuilder termBuilder = services.getTermBuilder();
+		int seqSize = goal.sequent().size();
 
-		int goalNr = 1;
-		for (Goal goal : proof.openGoals()) {
-			System.out.println(goal.toString());
-			String methodName = proofHandler.getTargetName().split("\\(")[0];
-			Method method = methodMap.get(className).get(methodName);
-			if (method == null) {
-				method = methodMap.get(className).get(methodName.split("_")[0]);
-			}
-			if (method != null && !method.getOriginal().isEmpty()) {
-				addInformationToGoal(methodName.split("_")[0] + "_" + method.getOriginal(), className,
-						initConfig.getServices(), goal, originalGoal);
-			}
+		Record record = recordMap.get(className).get(methodName);
+		if (record == null) {
+			return;
+		}
+		if (!record.isPrepared()) {
+			changeRecord(className, methodName);
+			record = recordMap.get(className).get(methodName);
+		}
+		try {
+			if (record != null) {
 
-			if (method != null) {
-				List<String> usedFunctions = method.getCalledMethod();
-				for (String function : usedFunctions) {
-					if (!function.isEmpty()) {
-						addInformationToGoal(function, className, initConfig.getServices(), goal, originalGoal);
+				for (int j = 1; j <= seqSize; j++) {
+					PosInOccurrence posInOccurrence = PosInOccurrence.findInSequent(goal.sequent(), j,
+							PosInTerm.getTopLevel());
+					String sequent = goal.sequent().getFormulabyNr(j).toString();
+					// System.out.println(sequent);
+					if (sequent.contains("OriginalPre<<origin") && record.getOriginalPre() != "") {
+						if (posInOccurrence.isInAntec()) {
+							System.out.println("OriginalPre: " + record.getOriginalPre());
+							cf = new SequentFormula(termBuilder.parseTerm(
+									"OriginalPre <->(" + record.getOriginalPre() + ")", goal.getLocalNamespaces()));
+							goal.addFormula(cf, true, false);
+							seqSize = goal.sequent().size();
+						} else {
+							String originalpre = getOtherOriginalPreString(record, className, methodName);
+							if (!originalpre.isEmpty()) {
+								System.out.println("OriginalPre part 2: " + originalpre);
+								cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->" + originalpre,
+										goal.getLocalNamespaces()));
+								goal.addFormula(cf, false, false);
+								seqSize = goal.sequent().size();
+							}
+						}
+					}
+					if (sequent.contains("OriginalPost<<origin") && record.getOriginalPost() != "") {
+						if (posInOccurrence.isInAntec()) {
+							System.out.println("OriginalPost: " + record.getOriginalPost());
+							cf = new SequentFormula(termBuilder.parseTerm(
+									"OriginalPost <-> (" + record.getOriginalPost() + ")", goal.getLocalNamespaces()));
+							goal.addFormula(cf, true, false);
+							seqSize = goal.sequent().size();
+						} else {
+							String originalpost = getOtherOriginalPreString(record, className, methodName);
+							if (!originalpost.isEmpty()) {
+								System.out.println("OriginalPost part 2: " + originalpost);
+								cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <->" + originalpost,
+										goal.getLocalNamespaces()));
+								goal.addFormula(cf, false, false);
+								seqSize = goal.sequent().size();
+							}
+						}
+					}
+
+					if (sequent.contains("OriginalFrame<<origin") && !record.getOriginalFrame().isEmpty()) {
+						if (posInOccurrence.isInAntec()) {
+							System.out.println("OriginalFrame: " + record.getOriginalFrame());
+							cf = new SequentFormula(
+									termBuilder.parseTerm(record.getOriginalFrame(), goal.getLocalNamespaces()));
+							goal.addFormula(cf, true, false);
+							seqSize = goal.sequent().size();
+						} else {
+							String originalframe = getOtherOriginalPreString(record, className, methodName);
+							if (!originalframe.isEmpty()) {
+								System.out.println("OriginalFrame part 2: " + originalframe);
+								cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame: " + originalframe,
+										goal.getLocalNamespaces()));
+								goal.addFormula(cf, false, false);
+								seqSize = goal.sequent().size();
+							}
+						}
+					}
+
+					if (sequent.contains("AllowedFeatureCombination<<origin") && !record.getCombination().isEmpty()) {
+						if (posInOccurrence.isInAntec()) {
+							System.out.println("AllowedFeatureCombination: " + record.getCombination());
+							cf = new SequentFormula(
+									termBuilder.parseTerm("" + record.getCombination(), goal.getLocalNamespaces()));
+							goal.removeFormula(posInOccurrence);
+							goal.addFormula(cf, true, false);
+							seqSize = goal.sequent().size();
+						} else {
+							String combination = getCombinationString(record, className, methodName);
+							if (!combination.isEmpty()) {
+								System.out.println("AllowedFeatureCombination part 2: " + combination);
+								cf = new SequentFormula(
+										termBuilder.parseTerm("" + combination, goal.getLocalNamespaces()));
+								goal.removeFormula(posInOccurrence);
+								goal.addFormula(cf, false, false);
+								seqSize = goal.sequent().size();
+							}
+						}
 					}
 				}
 			}
-			addInformationToGoal(methodName, className, initConfig.getServices(), goal, originalGoal);
 
-			InitConfig newconfig = initConfig.deepCopy();
-			Proof newproof = new Proof(proof.name().toString(), goal.sequent(), proof.header(),
-					newconfig.createTacletIndex(), newconfig.createBuiltInRuleIndex(), newconfig);
-			int nrNodes = newproof.countNodes();
-			/*
-			 * keYEnvironment.getProofControl().runMacro(newproof.root(), new
-			 * FullAutoPilotProofMacro(), null);
-			 * keYEnvironment.getProofControl().waitWhileAutoMode();
-			 */
-			keYEnvironment.getProofControl().startAndWaitForAutoMode(proof);
-			System.out.println("Goal Nr " + i + " of recursion " + recursionNr + " Goal " + goalNr + " of Proof: "
-					+ newproof.name().toString() + " was Closed?: " + newproof.closed() + " \n"
-					+ newproof.getStatistics());
-			goalNr++;
-
-			if (newproof.closed()) {
-				proof.closeGoal(goal);
-			} else if (nrNodes < proof.countNodes() || proof.countNodes() != 1) {
-
-				proofHandler.addProofStatistic(proof);
-				recursionNr++;
-				proovingWithRecursion(newproof, className, initConfig, originalGoal, i, recursionNr, proofHandler);
-			} else {
-				return;
-			}
-
-		}
-		if (proof.openGoals().isEmpty()) {
-			System.out.println("Non_rigid Zeile 344 " + proof.name().toString() + " was Closed");
+		} catch (ParserException e) {
+			System.out.println("Parsing the Sequent failed");
+			e.printStackTrace();
 		}
 	}
 
@@ -595,6 +477,7 @@ public class Non_Rigid extends KeyHandler {
 		}
 		if (method == null) {
 			System.out.println("Non Rigid 435 : could not find method " + methodName + "in methodmap");
+			return;
 		}
 
 		if (!record.isPrepared()) {
@@ -700,7 +583,7 @@ public class Non_Rigid extends KeyHandler {
 						pre = pre.replace("\\old(" + var + ")", "self." + var + "@heapAtPre");
 					} else if (pre.contains(var)) {
 						if (var.contains(".")) {
-							String tmpString = "(self" + var + " & self.<inv>)& exc = null";
+							String tmpString = "(self ," + var + " & self.<inv>)& exc = null";
 							pre = pre.replace(var, tmpString);
 						} else {
 							pre = pre.replace(var, "self." + var);
@@ -735,10 +618,9 @@ public class Non_Rigid extends KeyHandler {
 					post = post.replace("\\old(" + var + ")", var + "@heapAtPre");
 					post = post.replace(var, "self." + var);
 					foundVariable = true;
-				}
-				if (foundVariable) {
-					post = post + " & self.<inv>& exc = null";
-				}
+				} /*
+					 * if (foundVariable) { post = post + " & self.<inv>& exc = null"; }
+					 */
 			}
 			for (String parameter : method.getParameter()) {
 				if (!parameter.isEmpty()) {
@@ -765,6 +647,247 @@ public class Non_Rigid extends KeyHandler {
 		return record;
 	}
 
+	private String getOtherOriginalPreString(Record record, String classString, String methodName) {
+		String combinationPre = "";
+		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
+		Method method = methodMap.get(classString).get(methodName);
+		if (method == null) {
+			method = methodMap.get(classString).get(methodName.split("_")[0]);
+		}
+		if (originalRecord != null) {
+			if (!originalRecord.isPrepared()) {
+				changeRecord(classString, record.getOriginalMethod());
+			}
+			combinationPre = originalRecord.getOriginalPre();
+		}
+
+		List<String> calledMethods = method.getCalledMethod();
+		if (!calledMethods.get(0).isEmpty()) {
+			for (String methods : calledMethods) {
+				if (methods.contains(".")) {
+					String clazz = methods.split("\\.")[0];
+					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
+					String methodString = methods.split("\\.")[1];
+					Record r = recordMap.get(clazz).get(methodString);
+					if (r == null) {
+						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
+					}
+					if (combinationPre.isEmpty()) {
+						combinationPre = r.getOriginalPre();
+					} else if (!combinationPre.contains(r.getOriginalPre())) {
+						combinationPre = combinationPre + " & " + r.getOriginalPre();
+					}
+				} else {
+					Record r = recordMap.get(classString).get(methods);
+					if (combinationPre.isEmpty()) {
+						combinationPre = r.getOriginalPre();
+					} else if (!combinationPre.contains(r.getOriginalPre())) {
+						combinationPre = combinationPre + " & " + r.getOriginalPre();
+					}
+				}
+			}
+		}
+		return combinationPre;
+	}
+
+	private String getOtherOriginalPostString(Record record, String classString, String methodName) {
+		String combinationPost = "";
+		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
+		Method method = methodMap.get(classString).get(methodName);
+		if (method == null) {
+			method = methodMap.get(classString).get(methodName.split("_")[0]);
+		}
+		if (originalRecord != null) {
+			if (!originalRecord.isPrepared()) {
+				changeRecord(classString, record.getOriginalMethod());
+			}
+			combinationPost = originalRecord.getOriginalPost();
+		}
+
+		List<String> calledMethods = method.getCalledMethod();
+		if (!calledMethods.get(0).isEmpty()) {
+			for (String methods : calledMethods) {
+				if (methods.contains(".")) {
+					String clazz = methods.split("\\.")[0];
+					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
+					String methodString = methods.split("\\.")[1];
+					Record r = recordMap.get(clazz).get(methodString);
+					if (r == null) {
+						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
+					}
+					if (combinationPost.isEmpty()) {
+						combinationPost = r.getOriginalPost();
+					} else if (!combinationPost.contains(r.getOriginalPost())) {
+						combinationPost = combinationPost + " & " + r.getOriginalPost();
+					}
+				} else {
+					Record r = recordMap.get(classString).get(methods);
+					if (combinationPost.isEmpty()) {
+						combinationPost = r.getOriginalPost();
+					} else if (!combinationPost.contains(r.getOriginalPost())) {
+						combinationPost = combinationPost + " & " + r.getOriginalPost();
+					}
+				}
+			}
+		}
+		return combinationPost;
+	}
+
+	private String getOtherOriginalFrameString(Record record, String classString, String methodName) {
+		String combinationFrame = "";
+		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
+		Method method = methodMap.get(classString).get(methodName);
+		if (method == null) {
+			method = methodMap.get(classString).get(methodName.split("_")[0]);
+		}
+		if (originalRecord != null) {
+			if (!originalRecord.isPrepared()) {
+				changeRecord(classString, record.getOriginalMethod());
+			}
+			combinationFrame = originalRecord.getOriginalFrame();
+		}
+
+		List<String> calledMethods = method.getCalledMethod();
+		if (!calledMethods.get(0).isEmpty()) {
+			for (String methods : calledMethods) {
+				if (methods.contains(".")) {
+					String clazz = methods.split("\\.")[0];
+					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
+					String methodString = methods.split("\\.")[1];
+					Record r = recordMap.get(clazz).get(methodString);
+					if (r == null) {
+						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
+					}
+					if (combinationFrame.isEmpty()) {
+						combinationFrame = r.getOriginalFrame();
+					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
+						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
+					}
+				} else {
+					Record r = recordMap.get(classString).get(methods);
+					if (combinationFrame.isEmpty()) {
+						combinationFrame = r.getOriginalFrame();
+					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
+						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
+					}
+				}
+			}
+		}
+		return combinationFrame;
+	}
+
+	private String getCombinationString(Record record, String classString, String methodName) {
+		String combination = "";
+		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
+		Method method = methodMap.get(classString).get(methodName);
+		if (method == null) {
+			method = methodMap.get(classString).get(methodName.split("_")[0]);
+		}
+		if (originalRecord != null) {
+			if (!originalRecord.isPrepared()) {
+				changeRecord(classString, record.getOriginalMethod());
+			}
+			combination = originalRecord.getCombination();
+		}
+
+		List<String> calledMethods = method.getCalledMethod();
+		if (!calledMethods.get(0).isEmpty()) {
+			for (String methods : calledMethods) {
+				if (methods.contains(".")) {
+					String clazz = methods.split("\\.")[0];
+					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
+					String methodString = methods.split("\\.")[1];
+					Record r = recordMap.get(clazz).get(methodString);
+					if (r == null) {
+						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
+					}
+					if (combination.isEmpty()) {
+						combination = r.getCombination();
+					} else if (!combination.contains(r.getCombination())) {
+						combination = combination + " & " + r.getCombination();
+					}
+				} else {
+					Record r = recordMap.get(classString).get(methods);
+					if (combination.isEmpty()) {
+						combination = r.getCombination();
+					} else if (!combination.contains(r.getCombination())) {
+						combination = combination + " & " + r.getCombination();
+					}
+				}
+			}
+		}
+		return combination;
+	}
+
+	/**
+	 * 
+	 * @param proof
+	 * @param initConfig
+	 * @param originalGoal
+	 * @param reuseProof
+	 * @param contractMap
+	 * @param i
+	 * @param recursionNr
+	 * @param proofHandler
+	 */
+	private void proovingWithRecursion(Proof proof, String className, InitConfig initConfig, Goal originalGoal, int i,
+			int recursionNr, ProofHandler proofHandler) {
+
+		int goalNr = 1;
+		for (Goal goal : proof.openGoals()) {
+			System.out.println(goal.toString());
+			String methodName = proofHandler.getTargetName().split("\\(")[0];
+			Method method = methodMap.get(className).get(methodName);
+			if (method == null) {
+				method = methodMap.get(className).get(methodName.split("_")[0]);
+			}
+			if (method != null && !method.getOriginal().isEmpty()) {
+				addInformationToGoal(methodName.split("_")[0] + "_" + method.getOriginal(), className,
+						initConfig.getServices(), goal);
+			}
+
+			if (method != null) {
+				List<String> usedFunctions = method.getCalledMethod();
+				for (String function : usedFunctions) {
+					if (!function.isEmpty()) {
+						addInformationToGoal(function, className, initConfig.getServices(), goal);
+					}
+				}
+			}
+			addInformationToGoal(methodName, className, initConfig.getServices(), goal);
+
+			InitConfig newconfig = initConfig.deepCopy();
+			Proof newproof = new Proof(proof.name().toString(), goal.sequent(), proof.header(),
+					newconfig.createTacletIndex(), newconfig.createBuiltInRuleIndex(), newconfig);
+			int nrNodes = newproof.countNodes();
+			/*
+			 * keYEnvironment.getProofControl().runMacro(newproof.root(), new
+			 * FullAutoPilotProofMacro(), null);
+			 * keYEnvironment.getProofControl().waitWhileAutoMode();
+			 */
+			keYEnvironment.getProofControl().startAndWaitForAutoMode(proof);
+			System.out.println("Goal Nr " + i + " of recursion " + recursionNr + " Goal " + goalNr + " of Proof: "
+					+ newproof.name().toString() + " was Closed?: " + newproof.closed() + " \n"
+					+ newproof.getStatistics());
+			goalNr++;
+
+			if (newproof.closed()) {
+				proof.closeGoal(goal);
+			} else if (nrNodes < proof.countNodes() || proof.countNodes() != 1) {
+
+				proofHandler.addProofStatistic(proof);
+				recursionNr++;
+				proovingWithRecursion(newproof, className, initConfig, originalGoal, i, recursionNr, proofHandler);
+			} else {
+				return;
+			}
+
+		}
+		if (proof.openGoals().isEmpty()) {
+			System.out.println("Non_rigid Zeile 344 " + proof.name().toString() + " was Closed");
+		}
+	}
+
 	/**
 	 * Saves the proof in the given file
 	 * 
@@ -785,127 +908,15 @@ public class Non_Rigid extends KeyHandler {
 	/**
 	 * 
 	 * @param proof
-	 * @param reuseProof
-	 * @param services
-	 * @param goal
-	 * @param oldgoal
-	 * @param oldContractMap
 	 * @return
 	 */
-	private boolean addInformationToGoal(String methodName, String className, Services services, Goal goal,
-			Goal oldgoal) {
-
-		boolean changedBoolean = false;
-		boolean allreadysetOriginalPre = false;
-		boolean allreadysetOriginalPost = false;
-		boolean allreadysetOriginalFrame = false;
-		boolean allreadysetCombination = false;
-
-		SequentFormula cf;
-		TermBuilder termBuilder = services.getTermBuilder();
-		Sequent seqent = goal.sequent();
-		Record record = recordMap.get(className).get(methodName);
-		if (record == null) {
-			return false;
-		}
-		if (!record.isPrepared()) {
-			changeRecord(className, methodName);
-			record = recordMap.get(className).get(methodName);
-		}
-		int precount = 0;
-		int postcount = 0;
-		int allowedcount = 0;
-		try {
-			for (int i = 1; i < seqent.size(); i++) {
-				PosInOccurrence posInOccurrence = PosInOccurrence.findInSequent(goal.sequent(), i,
-						PosInTerm.getTopLevel());
-				String sqString = seqent.getFormulabyNr(i).toString();
-				if (sqString.contains("equiv(OriginalPre")) {
-					precount++;
-				}
-				if (!allreadysetOriginalPre && precount > 0 && sqString.contains("OriginalPre<<origin")
-						&& record.getOriginalPre() != "") {
-					cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <-> " + record.getOriginalPre(),
-							oldgoal.getLocalNamespaces()));
-
-					PosInOccurrence piOccurrence = new PosInOccurrence(seqent.getFormulabyNr(i),
-							PosInTerm.getTopLevel(), true);
-					goal.removeFormula(piOccurrence);
-					goal.addFormula(cf, true, false);
-					allreadysetOriginalPre = true;
-
-				}
-				if (sqString.contains("equiv(OriginalPost")) {
-					postcount++;
-				}
-				if (!allreadysetOriginalPost && postcount > 0 && sqString.contains("OriginalPost<<origin")
-						&& record.getOriginalPost() != "") {
-					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> " + record.getOriginalPost(),
-							oldgoal.getLocalNamespaces()));
-					goal.addFormula(cf, true, false);
-					allreadysetOriginalPost = true;
-
-				}
-				if (!allreadysetOriginalFrame && sqString.contains("OriginalFrame")
-						&& record.getOriginalFrame() != "") {
-					cf = new SequentFormula(
-							termBuilder.parseTerm(record.getOriginalFrame(), oldgoal.getLocalNamespaces()));
-					goal.addFormula(cf, true, false);
-					allreadysetOriginalFrame = true;
-				}
-				// beim zweiten suchen
-				if (sqString.contains("AllowedFeatureCombination<<origin")) {
-					allowedcount++;
-				}
-				if (!allreadysetCombination && allowedcount > 1
-						&& sqString.contains("AllowedFeatureCombination<<origin")) {
-					cf = new SequentFormula(termBuilder.parseTerm(
-							"AllowedFeatureCombination<->" + record.getCombination(), goal.getLocalNamespaces()));
-
-					if (!posInOccurrence.isInAntec()) {
-						String combinationString = getCombinationString(record, className, methodName);
-						if (!combinationString.isEmpty()) {
-							System.out.println("AllowedFeatureCombination: " + combinationString);
-							cf = new SequentFormula(termBuilder.parseTerm(
-									"AllowedFeatureCombination<->" + combinationString, goal.getLocalNamespaces()));
-							goal.addFormula(cf, false, false);
-						}
-						allowedcount++;
-						allreadysetCombination = true;
-					}
-
-				}
-			}
-
-			if (!(allreadysetOriginalPre || allreadysetOriginalPost || allreadysetOriginalFrame
-					|| allreadysetCombination)) {
-				changedBoolean = false;
-			} else {
-				changedBoolean = true;
-			}
-		} catch (ParserException e) {
-			System.out.println("Non_Rigid startMetaProductProof failed");
-			e.printStackTrace();
-		}
-		return changedBoolean;
-	}
-
-	/**
-	 * 
-	 * @param goal
-	 * @return
-	 */
-	private static List<String> getUsedFunktions(Goal goal) { // new version
-		List<String> usedFunctions = new ArrayList<>();
-		for (Function function : goal.node().getLocalFunctions()) {
-			function.name();
-			String name = function.name().toString();
-			if (name.contains("anon_heap_")) {
-				String subString = name.substring("anon_heap_".length());
-				usedFunctions.add(subString);
-				// System.out.println(subString);
+	public static boolean goalHasApplicableRules(Proof proof) {
+		ImmutableList<Goal> goals = proof.openGoals();
+		for (Goal g : goals) {
+			if (SymbolicExecutionUtil.hasApplicableRules(g)) {
+				return true;
 			}
 		}
-		return usedFunctions;
+		return false;
 	}
 }
