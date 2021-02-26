@@ -195,38 +195,40 @@ public class Non_Rigid extends KeyHandler {
 			}
 			if (!proofHandler.proof.openGoals().isEmpty()) {
 
-				/*for (Goal goal : proofHandler.proof.openGoals()) {
-					changeRecord(proofHandler.getTypeName(), methodName);
-					addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
-
-					// create new Proof with goal as root
-					
-					 * InitConfig config = proofHandler.proof.getInitConfig().deepCopy();
-					 * 
-					 * Proof proof = new Proof(proofHandler.proof.name().toString(), goal.sequent(),
-					 * proofHandler.proof.header(), config.createTacletIndex(),
-					 * config.createBuiltInRuleIndex(), config); int nrNodes = proof.countNodes();
-					 * ProofControl proofControl = keYEnvironment.getProofControl();
-					 * FullAutoPilotProofMacro fappm = new FullAutoPilotProofMacro(); // run the
-					 * marco and than the proofing proofControl.runMacro(proof.root(), fappm, null);
-					 * proofControl.waitWhileAutoMode();
-					 * keYEnvironment.getProofControl().startAndWaitForAutoMode(proof);
-					 * System.out.println("Goal " + i + " with new Proof " + proof.name().toString()
-					 * + " was Closed?: " + proof.closed() + " \n" + proof.getStatistics());
-					 * proofHandler.addProofStatistic(proof);
-					 * 
-					 * int recursionNr = 1; if (proof.closed()) {
-					 * proofHandler.proof.closeGoal(goal); } else if (nrNodes < proof.countNodes()
-					 * && !proof.closed()) { System.out.println(goal.toString());
-					 * proofHandler.addProofStatistic(proof); proovingWithRecursion(proof,
-					 * proofHandler.getTypeName(), proofHandler.proof.getInitConfig(), goal, i,
-					 * recursionNr, proofHandler); if (proof.closed()) {
-					 * proofHandler.proof.closeGoal(goal); } } else { proovingWithRecursion(proof,
-					 * proofHandler.getTypeName(), proofHandler.proof.getInitConfig(), goal, i,
-					 * recursionNr, proofHandler); if (proof.closed()) {
-					 * proofHandler.proof.closeGoal(goal); } } i++;
-					 
-				}*/
+				/*
+				 * for (Goal goal : proofHandler.proof.openGoals()) {
+				 * changeRecord(proofHandler.getTypeName(), methodName);
+				 * addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
+				 * 
+				 * // create new Proof with goal as root
+				 * 
+				 * InitConfig config = proofHandler.proof.getInitConfig().deepCopy();
+				 * 
+				 * Proof proof = new Proof(proofHandler.proof.name().toString(), goal.sequent(),
+				 * proofHandler.proof.header(), config.createTacletIndex(),
+				 * config.createBuiltInRuleIndex(), config); int nrNodes = proof.countNodes();
+				 * ProofControl proofControl = keYEnvironment.getProofControl();
+				 * FullAutoPilotProofMacro fappm = new FullAutoPilotProofMacro(); // run the
+				 * marco and than the proofing proofControl.runMacro(proof.root(), fappm, null);
+				 * proofControl.waitWhileAutoMode();
+				 * keYEnvironment.getProofControl().startAndWaitForAutoMode(proof);
+				 * System.out.println("Goal " + i + " with new Proof " + proof.name().toString()
+				 * + " was Closed?: " + proof.closed() + " \n" + proof.getStatistics());
+				 * proofHandler.addProofStatistic(proof);
+				 * 
+				 * int recursionNr = 1; if (proof.closed()) {
+				 * proofHandler.proof.closeGoal(goal); } else if (nrNodes < proof.countNodes()
+				 * && !proof.closed()) { System.out.println(goal.toString());
+				 * proofHandler.addProofStatistic(proof); proovingWithRecursion(proof,
+				 * proofHandler.getTypeName(), proofHandler.proof.getInitConfig(), goal, i,
+				 * recursionNr, proofHandler); if (proof.closed()) {
+				 * proofHandler.proof.closeGoal(goal); } } else { proovingWithRecursion(proof,
+				 * proofHandler.getTypeName(), proofHandler.proof.getInitConfig(), goal, i,
+				 * recursionNr, proofHandler); if (proof.closed()) {
+				 * proofHandler.proof.closeGoal(goal); } } i++;
+				 * 
+				 * }
+				 */
 				reusedAProof = true;
 				/*
 				 * if (!proofHandler.proof.openGoals().isEmpty()) {
@@ -250,7 +252,7 @@ public class Non_Rigid extends KeyHandler {
 					System.out.println(
 							proofHandler.getTargetName() + "was Closed with startAndWaitForAutoMode second time?: "
 									+ proofHandler.proof.closed() + "\n Nodes:" + proofHandler.proof.countNodes());
-					if (proofHandler.proof.countNodes() - previousNodes < 5) {
+					if (proofHandler.proof.countNodes() == previousNodes) {
 						break;
 					}
 				}
@@ -369,80 +371,50 @@ public class Non_Rigid extends KeyHandler {
 		}
 		try {
 			if (record != null) {
+				int antePre = 0;
+				int succPre = 0;
+				int antePost = 0;
+				int succPost = 0;
+				int anteFrame = 0;
+				int succFrame = 0;
 
 				for (int j = 1; j <= seqSize; j++) {
 					PosInOccurrence posInOccurrence = PosInOccurrence.findInSequent(goal.sequent(), j,
 							PosInTerm.getTopLevel());
 					String sequent = goal.sequent().getFormulabyNr(j).toString();
 					// System.out.println(sequent);
-					if (sequent.contains("OriginalPre<<origin") && record.getOriginalPre() != "") {
-						if (posInOccurrence.isInAntec()) {
-							System.out.println("OriginalPre: " + record.getOriginalPre());
-							cf = new SequentFormula(termBuilder.parseTerm(
-									"OriginalPre <->(" + record.getOriginalPre() + ")", goal.getLocalNamespaces()));
-							goal.addFormula(cf, true, false);
-							seqSize = goal.sequent().size();
-						} else {
-							String originalpre = getOtherOriginalPreString(record, className, methodName);
-							if (!originalpre.isEmpty()) {
-								System.out.println("OriginalPre part 2: " + originalpre);
-								cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->" + originalpre,
-										goal.getLocalNamespaces()));
-								goal.addFormula(cf, false, false);
-								seqSize = goal.sequent().size();
-							}
+					if (posInOccurrence.isInAntec()) {
+						if (sequent.contains("OriginalPre")) {
+							antePre++;
 						}
-					}
-					if (sequent.contains("OriginalPost<<origin") && record.getOriginalPost() != "") {
-						if (posInOccurrence.isInAntec()) {
-							System.out.println("OriginalPost: " + record.getOriginalPost());
-							cf = new SequentFormula(termBuilder.parseTerm(
-									"OriginalPost <-> (" + record.getOriginalPost() + ")", goal.getLocalNamespaces()));
-							goal.addFormula(cf, true, false);
-							seqSize = goal.sequent().size();
-						} else {
-							String originalpost = getOtherOriginalPreString(record, className, methodName);
-							if (!originalpost.isEmpty()) {
-								System.out.println("OriginalPost part 2: " + originalpost);
-								cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <->" + originalpost,
-										goal.getLocalNamespaces()));
-								goal.addFormula(cf, false, false);
-								seqSize = goal.sequent().size();
-							}
+						if (sequent.contains("OriginalPost")) {
+							antePost++;
 						}
-					}
-
-					if (sequent.contains("OriginalFrame<<origin") && !record.getOriginalFrame().isEmpty()) {
-						if (posInOccurrence.isInAntec()) {
-							System.out.println("OriginalFrame: " + record.getOriginalFrame());
-							cf = new SequentFormula(
-									termBuilder.parseTerm(record.getOriginalFrame(), goal.getLocalNamespaces()));
-							goal.addFormula(cf, true, false);
-							seqSize = goal.sequent().size();
-						} else {
-							String originalframe = getOtherOriginalPreString(record, className, methodName);
-							if (!originalframe.isEmpty()) {
-								System.out.println("OriginalFrame part 2: " + originalframe);
-								cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame: " + originalframe,
-										goal.getLocalNamespaces()));
-								goal.addFormula(cf, false, false);
-								seqSize = goal.sequent().size();
-							}
+						if (sequent.contains("OriginalFrame")) {
+							anteFrame++;
 						}
-					}
-
-					if (sequent.contains("AllowedFeatureCombination<<origin") && !record.getCombination().isEmpty()) {
-						if (posInOccurrence.isInAntec()) {
-							System.out.println("AllowedFeatureCombination: " + record.getCombination());
+						if (sequent.contains("AllowedFeatureCombination")) {
+							System.out.println("AllowedFeatureCombination Ante: " + record.getCombination());
 							cf = new SequentFormula(
 									termBuilder.parseTerm("" + record.getCombination(), goal.getLocalNamespaces()));
 							goal.removeFormula(posInOccurrence);
 							goal.addFormula(cf, true, false);
 							seqSize = goal.sequent().size();
-						} else {
+						}
+					} else {
+						if (sequent.contains("OriginalPre")) {
+							succPre++;
+						}
+						if (sequent.contains("OriginalPost")) {
+							succPost++;
+						}
+						if (sequent.contains("OriginalFrame")) {
+							succFrame++;
+						}
+						if (sequent.contains("AllowedFeatureCombination")) {
 							String combination = getCombinationString(record, className, methodName);
 							if (!combination.isEmpty()) {
-								System.out.println("AllowedFeatureCombination part 2: " + combination);
+								System.out.println("AllowedFeatureCombination Succ: " + combination);
 								cf = new SequentFormula(
 										termBuilder.parseTerm("" + combination, goal.getLocalNamespaces()));
 								goal.removeFormula(posInOccurrence);
@@ -452,8 +424,56 @@ public class Non_Rigid extends KeyHandler {
 						}
 					}
 				}
-			}
 
+				if (antePre == 1 && record.getOriginalPre() != "") {
+					System.out.println("OriginalPre Ante: " + record.getOriginalPre());
+					cf = new SequentFormula(termBuilder.parseTerm(
+							"OriginalPre <->(" + record.getOriginalPre() + ")", goal.getLocalNamespaces()));
+					goal.addFormula(cf, true, false);
+				}
+
+				if (succPre == 1) {
+					String originalpre = getOtherOriginalPreString(record, className, methodName);
+					if (!originalpre.isEmpty()) {
+						System.out.println("OriginalPre Succ: " + originalpre);
+						cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->" + originalpre,
+								goal.getLocalNamespaces()));
+						goal.addFormula(cf, false, false);
+					}
+				}
+
+				if (antePost == 1 && record.getOriginalPost() != "") {
+					System.out.println("OriginalPost Ante: " + record.getOriginalPost());
+					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + record.getOriginalPost() + ")",
+							goal.getLocalNamespaces()));
+					goal.addFormula(cf, true, false);
+				}
+				if (succPost == 1) {
+					String originalpost = getOtherOriginalPostString(record, className, methodName);
+					if (!originalpost.isEmpty()) {
+						System.out.println("OriginalPost Succ: " + originalpost);
+						cf = new SequentFormula(
+								termBuilder.parseTerm("OriginalPost <->" + originalpost, goal.getLocalNamespaces()));
+						goal.addFormula(cf, false, false);
+					}
+				}
+
+				if (anteFrame == 1 && !record.getOriginalFrame().isEmpty()) {
+					System.out.println("OriginalFrame Ante: " + record.getOriginalFrame());
+					cf = new SequentFormula(
+							termBuilder.parseTerm("OriginalFrame \\in "+record.getOriginalFrame(), goal.getLocalNamespaces()));
+					goal.addFormula(cf, true, false);
+				}
+
+				if (succFrame == 1) {
+					String originalframe = getOtherOriginalFrameString(record, className, methodName);
+					if (!originalframe.isEmpty()) {
+						System.out.println("OriginalFrame Succ: " + originalframe);
+						cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame \\in "+ originalframe, goal.getLocalNamespaces()));
+						goal.addFormula(cf, false, false);
+					}
+				}
+			}
 		} catch (ParserException e) {
 			System.out.println("Parsing the Sequent failed");
 			e.printStackTrace();
