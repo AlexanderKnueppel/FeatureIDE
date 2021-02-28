@@ -590,12 +590,20 @@ public class FeatureStubsGeneratorNonRigid {
 				+ ";\n\t@ assignable \\dl_OriginalFrame"
 				+ ";\n\t@*/\n" + methodName + "{}\n");
 		
-		final int indexOfBody = fileTextSB.indexOf(meth.getBody());
-		String tmpString = fileTextSB.substring(indexOfBody);
-		final int indexOfOriginal = tmpString.indexOf("original(");
-		final String methodBody = fileTextSB.substring(indexOfBody + indexOfOriginal);
-		fileTextSB.replace(indexOfBody + indexOfOriginal, indexOfBody + indexOfOriginal + methodBody.indexOf("(") ,curSig.getName()
-				+ "_original_" + featureName); 
+		try {
+			final int indexOfBody = fileTextSB.indexOf(meth.getBody());
+
+			String tmpString = fileTextSB.substring(indexOfBody);
+			final int indexOfOriginal = tmpString.indexOf("original(");
+			final String methodBody = fileTextSB.substring(indexOfBody + indexOfOriginal);
+			fileTextSB.replace(indexOfBody + indexOfOriginal, indexOfBody + indexOfOriginal + methodBody.indexOf("(") ,curSig.getName()
+					+ "_original_" + featureName); 
+		} catch (StringIndexOutOfBoundsException e) {
+			System.out.println(e);
+			System.out.println(fileTextSB);
+			System.out.println("\n Methodbody \n " + meth.getBody());
+		}
+		
 	}
 
 	@Override

@@ -55,10 +55,11 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * gets a directory which contains one evaluation approache and sets the statistics file and the Evaluation Approach list
 	 * @param toEvaluate
 	 */
-	public CompleteApproachesEvaluation(File f, String verificationType, String method) {
+	public CompleteApproachesEvaluation(File f, String verificationType, String method, String evolution) {
 		super(f);
 		this.verificationType = verificationType;
 		this.method = method;
+		this.evolutionType = evolution;
 		date = new Date();
 		if(verificationType.startsWith("0")) {
 			File evalDir = FileManager.createDir(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+FileManager.evaluationDir));
@@ -76,12 +77,12 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * Adds all subdirectories which contains a evaluation Approach to the list 
 	 */
 	private void setAllEvaluationApproaches(){
-		allProjects.add(new ApproachData(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath,method));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath,method));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath,method));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA4 (Method Inlining)",this.evaluatePath,method));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath,method));
-		allProjects.add(new ApproachData(this.toEvaluate,"VA6 (Thuem et al. with Reuse)",this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA1 (EVEFI)",this.evaluatePath,method,evolutionType));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA2 (Metaproduct)",this.evaluatePath,method,evolutionType));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA3 (Concrete)",this.evaluatePath,method,evolutionType));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA4 (Method Inlining)",this.evaluatePath,method,evolutionType));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA5 (Thuem et al.)",this.evaluatePath,method,evolutionType));
+		allProjects.add(new ApproachData(this.toEvaluate,"VA6 (Thuem et al. with Reuse)",this.evaluatePath,method,evolutionType));
 		
 	}
 	
@@ -89,7 +90,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 	 * Adds one subdirectorie which contains a evaluation Approach to the list 
 	 */
 	private void setOneEvaluationApproach(){
-		allProjects.add(new ApproachData(this.toEvaluate,verificationType,this.evaluatePath,method));
+		allProjects.add(new ApproachData(this.toEvaluate,verificationType,this.evaluatePath,method,evolutionType));
 	}
 	
 	/**
@@ -132,7 +133,7 @@ public class CompleteApproachesEvaluation extends Evaluation{
 			approachData.generateCode();
 
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){
-				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method);
+				startNewJVM.startNewProcess(s.toEvaluate, s.evaluatePath,method,evolutionType);
 			}
 		
 			for(SingleApproachEvaluation s : approachData.getProjectVersion()){

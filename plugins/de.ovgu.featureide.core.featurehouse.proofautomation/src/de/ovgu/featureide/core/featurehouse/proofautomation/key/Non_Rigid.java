@@ -461,7 +461,7 @@ public class Non_Rigid extends KeyHandler {
 				if (anteFrame == 1 && !record.getOriginalFrame().isEmpty()) {
 					System.out.println("OriginalFrame Ante: " + record.getOriginalFrame());
 					cf = new SequentFormula(
-							termBuilder.parseTerm("OriginalFrame \\in "+record.getOriginalFrame(), goal.getLocalNamespaces()));
+							termBuilder.parseTerm(record.getOriginalFrame(), goal.getLocalNamespaces()));
 					goal.addFormula(cf, true, false);
 				}
 
@@ -469,7 +469,7 @@ public class Non_Rigid extends KeyHandler {
 					String originalframe = getOtherOriginalFrameString(record, className, methodName);
 					if (!originalframe.isEmpty()) {
 						System.out.println("OriginalFrame Succ: " + originalframe);
-						cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame \\in "+ originalframe, goal.getLocalNamespaces()));
+						cf = new SequentFormula(termBuilder.parseTerm( originalframe, goal.getLocalNamespaces()));
 						goal.addFormula(cf, false, false);
 					}
 				}

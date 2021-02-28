@@ -65,6 +65,8 @@ public class ProofAutomationComposite extends Composite{
 	private Button loadProjectDir;
 	private Button methodNonRigid;
 	private Button methodDefaultKey;
+	private Button versioningEvolution;
+	private Button featureEvolution;
 	private Button sandbox;
 	private Button open;
 	Composite loadComposite;
@@ -103,6 +105,21 @@ public class ProofAutomationComposite extends Composite{
 		GridData gridData = new GridData();
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
+		
+	    Group evolutionGroup = new Group(this, 1);
+	    evolutionGroup.setText("Evolution Type");
+	    evolutionGroup.setLayout(new GridLayout(1,false));
+	    evolutionGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    Composite evolutionComposite = new Composite(evolutionGroup, SWT.NONE);
+	    evolutionComposite.setLayout(new GridLayout(4,true));
+	    evolutionComposite.setLayoutData(new GridData(GridData.FILL));
+	    
+		versioningEvolution = new Button(evolutionComposite,SWT.RADIO);
+		versioningEvolution.setText("Versioning Based");
+		versioningEvolution.setSelection(true);
+		featureEvolution = new Button(evolutionComposite,SWT.RADIO);
+		featureEvolution.setText("Feature Based");
+		
 		Group load = new Group(this, 1);
 		load.setText("Directory for Evaluation");
 		load.setLayout(new GridLayout(1,false));
@@ -134,7 +151,7 @@ public class ProofAutomationComposite extends Composite{
 		methodNonRigid.setText("Non Rigid");
 		methodNonRigid.setSelection(true);
 		methodDefaultKey = new Button(loadComposite,SWT.RADIO);
-		methodDefaultKey.setText("Default KeY");
+		methodDefaultKey.setText("Default KeY");	
 		
 	    open.addSelectionListener(new SelectionAdapter() {
 	    	public void widgetSelected(SelectionEvent event) {
@@ -145,6 +162,7 @@ public class ProofAutomationComposite extends Composite{
 	            }
 	    	}
 		});
+
 		
 		Composite buttonComposite = new Composite(load, SWT.NONE);
 		buttonComposite.setLayout(new GridLayout(4,true));
@@ -211,11 +229,19 @@ public class ProofAutomationComposite extends Composite{
 					method = "Non Rigid";
 				}
 				if(methodDefaultKey.getSelection()) {
-					method = "AbstractExecution";
+					method = "DefaultKey";
 				}
-				CompleteApproachesEvaluation s = new CompleteApproachesEvaluation(f,verificationApproach.getText(),method);
+				String evolution="";
+				if(versioningEvolution.getSelection()) {
+					evolution = "versioning";
+				}
+				if(featureEvolution.getSelection()) {
+					evolution = "feature";
+				}
+				
+				CompleteApproachesEvaluation s = new CompleteApproachesEvaluation(f,verificationApproach.getText(),method,evolution);
 				if(Configuration.performVerification){
-					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath,method);
+					startNewJVM.startNewProcess(s.toEvaluate,s.evaluatePath,method,evolution);
 					
 				}
 			}
@@ -234,10 +260,18 @@ public class ProofAutomationComposite extends Composite{
 					method = "Non Rigid";
 				}
 				if(methodDefaultKey.getSelection()) {
-					method = "AbstractExecution";
+					method = "DefaultKey";
+				}
+				
+				String evolution="";
+				if(versioningEvolution.getSelection()) {
+					evolution = "versioning";
+				}
+				if(featureEvolution.getSelection()) {
+					evolution = "feature";
 				}
 				//EvaluationApproach ep = new EvaluationApproach(f, verificationApproach.getText());
-				CompleteApproachesEvaluation ep =  new CompleteApproachesEvaluation(f,verificationApproach.getText(),method);
+				CompleteApproachesEvaluation ep =  new CompleteApproachesEvaluation(f,verificationApproach.getText(),method,evolution);
 				if(Configuration.performVerification){
 					ep.performEvaluation();
 				}
