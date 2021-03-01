@@ -121,7 +121,7 @@ public class BuildMap {
 
 					fillMap(fstFeat, signatures, methodMap);
 				}
-				FillMethodMap.printMap(methodMap);
+				//FillMethodMap.printMap(methodMap);
 			}
 			File csvFile = new File(
 					singleApproachEvaluation.evaluatePath.getAbsolutePath() + FILE_SEPERATOR + "methodMap.csv");

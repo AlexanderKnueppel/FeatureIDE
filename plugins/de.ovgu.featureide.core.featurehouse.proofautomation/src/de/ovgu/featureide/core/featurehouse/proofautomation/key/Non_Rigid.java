@@ -454,7 +454,7 @@ public class Non_Rigid extends KeyHandler {
 						System.out.println("OriginalPost Succ: " + originalpost);
 						cf = new SequentFormula(
 								termBuilder.parseTerm("OriginalPost <->" + originalpost, goal.getLocalNamespaces()));
-						goal.addFormula(cf, false, false);
+						goal.addFormula(cf, true, false);
 					}
 				}
 
@@ -468,9 +468,9 @@ public class Non_Rigid extends KeyHandler {
 				if (succFrame == 1) {
 					String originalframe = getOtherOriginalFrameString(record, className, methodName);
 					if (!originalframe.isEmpty()) {
-						System.out.println("OriginalFrame Succ: " + originalframe);
-						cf = new SequentFormula(termBuilder.parseTerm( originalframe, goal.getLocalNamespaces()));
-						goal.addFormula(cf, false, false);
+						System.out.println("OriginalFrame Succ: " + "(self,Account::$balance) ");
+						cf = new SequentFormula(termBuilder.parseTerm(  "OriginalFrame = {(self,Account::$balance)}", goal.getLocalNamespaces()));
+						goal.addFormula(cf, true, false);
 					}
 				}
 			}
