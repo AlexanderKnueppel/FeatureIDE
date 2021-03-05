@@ -22,13 +22,11 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.builder;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,27 +34,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections4.bag.SynchronizedSortedBag;
-import org.junit.Ignore;
-import org.key_project.util.collection.ImmutableSet;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
-import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
-import de.uka.ilkd.key.control.KeYEnvironment;
-import de.uka.ilkd.key.control.UserInterfaceControl;
-import de.uka.ilkd.key.java.Services;
-import de.uka.ilkd.key.logic.PosInOccurrence;
-import de.uka.ilkd.key.logic.PosInTerm;
-import de.uka.ilkd.key.logic.Sequent;
-import de.uka.ilkd.key.logic.SequentFormula;
-import de.uka.ilkd.key.logic.TermBuilder;
-import de.uka.ilkd.key.parser.ParserException;
-import de.uka.ilkd.key.proof.Goal;
-import de.uka.ilkd.key.proof.Proof;
-import de.uka.ilkd.key.proof.init.InitConfig;
-import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
-import de.uka.ilkd.key.proof.io.ProblemLoaderException;
-import de.uka.ilkd.key.speclang.Contract;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
+
 
 /**
  * 
@@ -191,8 +172,9 @@ public class MetaProductBuilderNonRigid {
 	/**
 	 * Performs the proof transformation for all partial proofs if necessary
 	 * @param projectDir Directory of the Project contains Directory "Partial Proofs for Metaproduct" with proofs of the featurestub
+	 * @param methodMap 
 	 */
-	public static void preparePartialProofs(File projectDir, File evalPath){
+	public static void preparePartialProofs(File projectDir, File evalPath, Map<String, Map<String, Method>> methodMap){
 		File partialProofs = new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.partialProofsDir);
 		System.out.println("Prepare " + partialProofs + " for Partialproofs");
 		File[] featurestubs = partialProofs.listFiles();
@@ -211,7 +193,7 @@ public class MetaProductBuilderNonRigid {
 						}
 						
 						File metaproduct = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir+FILE_SEPERATOR+getClassName(proofFile)+".java");
-						enhanceContractWithPredicateDetails(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), "");
+						enhanceContractWithPredicateDetails(methodname,metaproduct,evalPath,f.getName(),proofFile.getName(), "", methodMap);
 						System.out.println("Methodname = " + methodname + "; Featurename = " + f.getName());
 					}
 				}
@@ -281,7 +263,7 @@ public class MetaProductBuilderNonRigid {
 	 * @param metaProduct
 	 */
 	public static void prepareMetaproductForNonRigid(File metaProduct) {
-		createKeyFile(Paths.get(metaProduct.getAbsolutePath()+FILE_SEPERATOR+"Meta.key"));
+		createKeyFile(metaProduct.getAbsolutePath()+FILE_SEPERATOR+"Meta.key");
 		
 		for(File source : metaProduct.listFiles()){
 			if(!source.isDirectory()){
@@ -316,7 +298,7 @@ public class MetaProductBuilderNonRigid {
 
 	}
 	
-	private static void enhanceContractWithPredicateDetails(String methodeName, File metaProduct,File evalPath, String featureName, String contractName, String projectName) {
+	private static void enhanceContractWithPredicateDetails(String methodeName, File metaProduct,File evalPath, String featureName, String contractName, String projectName, Map<String, Map<String, Method>> methodMap) {
 		String realname = methodeName+"_"+featureName;
 		try {
 			if(!(new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8).contains(methodeName+"_"+featureName))) {
@@ -326,8 +308,12 @@ public class MetaProductBuilderNonRigid {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		if(!metaProduct.exists()) {
+			System.out.println("Error: Metaproduktbuilder 312: " + metaProduct.getAbsolutePath());
+		}
 		
 		try {
+			
 			BufferedReader bReader = new BufferedReader(new FileReader(metaProduct));
             String line = bReader.readLine();
             
@@ -356,8 +342,12 @@ public class MetaProductBuilderNonRigid {
             		
             		String allowedCombination = tmp.substring(0, k);
             		String str = allowedCombination.replaceFirst("requires", "").replace("@", "").trim();
+            		Method method = methodMap.get(metaProduct.getName().replace(".java", "")).get(realname);
+            		if(method == null) {
+            			method = methodMap.get(metaProduct.getName().replace(".java", "")).get(realname.split("_")[0]);
+            		}
             		if(str.isEmpty())
-            			str = "true";
+            			str = "FM.FeatureModel."+ method.getRootFeature().toLowerCase();
             		oldContract.add("combination " + str);
             	} 
 
@@ -384,13 +374,16 @@ public class MetaProductBuilderNonRigid {
             }
             
             if(oldContract.isEmpty()) {
-            	oldContract.add("combination true");
+        		Method method = methodMap.get(metaProduct.getName().replace(".java", "")).values().iterator().next();
+        		if(method == null) {
+        			method = methodMap.get(metaProduct.getName().replace(".java", "")).get(realname.split("_")[0]);
+        		}
+            	oldContract.add("combination "+"FM.FeatureModel."+ method.getRootFeature().toLowerCase());
             }
-            
+            String originalMethod = "";
             if(!realname.equals(methodeName)) { //i.e., realname = methodname_featurename
 	            //Extract contract of original method
-	            String originalMethod = methodeName + "_" + getOriginalMethod(methodeName, featureName, metaProduct);
-	            
+	            originalMethod = methodeName + "_" + getOriginalMethod(methodeName, featureName, metaProduct);
 	            String content = new String(Files.readAllBytes(metaProduct.toPath()), StandardCharsets.UTF_8);
 	            String contractOfOriginal = "";
 	            for(String sentence : content.split("\n")) {
@@ -400,7 +393,7 @@ public class MetaProductBuilderNonRigid {
 	            	if(matcher.find()) { 
 	            		break;
 	            	}
-	            	System.out.println(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
+	            	//System.out.println(".*"+originalMethod+"\\s*\\(.*\\)\\s*\\{");
 	            	if(sentence.contains("/*@")) {
 	            		contractOfOriginal = "/*@";
 	            	} else {
@@ -418,15 +411,15 @@ public class MetaProductBuilderNonRigid {
 	        		}
 	        	}
             }
-            
             String oldContractStr = String.join("\n", oldContract);
-            oldContractStr = "/*\n" + oldContractStr + "\n*/";
+            oldContractStr = "/*\n"  + oldContractStr + "\n*/";
             
             oldContractStr = oldContractStr.replaceAll("@", "");
             oldContractStr = oldContractStr.replaceAll("combination", "\t _combination_" + realname +" =");
             oldContractStr = oldContractStr.replaceAll("originalpre", "\t _originalPre_" + realname +" =");
             oldContractStr = oldContractStr.replaceAll("originalpost", "\t _originalPost_" + realname +" =");
             oldContractStr = oldContractStr.replaceAll("originalframe", "\t _originalFrame_" + realname +" =");
+            
              
             sbuffer.append(oldContractStr+"\n");
             while (line != null) {      
@@ -914,7 +907,7 @@ public class MetaProductBuilderNonRigid {
 	        	
 	        	if(line.contains(methodName+"_"+nameString+"R = ")) {
 	        		String[] subStrings = line.split(" = ");
-	        		System.out.println( subStrings[1]);
+	        		//System.out.println( subStrings[1]);
 	        		contractMap.put("R", subStrings[1]);
 	        	}
 	        	line = bReader.readLine();
@@ -928,7 +921,7 @@ public class MetaProductBuilderNonRigid {
 	 * 
 	 * @param file
 	 */
-	private static void createKeyFile(Path file) {
+	private static void createKeyFile(String file) {
 		String text = "\\javaSource \".\";\n" + 
 				"\n" + 
 				"\\functions {\n" + 
@@ -943,8 +936,10 @@ public class MetaProductBuilderNonRigid {
 				"\n" + 
 				"\\chooseContract";
 		try {
-			Files.deleteIfExists(file);			
-			Files.write(file, text.getBytes("UTF-8"));
+			new File(file);
+			FileWriter newFile = new FileWriter(file);
+			newFile.write(text);
+			newFile.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

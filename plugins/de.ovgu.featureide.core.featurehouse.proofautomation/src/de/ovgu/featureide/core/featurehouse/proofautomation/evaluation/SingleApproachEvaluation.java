@@ -21,8 +21,10 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.evaluation;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.FeatureStubBuilder;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
@@ -31,6 +33,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultKeY;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.AbstractVerification;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ConcreteContracts;
@@ -40,6 +43,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.verification.Metapro
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.MethodInling;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAl;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAlReuse;
+import testbench.TestFillMethodMap;
 
 /**
  * Represents a Evaluation over one approach
@@ -54,12 +58,14 @@ public class SingleApproachEvaluation extends Evaluation {
 	private List<ProofInformation> proofList = new LinkedList<ProofInformation>(); // contains all Automating proofs of
 																					// this project
 	private List<ProofInformation> proofList1And2Phase = new LinkedList<ProofInformation>();
+	public Map<String, Map<String, Method>> methodMap = new HashMap<>();
+	
 
 	public static void main(String[] args) {
 		SingleApproachEvaluation s = new SingleApproachEvaluation(
 				new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/BankAccountv1"), 1,
 				"/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/AbstractExecution/account/Evaluation/BankAccountv1",
-				"AbstractContract");
+				"AbstractContract","");
 		s.performEvaluation();
 	}
 
@@ -71,10 +77,11 @@ public class SingleApproachEvaluation extends Evaluation {
 	 * @param evalVersion
 	 * @param evaluatePath
 	 */
-	public SingleApproachEvaluation(File f, int evalVersion, String evaluatePath, String method) {
+	public SingleApproachEvaluation(File f, int evalVersion, String evaluatePath, String method,String evolutionType) {
 		super(f);
-		System.out.println("Init SingleApproachEvaluation with Method " + method + "with Eval Version " + evalVersion);
+		System.out.println("Init SingleApproachEvaluation with Method " + method + " with Eval Version " + evalVersion);
 		this.method = method;
+		this.evolutionType = evolutionType;
 		this.evaluatePath = FileManager.createDir(new File(evaluatePath));
 		if (evalVersion > 0) {
 			this.evalVersion = evalVersion;
@@ -94,6 +101,7 @@ public class SingleApproachEvaluation extends Evaluation {
 	 */
 	@Override
 	public void performEvaluation() {
+		
 		if (evalVersion == 5 || evalVersion == 6) {
 			Configuration.setCurrentMetaproductwithDispatcher(false);
 		} else {
@@ -144,14 +152,14 @@ public class SingleApproachEvaluation extends Evaluation {
 		}
 
 		if (method.equals("Non Rigid")) {
-			System.out.println("Starte Proof with Abstract Contracts");
+			System.out.println("Starte Proof with Non Rigid");
 			abstractVerification.keyHandler = new Non_Rigid();
 		} else if (method.equals("DefaultKeY")) {
 			System.out.println("Starte Proof with DefaultKeY");
 			abstractVerification.keyHandler = new DefaultKeY();
 		}
-		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), method);
-		abstractVerification.performVerification(toEvaluate, evaluatePath);
+		abstractVerification.warmUp(FileManager.getFirstMetaproductElement(toEvaluate), method,methodMap);
+		abstractVerification.performVerification(toEvaluate, evaluatePath,evolutionType);
 
 		proofList = abstractVerification.getProofList();
 		phase1ProofList = abstractVerification.getPhase1ProofList();
@@ -192,7 +200,19 @@ public class SingleApproachEvaluation extends Evaluation {
 		}
 		return 0;
 	}
+	/**
+	 * @return the methodMap
+	 */
+	public Map<String, Map<String, Method>> getMethodMap() {
+		return methodMap;
+	}
 
+	/**
+	 * @param methodMap the methodMap to set
+	 */
+	public void setMethodMap(Map<String, Map<String, Method>> methodMap) {
+		this.methodMap = methodMap;
+	}
 	/**
 	 * 
 	 * @return proofList

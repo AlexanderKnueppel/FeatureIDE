@@ -44,10 +44,15 @@ public class MetaProductBuilder {
 	 * @param metaproductLocation src folder which contains the metaproduct
 	 */
 	public static void prepareMetaProduct(File metaproductLocation){
-		File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");
-		BuilderUtil.removeBracketsOfVar(account, "lock");
-		BuilderUtil.removeBracketsOfVar(account, "result");
-		BuilderUtil.fixUpdateLoggingInBA5BA6(account);
+		if(metaproductLocation.getParentFile().getName().contains("BankAccount")) {
+			File account = new File(metaproductLocation.getAbsolutePath()+FILE_SEPERATOR+"Account.java");
+			BuilderUtil.removeBracketsOfVar(account, "lock");
+			BuilderUtil.removeBracketsOfVar(account, "result");
+			BuilderUtil.fixUpdateLoggingInBA5BA6(account);
+		}else if(metaproductLocation.getParentFile().getName().contains("PokerSPL")) {
+			System.out.println("Perpare Metaproduct for PokerSPL");
+		}
+
 	}
 	
 //	public static void main(String[] args) {

@@ -29,6 +29,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
 import de.uka.ilkd.key.java.reference.ThisConstructorReference;
+import testbench.TestFillMethodMap;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
@@ -45,19 +46,29 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 	
 	private FefalutionFamilyProofReplay() {
 		keyHandler = new Non_Rigid();
-		method="Non Rigid";
+		methodForVerification="Non Rigid";
 	}
 	public static void  main(String[] args){
-		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/BankAccountv1");
-		File evalPathFile  =new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/eval2/Sandbox/Evaluation/2021-01-29 12-23-08/1 Fefalution + Family Proof Replay/BankAccountv1");
-		
-		getInstance().performMetaproductVerification(locFile, evalPathFile);
-/*		FileManager.copySavedProofsToPartialProofs(evalPathFile);
+		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/BankAccountv3");
+		File evalPathFile  = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/Evaluation/2021-03-03 10-04-00/1 Fefalution + Family Proof Replay/BankAccountv3");
+		methodMap = TestFillMethodMap.fillSandboxMethodMap();
+getInstance().performMetaproductVerification(locFile, evalPathFile);
+
+/*				int indexofVersion = locFile.getName().lastIndexOf("v")+1;
+		String version = locFile.getName().substring(indexofVersion);
+		boolean firstVersion = version.equals("1");
+		if(!firstVersion){
+				FileManager.reuseFeaturestubEvolution(evalPathFile, locFile, version);
+			
+		}
+ * //getInstance().performMetaproductVerification(locFile, evalPathFile);	
+
+				FileManager.copySavedProofsToPartialProofs(evalPathFile);
 		MetaProductBuilderNonRigid.preparePartialProofs(locFile,evalPathFile);
 		
 
-		getInstance().performVerification(locFile, evalPathFile);*/
-		
+		getInstance().performVerification(locFile, evalPathFile);
+		*/
 	}
 	
 
@@ -65,16 +76,25 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 	 * Performs the evaluation
 	 * @param loc
 	 */
-	public void performVerification(File loc, File evalPath){
+	public void performVerification(File loc, File evalPath, String evolutionType){
 
-		boolean firstVersion = loc.getName().contains("1");
+		int indexofVersion = loc.getName().lastIndexOf("v")+1;
+		String version = loc.getName().substring(indexofVersion);
+		boolean firstVersion = version.equals("1");
 		if(!firstVersion){
-			FileManager.reuseFeaturestub(evalPath, loc);
+			if(evolutionType.equals("versioning")) {
+				FileManager.reuseFeaturestubEvolution(evalPath, loc, version);
+				
+			}else {
+				FileManager.reuseFeaturestub(evalPath, loc);
+			}			
 		}
+		//
 		performFeaturestubVerification(loc,evalPath,firstVersion, true);
 		FileManager.copySavedProofsToPartialProofs(evalPath);
-		if(method.equals("Non Rigid")) {
-			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath);
+		if(methodForVerification.equals("Non Rigid")) {
+			
+			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath,methodMap);
 		}else {
 			MetaProductBuilder.preparePartialProofs(loc,evalPath);
 		}		

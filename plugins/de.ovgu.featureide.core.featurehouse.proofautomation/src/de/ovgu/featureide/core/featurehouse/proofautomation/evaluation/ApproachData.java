@@ -21,16 +21,20 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.evaluation;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.MetaProductBuilderNonRigid;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker;
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.projectWorker2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofStatistics;
 
@@ -56,15 +60,19 @@ public class ApproachData {
 	//File where the result of the evaluation is saved
 	public File statistics;
 	String method;
+	String evolutionType;
+	
+	
 	private List<SingleApproachEvaluation> projectVersions = new LinkedList<SingleApproachEvaluation>(); //contains all project versions
 	/**
 	 * Constructor for single execution of a verification approach
 	 * @param f
 	 * @param name
 	 */
-	public ApproachData(File f,String name,File evalPathComplete, String method){
+	public ApproachData(File f,String name,File evalPathComplete, String method, String evolutionType){
 		toEvaluate = f;
 		this.method = method;
+		this.evolutionType =evolutionType;
 		evaluatePath = evalPathComplete;
 		if(name.startsWith("VA")) {
 			evaluatePath = FileManager.createDir(new File (evalPathComplete.getAbsolutePath()+FILE_SEPERATOR+name));
@@ -85,14 +93,15 @@ public class ApproachData {
 		if(version == 5||version == 6){
 			newMetaproduct = false;
 		}
-		
+
 		if(method.equals("Non Rigid")) {
 			LinkedList<IProject> projects = projectWorker2.getProjectsByApproach(toEvaluate.getName());
 			projectWorker2.generateAllMetaproductsForApproach(projects, newMetaproduct);
 			projectWorker2.generateAllFeatureStubsForApproach(projects);
-			
+
 			for(IProject project : projects) {
 				MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(toEvaluate.getAbsolutePath()+FILE_SEPERATOR+project.getName()+FILE_SEPERATOR+FileManager.metaproductDir));
+				BuildMap.parseMethodsFromFeatureModel(project, projectVersions);
 			}
 		}else {
 			LinkedList<IProject> projects = projectWorker.getProjectsByApproach(toEvaluate.getName());
@@ -111,7 +120,7 @@ public class ApproachData {
 		File[] allFiles = toEvaluate.listFiles();
 		for(File f: allFiles){
 			if(f.isDirectory() && isVersion(f)){
-				projectVersions.add(new SingleApproachEvaluation(f,getVersionNumber(),evaluatePath.getAbsolutePath()+FILE_SEPERATOR+f.getName(),method));
+				projectVersions.add(new SingleApproachEvaluation(f,getVersionNumber(),evaluatePath.getAbsolutePath()+FILE_SEPERATOR+f.getName(),method,evolutionType));
 			}
 		}
 	}

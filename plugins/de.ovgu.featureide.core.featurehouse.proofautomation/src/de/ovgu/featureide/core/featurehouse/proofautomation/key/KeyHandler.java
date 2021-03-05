@@ -30,25 +30,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.key_project.util.collection.ImmutableSet;
 
 import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuilderUtil;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
-import de.uka.ilkd.key.control.DefaultUserInterfaceControl;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 import de.uka.ilkd.key.control.KeYEnvironment;
-import de.uka.ilkd.key.control.UserInterfaceControl;
 import de.uka.ilkd.key.gui.ClassTree;
-
 import de.uka.ilkd.key.java.abstraction.KeYJavaType;
 import de.uka.ilkd.key.java.declaration.ClassDeclaration;
 import de.uka.ilkd.key.java.declaration.InterfaceDeclaration;
 import de.uka.ilkd.key.java.declaration.TypeDeclaration;
 import de.uka.ilkd.key.logic.op.IObserverFunction;
-import de.uka.ilkd.key.proof.init.InitConfig;
-import de.uka.ilkd.key.proof.io.AbstractProblemLoader;
-import de.uka.ilkd.key.proof.io.ProblemLoader;
 import de.uka.ilkd.key.proof.io.ProblemLoaderException;
 import de.uka.ilkd.key.settings.ChoiceSettings;
 import de.uka.ilkd.key.settings.ProofSettings;
@@ -57,97 +53,100 @@ import de.uka.ilkd.key.strategy.StrategyProperties;
 import de.uka.ilkd.key.util.MiscTools;
 
 /**
- * KeYhandler handels all the action that have to do directly with key
+ * KeYhandler handles all the action that have to do directly with key
  * 
- * @author marlen
+ * @author Marlen Herter-Bernier
  */
 public abstract class KeyHandler {
-	
 
-	public void main(String[] args) {
-		loadInKeY(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/features/DailyLimit"));
-	}
-	
+//	public void main(String[] args) {
+//		loadInKeY(new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/Latex/Eval/features/DailyLimit"));
+//	}
 
 	/**
-	 * Loads a Proof-File into key, sorts and cleans the contracts and saves the Proofs into
-	 * a List with ProofHandler objects
+	 * Loads a Proof-File into key, sorts and cleans the contracts and saves the
+	 * Proofs into a List with ProofHandler objects
+	 * 
 	 * @param location
 	 * @return
-	 */	
+	 */
 	public List<ProofHandler> loadInKeY(File location) {
-		List<ProofHandler> proofHandlers =  new LinkedList<ProofHandler>();
+		List<ProofHandler> proofHandlers = new LinkedList<ProofHandler>();
 		try {
-			//removes existing Settings
+			// removes existing Settings
 			if (!ProofSettings.isChoiceSettingInitialised()) {
-	            KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
-	            env.dispose();
-	         }
+				KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
+				env.dispose();
+			}
 			ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
-			HashMap<String,String> choices =  choiceSettings.getDefaultChoices();
+			HashMap<String, String> choices = choiceSettings.getDefaultChoices();
 			choices.putAll(MiscTools.getDefaultTacletOptions());
 			choices.put("assertions", "assertions:safe");
 			choiceSettings.setDefaultChoices(choices);
-            KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
-      	
-            boolean skipLibraryClasses = true;
-            Set<KeYJavaType> kjts = env.getJavaInfo().getAllKeYJavaTypes();
+			KeYEnvironment<?> env = KeYEnvironment.load(location, null, null, null);
+
+			boolean skipLibraryClasses = true;
+			Set<KeYJavaType> kjts = env.getJavaInfo().getAllKeYJavaTypes();
 			final Iterator<KeYJavaType> it = kjts.iterator();
-	        while (it.hasNext()) {
-		           KeYJavaType kjt = it.next();
-		           if (!(kjt.getJavaType() instanceof ClassDeclaration || 
-		                 kjt.getJavaType() instanceof InterfaceDeclaration) || 
-		               (((TypeDeclaration)kjt.getJavaType()).isLibraryClass() && skipLibraryClasses)) {
-		              it.remove();
-		           }
-		        }
-            //sort for size
-	        final KeYJavaType[] kjtsarr = kjts.toArray(new KeYJavaType[kjts.size()]);
-	        Arrays.sort(kjtsarr, new Comparator<KeYJavaType>() {
-	            public int compare(KeYJavaType o1, KeYJavaType o2) {
-	               return o1.getFullName().compareTo(o2.getFullName());
-	            }
-	         });
-	        
-            for (KeYJavaType type : kjtsarr) {
-                  ImmutableSet<IObserverFunction> targets = env.getSpecificationRepository().getContractTargets(type);
-                  for (IObserverFunction target : targets) {
-                     ImmutableSet<Contract> contracts = env.getSpecificationRepository().getContracts(type, target);
-                     for (Contract contract : contracts) {
-                    	 if(!type.getFullName().equals(Configuration.excludedClass)||!Configuration.excludeMain){
-                    		 ProofHandler proofHandler = new ProofHandler(type.getFullName(), ClassTree.getDisplayName(env.getServices(), contract.getTarget()), contract.getDisplayName(), env, contract);
- 	                		//Checking for dispatch and original contracts, that need to be deleted
- 	                		if(!proofHandler.getTargetName().contains("dispatch")||Configuration.proveDispatcher){
- 	                			if(!proofHandler.getTargetName().contains("_original_")||Configuration.proveOriginal){
- 	                				proofHandlers.add(proofHandler);
- 	                			}
- 	                			if(!Configuration.proveDispatcher&&Configuration.currentMetaproductwithDispatcher){
- 	                				removeDispatcher(proofHandlers);
- 	                			}
- 	                		}
- 	                	}
-                     }
-                  }              
-            }
-		}catch (ProblemLoaderException e) {
-	         System.out.println("Exception at '" + location + "':");
-	         e.printStackTrace();
+			while (it.hasNext()) {
+				KeYJavaType kjt = it.next();
+				if (!(kjt.getJavaType() instanceof ClassDeclaration
+						|| kjt.getJavaType() instanceof InterfaceDeclaration)
+						|| (((TypeDeclaration) kjt.getJavaType()).isLibraryClass() && skipLibraryClasses)) {
+					it.remove();
+				}
+			}
+			// sort for size
+			final KeYJavaType[] kjtsarr = kjts.toArray(new KeYJavaType[kjts.size()]);
+			Arrays.sort(kjtsarr, new Comparator<KeYJavaType>() {
+				public int compare(KeYJavaType o1, KeYJavaType o2) {
+					return o1.getFullName().compareTo(o2.getFullName());
+				}
+			});
+
+			for (KeYJavaType type : kjtsarr) {
+				ImmutableSet<IObserverFunction> targets = env.getSpecificationRepository().getContractTargets(type);
+				for (IObserverFunction target : targets) {
+					ImmutableSet<Contract> contracts = env.getSpecificationRepository().getContracts(type, target);
+					for (Contract contract : contracts) {
+						if (!type.getFullName().equals(Configuration.excludedClass) || !Configuration.excludeMain) {
+							ProofHandler proofHandler = new ProofHandler(type.getFullName(),
+									ClassTree.getDisplayName(env.getServices(), contract.getTarget()),
+									contract.getDisplayName(), env, contract);
+							// Checking for dispatch and original contracts, that need to be deleted
+							if (!proofHandler.getTargetName().contains("dispatch") || Configuration.proveDispatcher) {
+								if (!proofHandler.getTargetName().contains("_original_")
+										|| Configuration.proveOriginal) {
+									proofHandlers.add(proofHandler);
+								}
+								if (!Configuration.proveDispatcher && Configuration.currentMetaproductwithDispatcher) {
+									removeDispatcher(proofHandlers);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (ProblemLoaderException e) {
+			System.out.println("Exception at '" + location + "':");
+			e.printStackTrace();
 		}
 		return proofHandlers;
 	}
-	
+
 	/**
 	 * Removes unwanted dispatcher contracts
+	 * 
 	 * @param proofs
 	 */
-	private static void removeDispatcher(List<ProofHandler> proofs){
-		//pattern nameMethode_ contains
+	private static void removeDispatcher(List<ProofHandler> proofs) {
+		// pattern nameMethode_ contains
 		List<ProofHandler> removeDispatcher = new LinkedList<ProofHandler>();
-		for(ProofHandler a: proofs){
-			for(ProofHandler b: proofs){
+		for (ProofHandler a : proofs) {
+			for (ProofHandler b : proofs) {
 				String aNameWithoutBrackets = a.getTargetName().replaceAll("\\(.*\\)", "");
-				if(b.getTypeName().equals(a.getTypeName())&&a!=b){
-					if(b.getTargetName().contains(aNameWithoutBrackets+"_")){
+				if (b.getTypeName().equals(a.getTypeName()) && a != b) {
+					if (b.getTargetName().contains(aNameWithoutBrackets + "_")) {
 						removeDispatcher.add(a);
 					}
 				}
@@ -155,7 +154,7 @@ public abstract class KeyHandler {
 		}
 		proofs.removeAll(removeDispatcher);
 	}
-	
+
 	/**
 	 * 
 	 * @param proofHandler
@@ -163,21 +162,23 @@ public abstract class KeyHandler {
 	 * @param sp
 	 * @param maxRuleApplication
 	 * @param savePath
+	 * @param recordMap          
+	 * @param methodMap
 	 * @return
 	 */
-	public boolean startMetaProductProof(ProofHandler proofHandler,File reuseProof,  StrategyProperties sp, int maxRuleApplication, String savePath) 
-	{	
+	public boolean startMetaProductProof(ProofHandler proofHandler, File reuseProof, StrategyProperties sp,
+			int maxRuleApplication, String savePath, Map<String, Map<String, Record>> recordMap,
+			Map<String, Map<String, Method>> methodMap) {
 		return false;
 	}
-
 
 	/**
 	 * @param maxRuleApplication
 	 * @param defaultSettingsForFeatureStub
 	 */
-	public void startAbstractProof(ProofHandler proofHandler,int maxRuleApplication, StrategyProperties sp) {
+	public void startAbstractProof(ProofHandler proofHandler, int maxRuleApplication, StrategyProperties sp) {
 	}
-	
+
 	/**
 	 * 
 	 * @param proofHandler
@@ -186,42 +187,38 @@ public abstract class KeyHandler {
 	 * @param maxRuleApplication
 	 * @param defaultSettingsForFeatureStub
 	 */
-	public void replayFeatureStubProof(ProofHandler proofHandler,File oldPartialProof, String savePath, int maxRuleApplication,
-			StrategyProperties defaultSettingsForFeatureStub) {	}
-	
+	public void replayFeatureStubProof(ProofHandler proofHandler, File oldPartialProof, String savePath,
+			int maxRuleApplication, StrategyProperties defaultSettingsForFeatureStub) {
+	}
+
 	/**
-	 * replaces the javasouce in the proof-File with an empty string, because of a bug in KeY.
-	 * bug:when loading a proof-File it adds the Path of the folder of the file in front of the javasource-String 
+	 * replaces the javasouce in the proof-File with an empty string, because of a
+	 * bug in KeY. bug:when loading a proof-File it adds the Path of the folder of
+	 * the file in front of the javasource-String
+	 * 
 	 * @param proof
 	 */
-	public static void replaceJavaSource(File proof){
-		String FILE_SEPERATOR = System.getProperty("file.separator");
+	public static void replaceJavaSource(File proof) {
 		StringBuffer sbuffer = new StringBuffer();
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(proof));
-            String line = bReader.readLine();
-            String folderString = proof.getParentFile().getParentFile().getName();
-            while(line != null) {
-            	if(line.startsWith("\\javaSource")) {
-            		line = "\\javaSource \"../../../../../"+folderString+"/src\";" +
-            				"\n\n"+ "\\functions {\n" + 
-            				"  LocSet OriginalFrame;\n" + 
-            				"}\n" + 
-            				"\n" + 
-            				"\\predicates {\n" + 
-            				"  \\nonRigid OriginalPre;\n" + 
-            				"  \\nonRigid OriginalPost;\n" + 
-            				"  \\nonRigid AllowedFeatureCombination;\n" + 
-            				"}";
-            	}
-            	sbuffer.append(line + System.getProperty("line.separator"));
-                line = bReader.readLine();
-            }
-            bReader.close();
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-        BuilderUtil.rewriteFile(sbuffer,proof);
+			String line = bReader.readLine();
+			String folderString = proof.getParentFile().getParentFile().getName();
+			while (line != null) {
+				if (line.startsWith("\\javaSource")) {
+					line = "\\javaSource \"../../../../../" + folderString + "/src\";" + "\n\n" + "\\functions {\n"
+							+ "  LocSet OriginalFrame;\n" + "}\n" + "\n" + "\\predicates {\n"
+							+ "  \\nonRigid OriginalPre;\n" + "  \\nonRigid OriginalPost;\n"
+							+ "  \\nonRigid AllowedFeatureCombination;\n" + "}";
+				}
+				sbuffer.append(line + System.getProperty("line.separator"));
+				line = bReader.readLine();
+			}
+			bReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		BuilderUtil.rewriteFile(sbuffer, proof);
 	}
 
 }
