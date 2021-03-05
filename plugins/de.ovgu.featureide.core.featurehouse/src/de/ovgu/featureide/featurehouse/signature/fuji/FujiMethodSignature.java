@@ -20,6 +20,7 @@
  */
 package de.ovgu.featureide.featurehouse.signature.fuji;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -51,6 +52,18 @@ public class FujiMethodSignature extends AbstractMethodSignature {
 		for (ParameterDeclaration parameter : parameterList) {
 			parameterTypes.add(parameter.type().name());
 		}
+	}
+
+	/**
+	 * @return the parameterList
+	 */
+	@Override
+	public ArrayList<String> getParameterList() {
+		ArrayList<String> parameter = new ArrayList<>();
+		for(ParameterDeclaration p:parameterList) {
+			parameter.add(p.type().name() +" " +p.name());
+		}
+		return parameter;
 	}
 
 	@Override
