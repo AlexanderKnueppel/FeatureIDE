@@ -32,7 +32,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.excel.ExcelManager2;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.startNewJVM;
 import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
-import testbench.TestFillMethodMap;
+import de.ovgu.featureide.core.featurehouse.proofautomation.verification.TestFillMethodMap;
 
 
 /**

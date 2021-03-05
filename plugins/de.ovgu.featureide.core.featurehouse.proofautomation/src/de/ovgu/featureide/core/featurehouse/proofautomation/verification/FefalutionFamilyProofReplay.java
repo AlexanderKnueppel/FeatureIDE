@@ -29,7 +29,6 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
 import de.uka.ilkd.key.java.reference.ThisConstructorReference;
-import testbench.TestFillMethodMap;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay

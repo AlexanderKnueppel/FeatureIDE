@@ -18,7 +18,7 @@
  *
  * See http://featureide.cs.ovgu.de/ for further information.
  */
-package testbench;
+package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 
 import java.io.File;
 import java.io.IOException;

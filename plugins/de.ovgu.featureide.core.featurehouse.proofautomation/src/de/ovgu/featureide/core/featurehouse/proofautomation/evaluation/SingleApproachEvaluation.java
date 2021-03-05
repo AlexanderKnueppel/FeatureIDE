@@ -41,9 +41,9 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.verification.Fefalut
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.FefalutionFamilyProofReplay;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.Metaproduct;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.MethodInling;
+import de.ovgu.featureide.core.featurehouse.proofautomation.verification.TestFillMethodMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAl;
 import de.ovgu.featureide.core.featurehouse.proofautomation.verification.ThuemEtAlReuse;
-import testbench.TestFillMethodMap;
 
 /**
  * Represents a Evaluation over one approach
