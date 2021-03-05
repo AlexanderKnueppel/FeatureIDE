@@ -22,6 +22,7 @@ package de.ovgu.featureide.core.signature.base;
 
 import java.util.List;
 
+
 public abstract class AbstractMethodSignature extends AbstractSignature {
 	
 	protected List<String> parameterTypes;
@@ -48,6 +49,15 @@ public abstract class AbstractMethodSignature extends AbstractSignature {
 
 	public boolean isConstructor() {
 		return isConstructor;
+	}
+
+
+	/**
+	 * @return
+	 */
+	public List<String> getParameterList() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 //	@Override

@@ -21,6 +21,7 @@
 package de.ovgu.featureide.core.signature.base;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.prop4j.Node;
 import org.prop4j.Or;
@@ -276,5 +277,12 @@ public abstract class AbstractSignature implements IConstrainedObject {
 		}		
 		
 		return new Or(constraints).toCNF();
+	}
+	/**
+	 * only if AbstractMethodSignature otherwise null
+	 * @return
+	 */
+	public List<String> getParameterList() {
+		return null;
 	}
 }
