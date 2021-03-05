@@ -21,14 +21,18 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofInformation;
 
 /**
@@ -110,13 +114,15 @@ public class Metaproduct extends AbstractVerification{
 							System.out.println(defaultName + ": not reused... no file");
 					}
 					try {
-						keyHandler.startMetaProductProof(proofHandler,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
+						Map<String, Map<String, Method>> methodMap = new HashMap<>();
+						BuildMap.parseMethodsInMetaproduct(loc, methodMap);
+						keyHandler.startMetaProductProof(proofHandler,reuse,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath, null,methodMap);
 						if(!proofHandler.isClosed()){
 							proofHandler.removeProof();
 							keyHandler.startAbstractProof(proofHandler,maxRuleApplication, DefaultStrategies.defaultSettingsForFeatureStub());
 
 							File restartProof = proofHandler.saveProof(savePartialProofsPath);
-							keyHandler.startMetaProductProof(proofHandler,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath);
+							keyHandler.startMetaProductProof(proofHandler,restartProof,DefaultStrategies.defaultSettingsForMetaproduct(),maxRuleApplication,metaproductPath, null,methodMap);
 						}
 
 						proofHandler.saveProof(metaproductPath);

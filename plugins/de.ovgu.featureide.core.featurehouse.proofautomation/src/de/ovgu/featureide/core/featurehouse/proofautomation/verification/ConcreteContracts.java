@@ -48,7 +48,7 @@ public class ConcreteContracts extends AbstractVerification{
 	 */
 	public void performVerification(File loc, File evalPath){
 		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
-		if(method.equals("Non Rigid")) {
+		if(methodForVerification.equals("Non Rigid")) {
 			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 		}
 		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));

@@ -45,6 +45,9 @@ public abstract class Evaluation {
 	public ProofStatistics secondPhaseReuse = new ProofStatistics();
 	public String verificationType;
 	public String method;
+	public String evolutionType;
+		
+	
 	public Evaluation(File f){
 		toEvaluate = f;
 	}

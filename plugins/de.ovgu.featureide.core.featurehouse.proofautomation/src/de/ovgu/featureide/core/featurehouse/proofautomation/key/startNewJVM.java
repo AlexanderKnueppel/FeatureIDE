@@ -22,8 +22,10 @@ package de.ovgu.featureide.core.featurehouse.proofautomation.key;
 
 import java.io.File;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.evaluation.SingleApproachEvaluation;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.FillMethodMap;
 
 /**
  * This class starts a new JVM to avoid the key memory leak
@@ -42,7 +44,8 @@ public class startNewJVM {
 	 */
 	public static void main(String[] args) {
 		if(args.length >=2 && args[0]!=null && args[1]!=null){
-			SingleApproachEvaluation s = new SingleApproachEvaluation(new File(args[0]),0,args[1], args[2]);
+			SingleApproachEvaluation s = new SingleApproachEvaluation(new File(args[0]),0,args[1], args[2],args[3]);
+			s.methodMap = FillMethodMap.fillMethodMap(new File(s.evaluatePath.getAbsolutePath()+FILE_SEPERATOR+"methodMap.csv"));
 			//SingleProject s = new SingleProject(new File(args[0]),0,args[1]);
 			s.performEvaluation();
 		}
@@ -53,8 +56,9 @@ public class startNewJVM {
 	 * Redirects the Error and Output to the evaluation directory
 	 * @param projectForEvaluation
 	 * @param evalPath
+	 * @param evolutionType 
 	 */
-	public static void startNewProcess(File projectForEvaluation, File evalPath, String method){
+	public static void startNewProcess(File projectForEvaluation, File evalPath, String method, String evolutionType){
 		String projectPath = startNewJVM.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String binPath = projectPath + "bin";
 		String excelLibs = getDirContent(new File(projectPath+FILE_SEPERATOR+"lib"));
@@ -66,7 +70,7 @@ public class startNewJVM {
                 		+binPath,
                 		classname,
                 		projectForEvaluation.getAbsolutePath(), 
-                		evalPath.getAbsolutePath(),method)
+                		evalPath.getAbsolutePath(),method,evolutionType)
                 .inheritIO();	
 	    processBuilder.redirectError(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Error.txt"));
 	    processBuilder.redirectOutput(new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+"Output.txt"));

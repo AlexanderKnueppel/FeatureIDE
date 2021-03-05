@@ -45,6 +45,7 @@ public class ProofHandler {
 	private String featurestub;
 	private ProofStatistics stat = new ProofStatistics();
 	private ProofStatistics reusedStat = new ProofStatistics();
+	private String comment;
 
 	private boolean closed = false;
 	/**
@@ -176,6 +177,21 @@ public class ProofHandler {
 	public ProofStatistics getReusedStat() {
 		return reusedStat;
 	}
+	
+	/**
+	 * Adds the Statistic of a given proof to the statistic in the proof of the handler
+	 */
+	public void addProofStatistic(Proof proof) {
+		if(proof != null && !proof.isDisposed()) {
+			Statistics s = proof.getStatistics();
+			ProofStatistics goalStatistics = new ProofStatistics();
+			goalStatistics.setNodes(s.nodes);
+			goalStatistics.setBranches(s.branches);
+			goalStatistics.setAutomodeTime(s.autoModeTimeInMillis);
+			goalStatistics.setAppliedRules(s.totalRuleApps);
+			stat.addStatistics(goalStatistics);
+		}
+	}
 
 	
 	/**
@@ -191,6 +207,5 @@ public class ProofHandler {
 	public void setClosed(boolean closed) {
 		this.closed = closed;
 	}
-
 }
 

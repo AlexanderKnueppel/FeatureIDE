@@ -28,11 +28,25 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.VariableDeclarator;
+
+import de.uka.ilkd.key.gui.actions.CounterExampleAction.NoMainWindowCounterExampleGenerator;
 import de.uka.ilkd.key.parser.KeYLexerTokensUpdaterParser.finallyClause_return;
+import de.uka.ilkd.key.util.AddAHead;
 
 /**
  * 
@@ -41,212 +55,268 @@ import de.uka.ilkd.key.parser.KeYLexerTokensUpdaterParser.finallyClause_return;
  * @author Stefanie
  */
 public class FileManager {
-	//Needed directories for verification
-	public final static String evaluationDir = "Evaluation"; //directory that contains all generated files for evaluation
-	public final static String featuresDir = "features"; //directory of features
-	public final static String metaproductDir = "src"; //directory that contains the metaproduct
-	public final static String featureStubDir = "featurestub"; //directory that contains the Featurestubs
-	public final static String partialProofsDir = "Partial Proofs for Metaproduct";// directory that contains the modified abstract proof part
-	public final static String finishedProofsDir = "Finished Proofs"; //directory that contains the finished proof
-	public final static String savedProofsDir = "Saved Proofs";  // directory that contains the finished abstract proof part
-	public final static String projectName = "BankAccount"; //Name of the projects, to check whether a directory is a project for evaluation
+	// Needed directories for verification
+	public final static String evaluationDir = "Evaluation"; // directory that contains all generated files for
+																// evaluation
+	public final static String featuresDir = "features"; // directory of features
+	public final static String metaproductDir = "src"; // directory that contains the metaproduct
+	public final static String featureStubDir = "featurestub"; // directory that contains the Featurestubs
+	public final static String partialProofsDir = "Partial Proofs for Metaproduct";// directory that contains the
+																					// modified abstract proof part
+	public final static String finishedProofsDir = "Finished Proofs"; // directory that contains the finished proof
+	public final static String savedProofsDir = "Saved Proofs"; // directory that contains the finished abstract proof
+																// part
+	public final static String projectName = "BankAccount"; // Name of the projects, to check whether a directory is a
+															// project for evaluation
 	public static String FILE_SEPERATOR = System.getProperty("file.separator");
 	public static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-	
+
 	/**
 	 * Creates a time stamp directory
+	 * 
 	 * @param d
 	 * @param location
 	 * @return
 	 */
-	public static File createDateDir(Date d, File location){
+	public static File createDateDir(Date d, File location) {
 		String dirName = dateFormat.format(d);
-		File newDir = new File(location.getAbsolutePath()+FILE_SEPERATOR+dirName);
+		File newDir = new File(location.getAbsolutePath() + FILE_SEPERATOR + dirName);
 		createDir(newDir);
 		return newDir;
 	}
 
 	/**
-	 * Returns the first java file of the metaproduct
-	 * needed as parameter for key
+	 * Returns the first java file of the metaproduct needed as parameter for key
 	 * 
 	 * @param projectDir
 	 * @return
 	 */
-	public static File getFirstMetaproductElement(File projectDir){
-		File metaproductPath = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+metaproductDir);
-		return getFirstJavaFile(metaproductPath,metaproductPath.list());
+	public static File getFirstMetaproductElement(File projectDir) {
+		File metaproductPath = new File(projectDir.getAbsolutePath() + FILE_SEPERATOR + metaproductDir);
+		return getFirstJavaFile(metaproductPath, metaproductPath.list());
 	}
-	
+
 	/**
 	 * Returns a list with one java file for each featurestub
+	 * 
 	 * @param projectDir directory of the project
 	 * @return
 	 */
-	public static List<File> getAllFeatureStubFilesOfAProject(File projectDir){
-		File featurestubPath = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
+	public static List<File> getAllFeatureStubFilesOfAProject(File projectDir) {
+		File featurestubPath = new File(projectDir.getAbsolutePath() + FILE_SEPERATOR + featureStubDir);
 		String[] featurestubDir = featurestubPath.list();
 		List<File> featureStubFirstFile = new ArrayList<File>();
-		for(String featurestub: featurestubDir){
-			File featurestubpath = new File(projectDir.getAbsolutePath()+FILE_SEPERATOR+featureStubDir+FILE_SEPERATOR+featurestub);
+		for (String featurestub : featurestubDir) {
+			File featurestubpath = new File(
+					projectDir.getAbsolutePath() + FILE_SEPERATOR + featureStubDir + FILE_SEPERATOR + featurestub);
 			String[] featurestubContent = featurestubpath.list();
-			if(featurestubContent!= null){
-				File firstJava = getFirstJavaFile(featurestubpath,featurestubContent);
-				if(firstJava != null){
+			if (featurestubContent != null) {
+				File firstJava = getFirstJavaFile(featurestubpath, featurestubContent);
+				if (firstJava != null) {
 					featureStubFirstFile.add(firstJava);
 				}
 			}
 		}
 		return featureStubFirstFile;
 	}
-	
+
 	/**
-	 * Returns the first java file of the directory
-	 * needed as parameter for key
+	 * Returns the first java file of the directory needed as parameter for key
+	 * 
 	 * @param path
 	 * @param srcDir
 	 * @return
 	 */
-	private static File getFirstJavaFile(File path,String[] srcDir){
-		for(String file : srcDir){
-			if(file.matches(".*\\.key")) {
-				return new File (path.getAbsolutePath()+FILE_SEPERATOR+file);
+	private static File getFirstJavaFile(File path, String[] srcDir) {
+		for (String file : srcDir) {
+			if (file.matches(".*\\.key")) {
+				return new File(path.getAbsolutePath() + FILE_SEPERATOR + file);
 			}
 		}
-		for(String file : srcDir){
-			if(file.matches(".*\\.java")){
-				return new File (path.getAbsolutePath()+FILE_SEPERATOR+file);
+		for (String file : srcDir) {
+			if (file.matches(".*\\.java")) {
+				return new File(path.getAbsolutePath() + FILE_SEPERATOR + file);
 			}
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Initializes the necessary folders for the verification
+	 * 
 	 * @param evaluateDir
 	 * @param version
 	 */
-	public static void initFolders(File evaluateDir, int version){
-		if(version ==1 || version == 2 || version == 7 || version  == 8){
-			createDir(new File(evaluateDir+FILE_SEPERATOR+savedProofsDir));
-			createDir(new File(evaluateDir+FILE_SEPERATOR+partialProofsDir));
-			if(version==1){
-				createDir(new File(evaluateDir+FILE_SEPERATOR+featureStubDir));
+	public static void initFolders(File evaluateDir, int version) {
+		if (version == 1 || version == 2 || version == 7 || version == 8) {
+			createDir(new File(evaluateDir + FILE_SEPERATOR + savedProofsDir));
+			createDir(new File(evaluateDir + FILE_SEPERATOR + partialProofsDir));
+			if (version == 1) {
+				createDir(new File(evaluateDir + FILE_SEPERATOR + featureStubDir));
 			}
 		}
-		createDir(new File(evaluateDir+FILE_SEPERATOR+finishedProofsDir));
-		createDir(new File(evaluateDir+FILE_SEPERATOR+metaproductDir));
+		createDir(new File(evaluateDir + FILE_SEPERATOR + finishedProofsDir));
+		createDir(new File(evaluateDir + FILE_SEPERATOR + metaproductDir));
 	}
-	
+
 	/**
 	 * Creates the directory if it doesn't exist
+	 * 
 	 * @param dir
 	 * @return
 	 */
-	public static File createDir(File dir){
-		if(!dir.exists()){
+	public static File createDir(File dir) {
+		if (!dir.exists()) {
 			dir.mkdir();
 		}
 		return dir;
 	}
-	
+
 	/**
-	 * Copys the directory with saved proofs from the first phase to the partial proofs for metaproduct directory
+	 * Copys the directory with saved proofs from the first phase to the partial
+	 * proofs for metaproduct directory
+	 * 
 	 * @param evalDir
 	 */
-	public static void copySavedProofsToPartialProofs(File evalDir){
-		File savedProofs = new File(evalDir.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir);
+	public static void copySavedProofsToPartialProofs(File evalDir) {
+		File savedProofs = new File(evalDir.getAbsolutePath() + FILE_SEPERATOR + savedProofsDir);
 		File[] saved = savedProofs.listFiles();
-		for(File f: saved){
-			if(f.isDirectory()){
-			
-				File newDir = new File(evalDir.getAbsolutePath()+FILE_SEPERATOR+partialProofsDir+FILE_SEPERATOR+f.getName());
+		for (File f : saved) {
+			if (f.isDirectory()) {
+
+				File newDir = new File(
+						evalDir.getAbsolutePath() + FILE_SEPERATOR + partialProofsDir + FILE_SEPERATOR + f.getName());
 				createDir(newDir);
 				File[] inDir = f.listFiles();
-				for(File i : inDir){
-					copyFile(i.getAbsolutePath(),newDir.getAbsolutePath()+FILE_SEPERATOR+i.getName());
+				for (File i : inDir) {
+					copyFile(i.getAbsolutePath(), newDir.getAbsolutePath() + FILE_SEPERATOR + i.getName());
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Copys a single file from src to target
+	 * 
 	 * @param src
 	 * @param target
 	 */
-	private static void copyFile(String src, String target){
+	private static void copyFile(String src, String target) {
 		Path source = Paths.get(src);
-	    Path destination = Paths.get(target);
-	    try {
-	    	if(!destination.toFile().exists()){
-	    		Files.copy(source, destination);
-	    	}
+		Path destination = Paths.get(target);
+		try {
+			if (!destination.toFile().exists()) {
+				Files.copy(source, destination);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Copies files from folder version1 to versionX
+	 * 
 	 * @param version1
 	 * @param versionX
 	 */
-	public static void copyFolderContent(File version1, File versionX){
-		if(version1.isDirectory()&&versionX.isDirectory()){
+	public static void copyFolderContent(File version1, File versionX) {
+		if (version1.isDirectory() && versionX.isDirectory()) {
 			File[] allPartialProofs = version1.listFiles();
-			for(File f: allPartialProofs){
-				copyFile(f.getAbsolutePath(),versionX.getAbsolutePath()+FILE_SEPERATOR+f.getName());
+			for (File f : allPartialProofs) {
+				copyFile(f.getAbsolutePath(), versionX.getAbsolutePath() + FILE_SEPERATOR + f.getName());
 			}
 		}
 	}
-	
+
 	/**
 	 * Copies files from folder version1 to versionX
+	 * 
 	 * @param version1
 	 * @param versionX
 	 */
-	public static void copyCompleteFolderContent(File folderSrc, File folderTarget){
-		if(folderSrc.isDirectory()&&folderTarget.isDirectory()){
+	public static void copyCompleteFolderContent(File folderSrc, File folderTarget) {
+		if (folderSrc.isDirectory() && folderTarget.isDirectory()) {
 			File[] allPartialProofs = folderSrc.listFiles();
-			for(File f: allPartialProofs){
-				copyFile(f.getAbsolutePath(),folderTarget.getAbsolutePath()+FILE_SEPERATOR+f.getName());
-				if(f.isDirectory()){
-					copyCompleteFolderContent(f,new File(folderTarget.getAbsolutePath()+FILE_SEPERATOR+f.getName()));
+			for (File f : allPartialProofs) {
+				copyFile(f.getAbsolutePath(), folderTarget.getAbsolutePath() + FILE_SEPERATOR + f.getName());
+				if (f.isDirectory()) {
+					copyCompleteFolderContent(f,
+							new File(folderTarget.getAbsolutePath() + FILE_SEPERATOR + f.getName()));
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Copies the reusable proofs for featurestubs of previous versions
+	 * 
 	 * @param evalPath
 	 * @param project
 	 */
-	public static void reuseFeaturestub(File evalPath, File project){
-		try{
-			//TODO quicky fixi... don't know about that => change project to evalPath????
-			File firstProjectFeaturestub = new File(getProjectv1Path(project).getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
-			File firstProjectSavedProofs = new File(getProjectv1Path(evalPath).getAbsolutePath()+FILE_SEPERATOR+savedProofsDir);
-			File currentProjectFeaturestub =new File(project.getAbsolutePath()+FILE_SEPERATOR+featureStubDir);
-			List<File> equalFeaturestubs = compareFeatureStubs(currentProjectFeaturestub,firstProjectFeaturestub);
+	public static void reuseFeaturestub(File evalPath, File project) {
+		try {
+			// TODO quicky fixi... don't know about that => change project to evalPath????
+			File firstProjectFeaturestub = new File(
+					getProjectv1Path(project).getAbsolutePath() + FILE_SEPERATOR + featureStubDir);
+			File firstProjectSavedProofs = new File(
+					getProjectv1Path(evalPath).getAbsolutePath() + FILE_SEPERATOR + savedProofsDir);
+			File currentProjectFeaturestub = new File(project.getAbsolutePath() + FILE_SEPERATOR + featureStubDir);
+			List<File> equalFeaturestubs = compareFeatureStubs(currentProjectFeaturestub, firstProjectFeaturestub);
 			System.out.println("Reusing the following feature stubs for " + project.getName());
-			for(File e: equalFeaturestubs){
+			for (File e : equalFeaturestubs) {
 				System.out.println(e.getName());
-				File savedProofFeaturestub = new File(firstProjectSavedProofs+FILE_SEPERATOR+e.getName());
-				File[] reusableProofs= savedProofFeaturestub.listFiles();
-				for(File r: reusableProofs){
-					File savedProofFeaturestubCur =new File(evalPath.getAbsolutePath()+FILE_SEPERATOR+savedProofsDir+FILE_SEPERATOR+e.getName());
+				File savedProofFeaturestub = new File(firstProjectSavedProofs + FILE_SEPERATOR + e.getName());
+				File[] reusableProofs = savedProofFeaturestub.listFiles();
+				for (File r : reusableProofs) {
+					File savedProofFeaturestubCur = new File(evalPath.getAbsolutePath() + FILE_SEPERATOR
+							+ savedProofsDir + FILE_SEPERATOR + e.getName());
 					System.out.println("Reuse: " + r.getName());
 					createDir(savedProofFeaturestubCur);
-					copyFile(r.getAbsolutePath(),savedProofFeaturestubCur+FILE_SEPERATOR+r.getName());
+					copyFile(r.getAbsolutePath(), savedProofFeaturestubCur + FILE_SEPERATOR + r.getName());
 				}
 			}
-		} catch(Exception e){
+		} catch (Exception e) {
 			System.out.println(e.getMessage() + "\n" + "Single Project Excecution finds no reuse");
 		}
 	}
-	
+
+	/**
+	 * Copies the reusable proofs for featurestubs of previous versions
+	 * 
+	 * @param evalPath
+	 * @param project
+	 */
+	public static void reuseFeaturestubEvolution(File evalPath, File project, String version) {
+		try {
+			File firstProjectFeaturestub = new File(
+					getPreviousProjectPath(project, version).getAbsolutePath() + FILE_SEPERATOR + featureStubDir);
+			File firstProjectSavedProofs = new File(
+					getPreviousProjectPath(evalPath, version).getAbsolutePath() + FILE_SEPERATOR + savedProofsDir);
+			File currentProjectFeaturestub = new File(project.getAbsolutePath() + FILE_SEPERATOR + featureStubDir);
+			List<File> equalFeaturestubClasses = compareFeatureStubClasses(currentProjectFeaturestub,
+					firstProjectFeaturestub);
+			System.out.println("Reusing the following feature stubs for " + project.getName());
+			for (File e : equalFeaturestubClasses) {
+				File savedProofFeaturestub = new File(
+						firstProjectSavedProofs + FILE_SEPERATOR + e.getParentFile().getName());
+				File[] reusableProofs = savedProofFeaturestub.listFiles();
+				for (File r : reusableProofs) {
+					String className = e.getName().replace(".java", "");
+					File savedProofFeaturestubCur = new File(evalPath.getAbsolutePath() + FILE_SEPERATOR
+							+ savedProofsDir + FILE_SEPERATOR + e.getParentFile().getName());
+					if (r.getName().startsWith(className)) {
+						System.out.println("Reuse of " + e.getParentFile().getName() + ": " + r.getName());
+						createDir(savedProofFeaturestubCur);
+						copyFile(r.getAbsolutePath(), savedProofFeaturestubCur + FILE_SEPERATOR + r.getName());
+					}
+
+				}
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage() + "\n" + "Single Project Excecution finds no reuse");
+		}
+	}
+
 //	public static void main(String[] args) {
 //		File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
 //		File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\Evaluation\\2019-11-27 07-57-21\\1\\BankAccountv7"+FILE_SEPERATOR+featureStubDir);
@@ -258,36 +328,43 @@ public class FileManager {
 //		File evalPath = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\reverifyEqual\\Evaluation\\2019-11-27 07-57-21\\1\\BankAccountv7");
 //		reuseFeaturestub(evalPath, project);
 //	}
-	
+
 	public static void main(String[] args) {
-		File ba1stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1"+FILE_SEPERATOR+featureStubDir);
-		File ba2stubs = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"+FILE_SEPERATOR+featureStubDir);
-		for(File f : compareFeatureStubs(ba1stubs, ba2stubs)) {
+		File ba1stubs = new File(
+				"C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv1"
+						+ FILE_SEPERATOR + featureStubDir);
+		File ba2stubs = new File(
+				"C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2"
+						+ FILE_SEPERATOR + featureStubDir);
+		for (File f : compareFeatureStubs(ba1stubs, ba2stubs)) {
 			System.out.println(f.getName() + " is the same!");
 		}
 //		
-		File first = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
-		File second = new File("C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
+		File first = new File(
+				"C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
+		File second = new File(
+				"C:\\Users\\User\\Desktop\\Sync\\phd\\ResearchProjects\\2018\\Fefalution\\Evaluation2019\\attempt4\\Evaluation\\test\\1\\BankAccountv2");
 		reuseFeaturestub(first, second);
 	}
-	
+
 	/**
-	 * Returns all featurestub files which are equal 
+	 * Returns all featurestub files which are equal
+	 * 
 	 * @param fstubA
 	 * @param fstubB
 	 * @return
 	 */
-	private static LinkedList<File> compareFeatureStubs(File fstubA, File fstubB){
-		if(!fstubA.isDirectory()||!fstubB.isDirectory()){
+	private static LinkedList<File> compareFeatureStubs(File fstubA, File fstubB) {
+		if (!fstubA.isDirectory() || !fstubB.isDirectory()) {
 			return null;
 		}
 		File[] dirAFiles = fstubA.listFiles();
 		File[] dirBFiles = fstubB.listFiles();
 		LinkedList<File> equalFeatureStubs = new LinkedList<File>();
-		for(File a : dirAFiles){
-			for(File b : dirBFiles){
-				if(a.getName().equals(b.getName())){
-					if(compareDirectory(a,b)){
+		for (File a : dirAFiles) {
+			for (File b : dirBFiles) {
+				if (a.getName().equals(b.getName())) {
+					if (compareDirectory(a, b)) {
 						equalFeatureStubs.add(b);
 					}
 				}
@@ -295,23 +372,24 @@ public class FileManager {
 		}
 		return equalFeatureStubs;
 	}
-	
+
 	/**
 	 * Returns the equal files of both directories
+	 * 
 	 * @param dirA
 	 * @param dirB
 	 * @return
 	 */
-	private static boolean compareDirectory(File dirA, File dirB){
-		if(!dirA.isDirectory()||!dirB.isDirectory()){
+	private static boolean compareDirectory(File dirA, File dirB) {
+		if (!dirA.isDirectory() || !dirB.isDirectory()) {
 			return false;
 		}
 		File[] dirAFiles = dirA.listFiles();
 		File[] dirBFiles = dirB.listFiles();
-		for(File a : dirAFiles){
-			for(File b : dirBFiles){
-				if(a.getName().equals(b.getName())){
-					if(!filesAreEqual(a,b)){
+		for (File a : dirAFiles) {
+			for (File b : dirBFiles) {
+				if (a.getName().equals(b.getName())) {
+					if (!filesAreEqual(a, b)) {
 						return false;
 					}
 				}
@@ -319,24 +397,25 @@ public class FileManager {
 		}
 		return true;
 	}
-	
+
 	/**
-	 * Compares two files 
+	 * Compares two files
+	 * 
 	 * @param a
 	 * @param b
 	 * @return true if the files are equal
 	 */
-	private static boolean filesAreEqual(File a, File b){
+	private static boolean filesAreEqual(File a, File b) {
 		try {
 			byte[] aBytes = Files.readAllBytes(a.toPath());
 			byte[] bBytes = Files.readAllBytes(b.toPath());
-			if(aBytes.length!=bBytes.length){
+			if (aBytes.length != bBytes.length) {
 //				System.out.println(a.getAbsolutePath() + ": " + aBytes.length + " bytes");
 //				System.out.println(b.getAbsolutePath() + ": " + bBytes.length + " bytes");
 				return false;
 			}
-			for(int i = 0; i< aBytes.length;i++){
-				if(aBytes[i]!=bBytes[i]){
+			for (int i = 0; i < aBytes.length; i++) {
+				if (aBytes[i] != bBytes[i]) {
 					return false;
 				}
 			}
@@ -346,22 +425,241 @@ public class FileManager {
 		}
 		return false;
 	}
-	
-	
+
+	/**
+	 * Returns all featurestub files which are equal
+	 * 
+	 * @param fstubA
+	 * @param fstubB
+	 * @return
+	 */
+	private static LinkedList<File> compareFeatureStubClasses(File fstubA, File fstubB) {
+		if (!fstubA.isDirectory() || !fstubB.isDirectory()) {
+			return null;
+		}
+
+		File[] dirAFiles = fstubA.listFiles();
+		File[] dirBFiles = fstubB.listFiles();
+		LinkedList<File> equalFeatureStubs = new LinkedList<File>();
+
+		for (File featureA : dirAFiles) {
+			for (File featureB : dirBFiles) {
+				if (featureA.getName().equals(featureB.getName())) {
+					if (!featureA.isDirectory() || !featureB.isDirectory()) {
+						break;
+					}
+					File[] AFiles = featureA.listFiles();
+					File[] BFiles = featureB.listFiles();
+					HashMap<File, String[]> classReferences = new HashMap<File, String[]>();
+					for (File a : AFiles) {
+						for (File b : BFiles) {
+							if (a.getName().equals(b.getName()) && a.getName().endsWith(".java")) {
+								if (classesAreEqual(a, b, classReferences)) {
+									equalFeatureStubs.add(b);
+								} else {
+									System.out.println(
+											"Not Equal: " + a.getName() + " from feature " + featureA.getName());
+								}
+							}
+						}
+					}
+					for (File clazz : classReferences.keySet()) {
+						String[] clazzes = classReferences.get(clazz);
+						for (String refClassString : clazzes) {
+							File refClass = new File(
+									featureB.getAbsolutePath() + FILE_SEPERATOR + refClassString + ".java");
+							if (!equalFeatureStubs.contains(refClass) && equalFeatureStubs.contains(clazz)) {
+								equalFeatureStubs.remove(clazz);
+								System.out.println("entferne " + clazz.getAbsolutePath());
+							}
+						}
+					}
+				}
+			}
+		}
+		return equalFeatureStubs;
+	}
+
+	/**
+	 * Compares two files
+	 * 
+	 * @param a
+	 * @param b
+	 * @return true if the files are equal
+	 */
+	private static boolean classesAreEqual(File a, File b, HashMap<File, String[]> classReferences) {
+		JavaParser javaParserA = new JavaParser();
+		JavaParser javaParserB = new JavaParser();
+		boolean isEqual = true;
+		String classRef = "";
+		try {
+			ParseResult<CompilationUnit> cupA = javaParserA.parse(a);
+			ParseResult<CompilationUnit> cupB = javaParserB.parse(b);
+
+			if (cupA.isSuccessful() && cupA.getResult().isPresent() && cupB.isSuccessful()
+					&& cupB.getResult().isPresent()) {
+
+				CompilationUnit compilationUnitA = cupA.getResult().get();
+				CompilationUnit compilationUnitB = cupB.getResult().get();
+
+				// Check if fields are the same
+				List<FieldDeclaration> fdA = compilationUnitA.findAll(FieldDeclaration.class);
+				List<FieldDeclaration> fdB = compilationUnitB.findAll(FieldDeclaration.class);
+				if (fdA.size() == fdB.size()) {
+					List<FieldDeclaration> tmp = new ArrayList<>();
+					for (int i = 0; i < fdA.size(); i++) {
+						for (int j = 0; j < fdB.size(); j++) {
+							if (fdA.get(i).toString().equals(fdB.get(j).toString())) {
+								tmp.add(fdB.get(j));
+								fdB.remove(j);
+								continue;
+							}
+						}
+
+					}
+					if (tmp.size() != fdA.size()) {
+						isEqual = false;
+					}
+				} else {
+					return false;
+				}
+				// check if Methods the same
+				List<MethodDeclaration> mdA = compilationUnitA.findAll(MethodDeclaration.class);
+				List<MethodDeclaration> mdB = compilationUnitB.findAll(MethodDeclaration.class);
+				if (mdA.size() == mdB.size()) {
+					List<MethodDeclaration> tmp = new ArrayList<>();
+					for (int i = 0; i < mdA.size(); i++) {
+						for (int j = 0; j < mdB.size(); j++) {
+							String methodA = mdA.get(i).toString();
+							String methodB = mdB.get(j).toString();
+							if (methodA.equals(methodB)) {
+								tmp.add(mdB.get(j));
+								mdB.remove(j);
+								continue;
+							}
+						}
+						// find class references in the parameters
+						for (int k = 0; k < mdA.get(i).getParameters().size(); k++) {
+							Parameter parameter = mdA.get(i).getParameters().get(k);
+							if (parameter.getType().isClassOrInterfaceType()
+									&& !parameter.getType().asString().equals("Object")) {
+								if (!classReferences.containsKey(b)) {
+									classReferences.put(b, new String[] { parameter.getType().asString() });
+								} else {
+									classReferences.put(b,
+											addToArray(classReferences.get(b), parameter.getType().asString()));
+								}
+							}
+						}
+					}
+					if (tmp.size() != mdA.size()) {
+						isEqual = false;
+					}
+				} else {
+					return false;
+				}
+				// check for all variables
+				List<VariableDeclarator> vdA = compilationUnitA.findAll(VariableDeclarator.class);
+				List<VariableDeclarator> vdB = compilationUnitB.findAll(VariableDeclarator.class);
+				if (vdA.size() == vdB.size()) {
+					List<VariableDeclarator> tmp = new ArrayList<>();
+					for (int i = 0; i < vdA.size(); i++) {
+						for (int j = 0; j < vdB.size(); j++) {
+							if (vdA.get(i).toString().equals(vdB.get(j).toString())) {
+								tmp.add(vdB.get(j));
+								vdB.remove(j);
+								continue;
+							}
+						}
+						// finde class references
+						VariableDeclarator vd = vdA.get(i);
+						if (vd.getType().isClassOrInterfaceType() && !vd.getType().asString().equals("Object")) {
+							if (!classReferences.containsKey(b)) {
+								classReferences.put(b, new String[] { vd.getType().asString() });
+							} else {
+								classReferences.put(b, addToArray(classReferences.get(b), vd.getType().asString()));
+							}
+						}
+					}
+					if (tmp.size() != vdA.size()) {
+						isEqual = false;
+					}
+				} else {
+					return false;
+				}
+				for (int i = 0; i < fdA.size(); i++) {
+					fdA.get(i).getVariables().forEach(variable -> {
+						if (variable.getType().isClassOrInterfaceType()
+								&& !variable.getType().asString().equals("Object")) {
+							if (!classReferences.containsKey(b)) {
+								classReferences.put(b, new String[] { variable.getType().asString() });
+							} else {
+								classReferences.put(b,
+										addToArray(classReferences.get(b), variable.getType().asString()));
+							}
+						}
+					});
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return isEqual;
+	}
+
 	/**
 	 * Returns the Path of BankAccountv1 of the current approach
+	 * 
 	 * @param location
 	 * @return
 	 */
-	public static File getProjectv1Path(File location){
+	public static File getProjectv1Path(File location) {
 		File parentPath = location.getParentFile();
 		File[] allProjects = parentPath.listFiles();
 		File firstProject = null;
-		for(File project : allProjects){
-			if(project.getName().contains("1")&&project.isDirectory()){
+		for (File project : allProjects) {
+			if (project.getName().contains("1") && project.isDirectory()) {
 				firstProject = project;
 			}
 		}
 		return firstProject;
+	}
+
+	/**
+	 * Returns the Path of previous of the current approach
+	 * 
+	 * @param location
+	 * @return
+	 */
+	public static File getPreviousProjectPath(File location, String version) {
+		File parentPath = location.getParentFile();
+		File[] allProjects = parentPath.listFiles();
+		File previousProject = null;
+		int numberInt = Integer.parseInt(version) - 1;
+		for (File project : allProjects) {
+			int indexofVersion = project.getName().lastIndexOf("v") + 1;
+			String projectVersion = project.getName().substring(indexofVersion);
+
+			if (projectVersion.equals(String.valueOf(numberInt)) && project.isDirectory()) {
+				previousProject = project;
+			}
+		}
+		return previousProject;
+	}
+
+	/**
+	 * Addes one more String to the an array
+	 * 
+	 * @param classes
+	 * @param newClass
+	 * @return
+	 */
+	private static String[] addToArray(String[] classes, String newClass) {
+		String[] newClasses = new String[classes.length + 1];
+		for (int i = 0; i < classes.length; i++) {
+			newClasses[i] = classes[i];
+		}
+		newClasses[newClasses.length-1] = newClass;
+		return newClasses;
 	}
 }

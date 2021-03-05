@@ -51,11 +51,11 @@ public class Fefalution extends AbstractVerification{
 		if(!firstVersion){
 			FileManager.reuseFeaturestub(evalPath, loc);
 		}
-		if(method.equals("Non Rigid")) {
+		if(methodForVerification.equals("Non Rigid")) {
 			MetaProductBuilderNonRigid.prepareMetaproductForNonRigid(new File(loc.getAbsolutePath()+FILE_SEPERATOR+FileManager.metaproductDir));
 			performFeaturestubVerification(loc,evalPath,firstVersion, true);
 			FileManager.copySavedProofsToPartialProofs(evalPath);
-			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath);
+			MetaProductBuilderNonRigid.preparePartialProofs(loc,evalPath,methodMap);
 		}else {
 			performFeaturestubVerification(loc,evalPath,firstVersion, true);
 			FileManager.copySavedProofsToPartialProofs(evalPath);

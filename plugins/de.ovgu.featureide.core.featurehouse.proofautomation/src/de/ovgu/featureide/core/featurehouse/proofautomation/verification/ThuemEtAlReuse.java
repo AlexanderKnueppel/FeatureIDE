@@ -21,12 +21,16 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 import de.uka.ilkd.key.strategy.StrategyProperties;
 
 /**
@@ -34,45 +38,52 @@ import de.uka.ilkd.key.strategy.StrategyProperties;
  * 
  * @author marlen
  */
-public class ThuemEtAlReuse extends AbstractVerification{
-	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	
-	public static final ThuemEtAlReuse THUEM_ET_AL_REUSE =  new ThuemEtAlReuse();
+public class ThuemEtAlReuse extends AbstractVerification {
+	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be
+																		// applicated on one proof
+
+	public static final ThuemEtAlReuse THUEM_ET_AL_REUSE = new ThuemEtAlReuse();
 
 	public static ThuemEtAlReuse getInstance() {
 		return THUEM_ET_AL_REUSE;
 	}
-	
+
 	/**
 	 * Performs the evaluation
+	 * 
 	 * @param loc
 	 */
-	public void performVerification(File loc, File evalPath){
-		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+	public void performVerification(File loc, File evalPath) {
+		String savePath = evalPath.getAbsolutePath() + FILE_SEPERATOR + FileManager.finishedProofsDir;
 		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
 		boolean firstVersion = loc.getName().contains("1");
-		fullProofReuse(evalPath,proofList,DefaultStrategies.defaultSettingsForVA4VA5(),firstVersion,savePath);
+		fullProofReuse(evalPath, proofList, DefaultStrategies.defaultSettingsForVA4VA5(), firstVersion, savePath);
 	}
-	
-	
+
 	/**
-	 * Performs a Verification where the proofs of the first version are reused for the other versions
-	 * @param location : path of the evaluation of the current project 
+	 * Performs a Verification where the proofs of the first version are reused for
+	 * the other versions
+	 * 
+	 * @param location         : path of the evaluation of the current project
 	 * @param proofHandlerList : list of all proofs of the current project
-	 * @param sp : used StrategyProperties for the verification
-	 * @param firstVersion : true if the current project is the first version in this approach
-	 * @param savePath : path where the proofs should be saved
+	 * @param sp               : used StrategyProperties for the verification
+	 * @param firstVersion     : true if the current project is the first version in
+	 *                         this approach
+	 * @param savePath         : path where the proofs should be saved
 	 */
-	private void fullProofReuse(File location, List<ProofHandler> proofHandlerList, StrategyProperties sp, boolean firstVersion, String savePath){
-		if(firstVersion){
-			for(ProofHandler proofHandler: proofHandlerList){
-				keyHandler.startMetaProductProof(proofHandler,null, sp, maxRuleApplication,savePath);
+	private void fullProofReuse(File location, List<ProofHandler> proofHandlerList, StrategyProperties sp,
+			boolean firstVersion, String savePath) {
+		Map<String, Map<String, Method>> methodMap = new HashMap<>();
+		BuildMap.parseMethodsInMetaproduct(location, methodMap);
+		if (firstVersion) {
+			for (ProofHandler proofHandler : proofHandlerList) {
+				keyHandler.startMetaProductProof(proofHandler, null, sp, maxRuleApplication, savePath, null, methodMap);
 				proofHandler.saveProof(savePath);
 			}
-		}
-		else{
-			for(ProofHandler proofHandler: proofHandlerList){
-				keyHandler.startMetaProductProof(proofHandler,reuseFullProof(location,proofHandler), sp, maxRuleApplication,savePath);
+		} else {
+			for (ProofHandler proofHandler : proofHandlerList) {
+				keyHandler.startMetaProductProof(proofHandler, reuseFullProof(location, proofHandler), sp,
+						maxRuleApplication, savePath, null, methodMap);
 				proofHandler.saveProof(savePath);
 			}
 		}

@@ -55,7 +55,6 @@ public class projectWorker2 {
 	 */
 	//todo: adjust to getAllProjects should be independent of approach
 	public static LinkedList<IProject> getProjectsByApproach(String approachName){
-		System.out.println(approachName);
 		IWorkspaceRoot myWorkspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] allProjects = myWorkspaceRoot.getProjects();
 		LinkedList<IProject> allProjectsForApproach = new LinkedList<IProject>();

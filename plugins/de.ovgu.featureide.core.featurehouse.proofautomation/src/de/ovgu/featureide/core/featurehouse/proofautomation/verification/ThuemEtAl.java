@@ -21,37 +21,46 @@
 package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import de.ovgu.featureide.core.featurehouse.proofautomation.builder.BuildMap;
 import de.ovgu.featureide.core.featurehouse.proofautomation.configuration.Configuration;
 import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileManager;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.DefaultStrategies;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.ProofHandler;
+import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
 
 /**
  * TODO description
  * 
  * @author marlen
  */
-public class ThuemEtAl extends AbstractVerification{
-	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be applicated on one proof
-	
-	public static final ThuemEtAl THUEM_ET_AL =  new ThuemEtAl();
+public class ThuemEtAl extends AbstractVerification {
+	private int maxRuleApplication = Configuration.maxRuleApplication; // sets the maximal number of rules to be
+																		// applicated on one proof
+
+	public static final ThuemEtAl THUEM_ET_AL = new ThuemEtAl();
 
 	public static ThuemEtAl getInstance() {
 		return THUEM_ET_AL;
 	}
-	
+
 	/**
 	 * Performs the evaluation
+	 * 
 	 * @param loc
 	 */
-	public void performVerification(File loc, File evalPath){		
-		String savePath = evalPath.getAbsolutePath()+FILE_SEPERATOR+FileManager.finishedProofsDir;
+	public void performVerification(File loc, File evalPath) {
+		String savePath = evalPath.getAbsolutePath() + FILE_SEPERATOR + FileManager.finishedProofsDir;
 
 		List<ProofHandler> proofList = keyHandler.loadInKeY(FileManager.getFirstMetaproductElement(loc));
-		for(ProofHandler proofHandler: proofList){
-			keyHandler.startMetaProductProof(proofHandler,null, DefaultStrategies.defaultSettingsForVA4VA5(), maxRuleApplication,savePath);
+		Map<String, Map<String, Method>> methodMap = new HashMap<>();
+		BuildMap.parseMethodsInMetaproduct(loc, methodMap);
+		for (ProofHandler proofHandler : proofList) {
+			keyHandler.startMetaProductProof(proofHandler, null, DefaultStrategies.defaultSettingsForVA4VA5(),
+					maxRuleApplication, savePath, null, methodMap);
 			proofHandler.saveProof(savePath);
 		}
 		setProofList(proofList);
