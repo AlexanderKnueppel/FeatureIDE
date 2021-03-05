@@ -245,7 +245,9 @@ public class Non_Rigid extends KeyHandler {
 						addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
 					}
 					int previousNodes = proofHandler.proof.countNodes();
-
+					if(methodName.contains("lock")) {
+						System.out.println();
+					}
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
 					count++;
 					System.out.println("Open goals " + proofHandler.proof.openGoals().size() + " open Goals");
@@ -441,7 +443,18 @@ public class Non_Rigid extends KeyHandler {
 						goal.addFormula(cf, false, false);
 					}
 				}
-
+				if (antePost == 1 && record.getOriginalPost() != "" && succPost == 1) {
+					String originalpost = getOtherOriginalPostString(record, className, methodName);
+					if (!originalpost.isEmpty()) {
+						System.out.println("OriginalPost Ante: " + record.getOriginalPost()+ " & " + originalpost );
+					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + record.getOriginalPost() + " & " + originalpost + ")",
+							goal.getLocalNamespaces()));
+					goal.addFormula(cf, true, false);
+					}
+					
+				}else {
+					
+				
 				if (antePost == 1 && record.getOriginalPost() != "") {
 					System.out.println("OriginalPost Ante: " + record.getOriginalPost());
 					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + record.getOriginalPost() + ")",
@@ -456,7 +469,7 @@ public class Non_Rigid extends KeyHandler {
 								termBuilder.parseTerm("OriginalPost <->" + originalpost, goal.getLocalNamespaces()));
 						goal.addFormula(cf, true, false);
 					}
-				}
+				}}
 
 				if (anteFrame == 1 && !record.getOriginalFrame().isEmpty()) {
 					System.out.println("OriginalFrame Ante: " + record.getOriginalFrame());
@@ -594,6 +607,29 @@ public class Non_Rigid extends KeyHandler {
 			}
 			record.setOriginalFrame(frame);
 		}
+		List<String> calledList = method.getCalledMethod();
+		if(!calledList.get(0).isEmpty()) {
+			for(String calledMethodString : calledList) {
+				String clazz = className;
+				if(calledMethodString.contains(".")) {
+					clazz = calledMethodString.split("\\.")[0];
+					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
+					calledMethodString = calledMethodString.split("\\.")[1];
+					
+				}
+				Method calledMethod = methodMap.get(clazz).get(calledMethodString);
+				for(String calledFields: calledMethod.getFields()) {
+					if(!method.fields.contains(calledFields)) {
+						method.fields.add(calledFields);
+					}
+				}
+				for(String calledParameter: calledMethod.getParameter()) {
+					if(!method.parameter.contains(calledParameter)) {
+						method.parameter.add(calledParameter);
+					}
+				}
+			}			
+		}
 		if (record.getOriginalPre() != "") {
 			String pre = record.getOriginalPre();
 			List<String> variables = method.getFields();
@@ -622,11 +658,18 @@ public class Non_Rigid extends KeyHandler {
 					}
 				}
 			}
+			
 			pre = pre.replace(" || ", " | ");
 			pre = pre.replace(" && ", " & ");
 			pre = pre.replace(" == ", " = ");
 			pre = pre.replace("(\\result)", "result = TRUE");
 			pre = pre.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
+			if(pre.equals("true")) {
+				pre = "self.<inv>";
+			}else {
+				pre = pre + " & self.<inv>";
+			}
+			
 			record.setOriginalPre(pre);
 		}
 		if (record.getOriginalPost() != "") {
@@ -648,12 +691,19 @@ public class Non_Rigid extends KeyHandler {
 					post = post.replaceAll(" " + p + " ", " _" + p + " ");
 				}
 			}
+			
 			post = post.replace(" || ", " | ");
 			post = post.replace(" && ", " & ");
 			post = post.replace(" == ", " = ");
 			post = post.replace("(\\result)", "result = TRUE");
 			post = post.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
+			if(post.equals("true")) {
+				post = "self.<inv> & exc = null";
+			}else {
+				post = post + " & self.<inv> & exc = null";
+			}
 			record.setOriginalPost(post);
+		
 		}
 		if (!record.getCombination().isEmpty()) {
 			String combination = record.getCombination();
