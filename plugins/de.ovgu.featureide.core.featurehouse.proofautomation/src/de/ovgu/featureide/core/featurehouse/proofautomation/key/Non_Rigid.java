@@ -162,8 +162,8 @@ public class Non_Rigid extends KeyHandler {
 		if (!methodName.equals("<inv>")) {
 			methodName = methodName.split("\\(")[0];
 		}
-//			 if (!methodName.contains("nextDay_D"))
-//			 { return false; }
+			 if (!methodName.contains("nextDay_D"))
+			 { return false; }
 			 
 		try {
 			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, sp, false);
@@ -477,7 +477,7 @@ public class Non_Rigid extends KeyHandler {
 						originalpre = record.getOriginalPre();
 					}
 					System.out.println("OriginalPre Ante: " + originalpre);
-					cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->(" + record.getOriginalPre() + ")",
+					cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->(" + originalpre + ")",
 							goal.getLocalNamespaces()));
 					goal.addFormula(cf, true, false);
 				} else if (succPre == 1) {
@@ -524,15 +524,15 @@ public class Non_Rigid extends KeyHandler {
 				if (anteFrame == 1 && !record.getOriginalFrame().isEmpty()) {
 					System.out.println("OriginalFrame Ante: " + record.getOriginalFrame());
 					cf = new SequentFormula(
-							termBuilder.parseTerm(record.getOriginalFrame(), goal.getLocalNamespaces()));
+							termBuilder.parseTerm("OriginalFrame = {" +record.getOriginalFrame()+"}", goal.getLocalNamespaces()));
 					goal.addFormula(cf, true, false);
 				}
 
 				if (succFrame == 1) {
 					String originalframe = getOtherOriginalFrameString(record, className, methodName);
 					if (!originalframe.isEmpty()) {
-						System.out.println("OriginalFrame Succ: " + "(self,Account::$balance) ");
-						cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = {(self,Account::$balance)}",
+						System.out.println("OriginalFrame Succ: " + originalframe);
+						cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = {" + originalframe+"}",
 								goal.getLocalNamespaces()));
 						goal.addFormula(cf, true, false);
 					}
@@ -691,7 +691,7 @@ public class Non_Rigid extends KeyHandler {
 					if (frame.contains(var)) {
 						String[] varStrings = getMethodName(var, className);
 						frame = frame.replace(var,
-								"elementOf(self," + varStrings[1] + "::$" + varStrings[0] + ",OriginalFrame)");
+								"(self," + varStrings[1] + "::$" + varStrings[0] + ")");
 						foundVariable = true;
 					}
 				}
@@ -704,7 +704,7 @@ public class Non_Rigid extends KeyHandler {
 					if (frame.contains(var)) {
 						String[] varStrings = getMethodName(var, className);
 						frame = frame.replace(var,
-								"elementOf(self," + varStrings[1] + "::$" + varStrings[0] + ",OriginalFrame)");
+								"(self," + varStrings[1] + "::$" + varStrings[0] + ")");
 						variableList.add(var);
 						fields.add(var);
 					}
