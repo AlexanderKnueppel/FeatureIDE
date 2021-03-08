@@ -29,6 +29,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.filemanagement.FileM
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.KeyHandler;
 import de.ovgu.featureide.core.featurehouse.proofautomation.key.Non_Rigid;
 import de.uka.ilkd.key.java.reference.ThisConstructorReference;
+import testbench.TestFillMethodMap;
 
 /**
  *  Class for verification of approach 1 Fefalution + Family Proof Replay
@@ -48,10 +49,10 @@ public class FefalutionFamilyProofReplay extends AbstractVerification{
 		methodForVerification="Non Rigid";
 	}
 	public static void  main(String[] args){
-		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/BankAccountv3");
-		File evalPathFile  = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/Evaluation/2021-03-03 10-04-00/1 Fefalution + Family Proof Replay/BankAccountv3");
-		methodMap = TestFillMethodMap.fillSandboxMethodMap();
-getInstance().performMetaproductVerification(locFile, evalPathFile);
+		File locFile = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/BankAccountv5");
+		File evalPathFile  = new File("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/Evaluation/2021-03-07 12-03-48/1 Fefalution + Family Proof Replay/BankAccountv5");
+		methodMap = TestFillMethodMap.fillSandboxMethodMap("/mnt/54AFF99F466B2AED/Informatik/Masterarbeit/EvalEvolutionSandbox/Evaluation/2021-03-07 12-03-48/1 Fefalution + Family Proof Replay/BankAccountv5/methodMap.csv");
+		getInstance().performMetaproductVerification(locFile, evalPathFile);
 
 /*				int indexofVersion = locFile.getName().lastIndexOf("v")+1;
 		String version = locFile.getName().substring(indexofVersion);

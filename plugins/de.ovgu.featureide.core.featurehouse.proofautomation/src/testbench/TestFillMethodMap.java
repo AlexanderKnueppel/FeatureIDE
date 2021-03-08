@@ -18,7 +18,7 @@
  *
  * See http://featureide.cs.ovgu.de/ for further information.
  */
-package de.ovgu.featureide.core.featurehouse.proofautomation.verification;
+package testbench;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.model.Method;
  */
 public class TestFillMethodMap {
 	public static void main(String[] args) {
-		fillSandboxMethodMap();
+		fillSandboxMethodMap("");
 	}
 	
 	
@@ -95,14 +95,14 @@ public class TestFillMethodMap {
  * for Sandboxing 
  * @return
  */
-	public static Map<String, Map<String, Method>> fillSandboxMethodMap() {
+	public static Map<String, Map<String, Method>> fillSandboxMethodMap(String file) {
 		Map<String, Map<String, Method>> methodMap = new HashMap<String, Map<String, Method>>();
 		List<String> lines;
 
 		try {
 			lines = Files
 					.lines(Paths.get(
-							new File("src" + File.separator + "testbench" + File.separator + "methodMap.csv").toURI()))
+							new File(file).toURI()))
 					.collect(Collectors.toList());
 			for (int i = 0; i < lines.size(); i++) {
 				String[] line = lines.get(i).replace("\"", "").split(";");

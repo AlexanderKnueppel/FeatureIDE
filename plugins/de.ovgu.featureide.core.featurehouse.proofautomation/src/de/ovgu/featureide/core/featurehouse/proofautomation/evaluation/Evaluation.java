@@ -29,6 +29,7 @@ import de.ovgu.featureide.core.featurehouse.proofautomation.statistics.ProofStat
  * Abstract class that contains shared functionality of CompleteEvaluation, EvaluationPhase and SingleProject
  * 
  * @author Stefanie
+ * 
  */
 public abstract class Evaluation {
 	public static final String FILE_SEPERATOR = System.getProperty("file.separator");

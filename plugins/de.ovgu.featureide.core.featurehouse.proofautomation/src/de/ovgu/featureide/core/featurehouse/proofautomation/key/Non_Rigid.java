@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.antlr.grammar.v3.CodeGenTreeWalker.element_action_return;
 import org.antlr.grammar.v3.TreeToNFAConverter.set_return;
 import org.key_project.util.collection.ImmutableList;
 
@@ -157,7 +158,13 @@ public class Non_Rigid extends KeyHandler {
 		boolean reusedAProof = true;
 
 		System.out.println("Reuse proof: " + reuseProof.getName());
-
+		String methodName = proofHandler.getTargetName();
+		if (!methodName.equals("<inv>")) {
+			methodName = methodName.split("\\(")[0];
+		}
+//			 if (!methodName.contains("nextDay_D"))
+//			 { return false; }
+			 
 		try {
 			AbstractProblemLoader loader = userInterface.load(null, reuseProof, null, null, null, sp, false);
 			InitConfig initConfig = loader.getInitConfig();
@@ -165,6 +172,7 @@ public class Non_Rigid extends KeyHandler {
 					loader.getResult());
 			Services services = keYEnvironment.getServices();
 			proofHandler.proof = keYEnvironment.getLoadedProof();
+
 			ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
 			HashMap<String, String> choices = new HashMap<String, String>();
 			choices.put("assertions", "assertions:safe");
@@ -177,22 +185,19 @@ public class Non_Rigid extends KeyHandler {
 			proofHandler.proof.setActiveStrategy(
 					keYEnvironment.getProfile().getDefaultStrategyFactory().create(proofHandler.proof, sp));
 
-			String methodName = proofHandler.getTargetName();
-			if (!methodName.equals("<inv>")) {
-				methodName = methodName.split("\\(")[0];
-			}
-
 			System.out.println("Starte proof of  " + proofHandler.proof.name());
-			proofHandler.setReusedStatistics();
 
+			proofHandler.setStatistics();
 			System.out.println("Reused: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());
 			if (!proofHandler.proof.openGoals().isEmpty()) {
+				proofHandler.setReusedStatistics();
 				keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
 				// overwrite the other statistic of the goal-proof because they did not close
 				proofHandler.setStatistics();
 				System.out.println(proofHandler.getTargetName() + "was Closed with first startAndWaitForAutoMode ?: "
 						+ proofHandler.proof.closed() + "\n" + proofHandler.proof.getStatistics());
 			}
+
 			if (!proofHandler.proof.openGoals().isEmpty()) {
 
 				/*
@@ -238,23 +243,23 @@ public class Non_Rigid extends KeyHandler {
 				 * + "was Closed with startAndWaitForAutoMode second time?: " +
 				 * proofHandler.proof.closed()); }
 				 */
-				int count = 0;
-				while (!proofHandler.proof.openGoals().isEmpty() && count < 20) {
+				changeRecord(proofHandler.getTypeName(), methodName);
+				while (!proofHandler.proof.openGoals().isEmpty()) {
+					ImmutableList<Goal> goalsImmutableList = proofHandler.proof.openGoals();
 					for (Goal goal : proofHandler.proof.openGoals()) {
-						changeRecord(proofHandler.getTypeName(), methodName);
 						addInformationToGoal(methodName, proofHandler.getTypeName(), services, goal);
 					}
 					int previousNodes = proofHandler.proof.countNodes();
-					if(methodName.contains("lock")) {
-						System.out.println();
-					}
+					
 					keYEnvironment.getProofControl().startAndWaitForAutoMode(proofHandler.proof);
-					count++;
 					System.out.println("Open goals " + proofHandler.proof.openGoals().size() + " open Goals");
 					System.out.println(
 							proofHandler.getTargetName() + "was Closed with startAndWaitForAutoMode second time?: "
 									+ proofHandler.proof.closed() + "\n Nodes:" + proofHandler.proof.countNodes());
 					if (proofHandler.proof.countNodes() == previousNodes) {
+						break;
+					}
+					if(compareGoals(goalsImmutableList, proofHandler.proof.openGoals())) {
 						break;
 					}
 				}
@@ -272,6 +277,25 @@ public class Non_Rigid extends KeyHandler {
 				"Final Statistic: " + proofHandler.getTargetName() + "\n" + proofHandler.proof.getStatistics());
 
 		return reusedAProof;
+	}
+	
+	/**
+	 * checks if the goals of two lists are the same
+	 * @param goalsBefore
+	 * @param goalsAfter
+	 * @return
+	 */
+	private boolean compareGoals(ImmutableList<Goal> goalsBefore, ImmutableList<Goal> goalsAfter) {
+		int count = 0;
+		for(Goal goalAfter: goalsAfter) {
+			if(goalsBefore.contains(goalAfter)) {
+				count++;			
+			}
+		}
+		if(goalsAfter.size() == count) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -390,10 +414,17 @@ public class Non_Rigid extends KeyHandler {
 							antePre++;
 						}
 						if (sequent.contains("OriginalPost")) {
+							if (sequent.contains("OriginalPost <->")) {
+								antePost = antePost + 3;
+							}
 							antePost++;
 						}
 						if (sequent.contains("OriginalFrame")) {
-							anteFrame++;
+							if (!sequent.contains("OriginalFrame = ")) {
+								anteFrame++;
+							}else {
+								anteFrame = anteFrame + 2;
+							}
 						}
 						if (sequent.contains("AllowedFeatureCombination")) {
 							System.out.println("AllowedFeatureCombination Ante: " + record.getCombination());
@@ -408,10 +439,18 @@ public class Non_Rigid extends KeyHandler {
 							succPre++;
 						}
 						if (sequent.contains("OriginalPost")) {
+							if (sequent.contains("OriginalPost <->")) {
+								antePost = antePost + 3;
+							}
 							succPost++;
+
 						}
 						if (sequent.contains("OriginalFrame")) {
-							succFrame++;
+							if (!sequent.contains("OriginalFrame = ")) {
+								succFrame++;
+							}else {
+								succFrame = succFrame + 2;
+							}
 						}
 						if (sequent.contains("AllowedFeatureCombination")) {
 							String combination = getCombinationString(record, className, methodName);
@@ -427,49 +466,60 @@ public class Non_Rigid extends KeyHandler {
 					}
 				}
 
+				// ORIGINAL PRE
 				if (antePre == 1 && record.getOriginalPre() != "") {
-					System.out.println("OriginalPre Ante: " + record.getOriginalPre());
-					cf = new SequentFormula(termBuilder.parseTerm(
-							"OriginalPre <->(" + record.getOriginalPre() + ")", goal.getLocalNamespaces()));
+					// System.out.println("OriginalPre Ante: " + record.getOriginalPre());
+					String originalpre = getOtherOriginalPreString(record, className, methodName);
+					if (!originalpre.isEmpty() && !record.getOriginalPre().contains(originalpre)) {
+						// System.out.println("OriginalPre Succ: " + originalpre);
+						originalpre = originalpre + " & " + record.getOriginalPre();
+					} else {
+						originalpre = record.getOriginalPre();
+					}
+					System.out.println("OriginalPre Ante: " + originalpre);
+					cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->(" + record.getOriginalPre() + ")",
+							goal.getLocalNamespaces()));
 					goal.addFormula(cf, true, false);
-				}
-
-				if (succPre == 1) {
+				} else if (succPre == 1) {
 					String originalpre = getOtherOriginalPreString(record, className, methodName);
 					if (!originalpre.isEmpty()) {
 						System.out.println("OriginalPre Succ: " + originalpre);
-						cf = new SequentFormula(termBuilder.parseTerm("OriginalPre <->" + originalpre,
-								goal.getLocalNamespaces()));
+						cf = new SequentFormula(
+								termBuilder.parseTerm("OriginalPre <->" + originalpre, goal.getLocalNamespaces()));
 						goal.addFormula(cf, false, false);
 					}
 				}
-				if (antePost == 1 && record.getOriginalPost() != "" && succPost == 1) {
+
+				// ORIGNAL POST
+				if ((antePost == 1 || succPost == 1) && record.getOriginalPost() != "") {
 					String originalpost = getOtherOriginalPostString(record, className, methodName);
-					if (!originalpost.isEmpty()) {
-						System.out.println("OriginalPost Ante: " + record.getOriginalPost()+ " & " + originalpost );
-					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + record.getOriginalPost() + " & " + originalpost + ")",
-							goal.getLocalNamespaces()));
-					goal.addFormula(cf, true, false);
+					if (!originalpost.isEmpty() && !record.getOriginalPost().contains(originalpost)) {
+
+						originalpost = originalpost + " & " + record.getOriginalPost();
+					} else {
+						originalpost = record.getOriginalPost();
 					}
-					
-				}else {
-					
-				
-				if (antePost == 1 && record.getOriginalPost() != "") {
-					System.out.println("OriginalPost Ante: " + record.getOriginalPost());
-					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + record.getOriginalPost() + ")",
+					System.out.println("OriginalPost Ante: " + originalpost);
+					cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <-> (" + originalpost + ")",
 							goal.getLocalNamespaces()));
 					goal.addFormula(cf, true, false);
-				}
-				if (succPost == 1) {
-					String originalpost = getOtherOriginalPostString(record, className, methodName);
-					if (!originalpost.isEmpty()) {
-						System.out.println("OriginalPost Succ: " + originalpost);
-						cf = new SequentFormula(
-								termBuilder.parseTerm("OriginalPost <->" + originalpost, goal.getLocalNamespaces()));
+				} else {
+					if (antePost == 1 && record.getOriginalPost() != "") {
+						System.out.println("OriginalPost Ante: " + record.getOriginalPost());
+						cf = new SequentFormula(termBuilder.parseTerm(
+								"OriginalPost <-> (" + record.getOriginalPost() + ")", goal.getLocalNamespaces()));
 						goal.addFormula(cf, true, false);
 					}
-				}}
+					if (succPost == 2 || succPost == 1) {
+						String originalpost = getOtherOriginalPostString(record, className, methodName);
+						if (!originalpost.isEmpty()) {
+							System.out.println("OriginalPost Succ: " + originalpost);
+							cf = new SequentFormula(termBuilder.parseTerm("OriginalPost <->" + originalpost,
+									goal.getLocalNamespaces()));
+							goal.addFormula(cf, true, false);
+						}
+					}
+				}
 
 				if (anteFrame == 1 && !record.getOriginalFrame().isEmpty()) {
 					System.out.println("OriginalFrame Ante: " + record.getOriginalFrame());
@@ -482,7 +532,8 @@ public class Non_Rigid extends KeyHandler {
 					String originalframe = getOtherOriginalFrameString(record, className, methodName);
 					if (!originalframe.isEmpty()) {
 						System.out.println("OriginalFrame Succ: " + "(self,Account::$balance) ");
-						cf = new SequentFormula(termBuilder.parseTerm(  "OriginalFrame = {(self,Account::$balance)}", goal.getLocalNamespaces()));
+						cf = new SequentFormula(termBuilder.parseTerm("OriginalFrame = {(self,Account::$balance)}",
+								goal.getLocalNamespaces()));
 						goal.addFormula(cf, true, false);
 					}
 				}
@@ -519,13 +570,17 @@ public class Non_Rigid extends KeyHandler {
 				// the original is added to the name
 				record.setOriginalMethod(methodName.split("_")[0] + "_" + method.getOriginal());
 
-				Method originalMethod = methodMap.get(className).get(record.getOriginalMethod().split("_")[0]);
-				recordMap.get(className).put(methodName, prepareContracts(record, className, originalMethod));
+				Method originalMethod = methodMap.get(className).get(record.getOriginalMethod());
+				if (originalMethod == null) {
+					originalMethod = methodMap.get(className).get(record.getOriginalMethod().split("_")[0]);
+				}
+				recordMap.get(className).put(methodName,
+						prepareContracts(record, className, originalMethod, record.getOriginalMethod()));
 				// change the record if the originalMethod
 				changeRecord(className, record.getOriginalMethod());
 			} else {
 				// if there is no original method prepare the record
-				recordMap.get(className).put(methodName, prepareContracts(record, className, method));
+				recordMap.get(className).put(methodName, prepareContracts(record, className, method, methodName));
 			}
 
 			// if there are other methods are used in the method prepare the record
@@ -533,17 +588,83 @@ public class Non_Rigid extends KeyHandler {
 			for (int i = 0; i < usedFunctions.size(); i++) {
 				String methods = usedFunctions.get(i);
 				if (!methods.isEmpty() && !methodName.equals(methods)) {
-					if (methods.contains(".")) {
-						String classString = methods.split("\\.")[0];
-						classString = classString.substring(0, 1).toUpperCase() + classString.substring(1);
-						String methodString = methods.split("\\.")[1];
-						changeRecord(classString, methodString);
-					} else {
-						changeRecord(className, methods);
-					}
+					String[] methodStrings = getMethodName(methods, className);
+					changeRecord(methodStrings[1], methodStrings[0]);
 				}
 			}
 		}
+	}
+
+	/**
+	 * checks a string for . to spilt and get the class from it
+	 * 
+	 * @param name
+	 * @param className
+	 * @return
+	 */
+	private static String[] getMethodName(String name, String className) {
+		String[] methodStrings = { name, className };
+		if (name.contains(".")) {
+			String classString = name.split("\\.")[0];
+			methodStrings[1] = classString.substring(0, 1).toUpperCase() + classString.substring(1);
+			methodStrings[0] = name.split("\\.")[1];
+		}
+		return methodStrings;
+	}
+
+	/**
+	 * gets recursive all field of all original Methods
+	 * 
+	 * @param method
+	 * @param className
+	 * @param methodName
+	 * @return
+	 */
+	private static List<String> getAllFieldsOfOriginalMethods(Method method, String className, String methodName,
+			List<String> methods) {
+		List<String> fields = new ArrayList<>();
+		methodName = methodName.split("_")[0] + "_" + method.getOriginal();
+		if (method.hasOriginal()) {
+			Method originalMethod = methodMap.get(className).get(methodName);
+			if (originalMethod == null) {
+				originalMethod = methodMap.get(className).get(methodName.split("_")[0]);
+
+			}
+			methods.add(methodName);
+			fields = getAllFieldsOfOriginalMethods(originalMethod, className, methodName, methods);
+		}
+		fields = getFieldsOfCalledMethods(method, className, fields);
+		for (String field : method.getFields()) {
+			if (!fields.contains(field)) {
+				fields.add(field);
+			}
+		}
+		return fields;
+	}
+
+	/**
+	 * 
+	 * @param method
+	 * @param className
+	 * @param fields
+	 * @return
+	 */
+	private static List<String> getFieldsOfCalledMethods(Method method, String className, List<String> fields) {
+		List<String> calledList = method.getCalledMethod();
+		if (!calledList.get(0).isEmpty()) {
+			for (String calledMethodString : calledList) {
+				String[] methodStrings = getMethodName(calledMethodString, className);
+
+				Method calledMethod = methodMap.get(methodStrings[1]).get(methodStrings[0]);
+				for (String calledFields : calledMethod.getFields()) {
+					if (!fields.contains(calledFields)) {
+						fields.add(calledFields);
+					}
+				}
+				fields = getFieldsOfCalledMethods(calledMethod, methodStrings[1], fields);
+			}
+		}
+		return fields;
 	}
 
 	/**
@@ -552,7 +673,9 @@ public class Non_Rigid extends KeyHandler {
 	 * @param contractsMap
 	 * @param goal
 	 */
-	private static Record prepareContracts(Record record, String className, Method method) {
+	private static Record prepareContracts(Record record, String className, Method method, String methodName) {
+		List<String> originalMethods = new ArrayList<>();
+		List<String> fields = getAllFieldsOfOriginalMethods(method, className, methodName, originalMethods);
 
 		if (record.getOriginalFrame() != "") {
 			String frame = record.getOriginalFrame();
@@ -563,22 +686,13 @@ public class Non_Rigid extends KeyHandler {
 			}
 			boolean foundVariable = false;
 
-			List<String> fields = method.getFields();
 			for (String var : fields) {
 				if (!var.isEmpty()) {
 					if (frame.contains(var)) {
-						if (var.contains(".")) {
-							String[] twoStrings = var.split("\\.");
-							String classString = twoStrings[0].substring(0, 1).toUpperCase()
-									+ twoStrings[0].substring(1);
-							frame = frame.replace(var,
-									"elementOf(self," + classString + "::$" + twoStrings[1] + ",OriginalFrame)");
-							foundVariable = true;
-						} else {
-							frame = frame.replace(var,
-									"elementOf(self," + className + "::$" + var.trim() + ",OriginalFrame)");
-							foundVariable = true;
-						}
+						String[] varStrings = getMethodName(var, className);
+						frame = frame.replace(var,
+								"elementOf(self," + varStrings[1] + "::$" + varStrings[0] + ",OriginalFrame)");
+						foundVariable = true;
 					}
 				}
 			}
@@ -588,58 +702,45 @@ public class Non_Rigid extends KeyHandler {
 				List<String> variableList = new ArrayList<String>();
 				for (String var : variables) {
 					if (frame.contains(var)) {
-						if (var.contains(".")) {
-							String[] twoStrings = var.split("\\.");
-							String classString = twoStrings[0].substring(0, 1).toUpperCase()
-									+ twoStrings[0].substring(1);
-							frame = frame.replace(var,
-									"elementOf(self," + classString + "::$" + twoStrings[1] + ",OriginalFrame)");
-							variableList.add(var);
-						} else {
-							frame = frame.replace(var,
-									"elementOf(self," + className + "::$" + var.trim() + ",OriginalFrame)");
-							variableList.add(var);
-						}
+						String[] varStrings = getMethodName(var, className);
+						frame = frame.replace(var,
+								"elementOf(self," + varStrings[1] + "::$" + varStrings[0] + ",OriginalFrame)");
+						variableList.add(var);
+						fields.add(var);
 					}
 				}
 				method.setFields(variableList);
-
 			}
 			record.setOriginalFrame(frame);
 		}
 		List<String> calledList = method.getCalledMethod();
-		if(!calledList.get(0).isEmpty()) {
-			for(String calledMethodString : calledList) {
-				String clazz = className;
-				if(calledMethodString.contains(".")) {
-					clazz = calledMethodString.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					calledMethodString = calledMethodString.split("\\.")[1];
-					
-				}
-				Method calledMethod = methodMap.get(clazz).get(calledMethodString);
-				for(String calledFields: calledMethod.getFields()) {
-					if(!method.fields.contains(calledFields)) {
+		if (!calledList.get(0).isEmpty()) {
+			for (String calledMethodString : calledList) {
+				String[] methodStrings = getMethodName(calledMethodString, className);
+
+				Method calledMethod = methodMap.get(methodStrings[1]).get(methodStrings[0]);
+				for (String calledFields : calledMethod.getFields()) {
+					if (!method.fields.contains(calledFields)) {
 						method.fields.add(calledFields);
 					}
 				}
-				for(String calledParameter: calledMethod.getParameter()) {
-					if(!method.parameter.contains(calledParameter)) {
+				for (String calledParameter : calledMethod.getParameter()) {
+					if (!method.parameter.contains(calledParameter)) {
 						method.parameter.add(calledParameter);
 					}
 				}
-			}			
+			}
 		}
 		if (record.getOriginalPre() != "") {
 			String pre = record.getOriginalPre();
-			List<String> variables = method.getFields();
-			for (String var : variables) {
+
+			for (String var : fields) {
 				if (!var.isEmpty()) {
 					if (pre.contains("\\old(" + var + ")")) {
 						pre = pre.replace("\\old(" + var + ")", "self." + var + "@heapAtPre");
 					} else if (pre.contains(var)) {
 						if (var.contains(".")) {
-							String tmpString = "(self ," + var + " & self.<inv>)& exc = null";
+							String tmpString = "(self ," + var + " & self.<inv>)";
 							pre = pre.replace(var, tmpString);
 						} else {
 							pre = pre.replace(var, "self." + var);
@@ -658,25 +759,22 @@ public class Non_Rigid extends KeyHandler {
 					}
 				}
 			}
-			
+
 			pre = pre.replace(" || ", " | ");
 			pre = pre.replace(" && ", " & ");
 			pre = pre.replace(" == ", " = ");
 			pre = pre.replace("(\\result)", "result = TRUE");
 			pre = pre.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
-			if(pre.equals("true")) {
+			if (pre.equals("true")) {
 				pre = "self.<inv>";
-			}else {
-				pre = pre + " & self.<inv>";
 			}
-			
+
 			record.setOriginalPre(pre);
 		}
 		if (record.getOriginalPost() != "") {
 			String post = record.getOriginalPost();
 			boolean foundVariable = false;
-			List<String> variables = method.getFields();
-			for (String var : variables) {
+			for (String var : fields) {
 				if (!var.isEmpty()) {
 					post = post.replace("\\old(" + var + ")", var + "@heapAtPre");
 					post = post.replace(var, "self." + var);
@@ -685,25 +783,38 @@ public class Non_Rigid extends KeyHandler {
 					 * if (foundVariable) { post = post + " & self.<inv>& exc = null"; }
 					 */
 			}
+			for (String orgMethod : originalMethods) {
+				if (post.contains(orgMethod)) {
+
+					int index = post.indexOf(orgMethod) + orgMethod.length();
+					for (int i = index; i < post.length(); i++) {
+						String s = Character.toString(post.charAt(i));
+						if (s.equals(")")) {
+							orgMethod = post.substring(post.indexOf(orgMethod), i + 1);
+							break;
+						}
+					}
+					post = post.replace("\\old(" + orgMethod + ")", orgMethod + "@heapAtPre = TRUE");
+					post = post.replace(orgMethod, "self." + orgMethod);
+				}
+			}
 			for (String parameter : method.getParameter()) {
 				if (!parameter.isEmpty()) {
 					String p = parameter.split(" ")[1];
 					post = post.replaceAll(" " + p + " ", " _" + p + " ");
 				}
 			}
-			
+
 			post = post.replace(" || ", " | ");
 			post = post.replace(" && ", " & ");
 			post = post.replace(" == ", " = ");
 			post = post.replace("(\\result)", "result = TRUE");
 			post = post.replaceAll("(FM\\.FeatureModel\\.\\w+)", "$1=TRUE");
-			if(post.equals("true")) {
+			if (post.equals("true")) {
 				post = "self.<inv> & exc = null";
-			}else {
-				post = post + " & self.<inv> & exc = null";
 			}
 			record.setOriginalPost(post);
-		
+
 		}
 		if (!record.getCombination().isEmpty()) {
 			String combination = record.getCombination();
@@ -717,6 +828,90 @@ public class Non_Rigid extends KeyHandler {
 		return record;
 	}
 
+	private static String getOriginalMethodsProps(String combination, String classString, String methodName,
+			String type) {
+
+		Record originalRecord = recordMap.get(classString).get(methodName);
+		if (originalRecord == null) {
+			methodName = methodName.split("_")[0];
+			originalRecord = recordMap.get(classString).get(methodName);
+		}
+		if (originalRecord != null) {
+			String original = "";
+			if (!originalRecord.isPrepared()) {
+				changeRecord(classString, methodName);
+			}
+			if (type.endsWith("pre")) {
+				original = originalRecord.getOriginalPre();
+				original = original.replace("self.<inv>", "");
+			}
+			if (type.endsWith("post")) {
+				original = originalRecord.getOriginalPost();
+				original = original.replace("self.<inv> & exc = null", "");
+			}
+			if (type.endsWith("frame")) {
+				original = originalRecord.getOriginalFrame();
+			}
+			if (!original.isEmpty()) {
+				if (original.endsWith("& ")) {
+					original = original.substring(0, original.length() - 2);
+				}
+				if (combination.isEmpty()) {
+					combination = original;
+				} else if (!combination.contains(original)) {
+					combination = combination + " & " + original;
+				}
+			}
+
+			if (!originalRecord.getOriginalMethod().isEmpty()) {
+				combination = getOriginalMethodsProps(combination, classString, originalRecord.getOriginalMethod(),
+						type);
+			}
+		}
+		return combination;
+	}
+
+	private static String getCalledMethodsProps(String combination, String classString, String methodName,
+			String type) {
+
+		Record record = recordMap.get(classString).get(methodName);
+		if (record == null) {
+			methodName = methodName.split("_")[0];
+			record = recordMap.get(classString).get(methodName);
+		}
+		if (record != null) {
+			String original = "";
+			if (!record.isPrepared()) {
+				changeRecord(classString, methodName);
+			}
+			if (type.endsWith("pre")) {
+				original = record.getOriginalPre();
+				original = original.replace("self.<inv>", "");
+			}
+			if (type.endsWith("post")) {
+				original = record.getOriginalPost();
+				original = original.replace("self.<inv> & exc = null", "");
+			}
+			if (type.endsWith("frame")) {
+				original = record.getOriginalFrame();
+			}
+			if (!original.isEmpty()) {
+				if (original.endsWith("& ")) {
+					original = original.substring(0, original.length() - 2);
+				}
+				if (combination.isEmpty()) {
+					combination = original;
+				} else if (!combination.contains(original)) {
+					combination = combination + " & " + original;
+				}
+			}
+		}
+		if (!record.getOriginalMethod().isEmpty()) {
+			combination = getOriginalMethodsProps(combination, classString, record.getOriginalMethod(), type);
+		}
+		return combination;
+	}
+
 	private String getOtherOriginalPreString(Record record, String classString, String methodName) {
 		String combinationPre = "";
 		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
@@ -724,36 +919,26 @@ public class Non_Rigid extends KeyHandler {
 		if (method == null) {
 			method = methodMap.get(classString).get(methodName.split("_")[0]);
 		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationPre = originalRecord.getOriginalPre();
-		}
+		combinationPre = getOriginalMethodsProps(combinationPre, classString, record.getOriginalMethod(), "pre");
 
 		List<String> calledMethods = method.getCalledMethod();
 		if (!calledMethods.get(0).isEmpty()) {
 			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combinationPre.isEmpty()) {
-						combinationPre = r.getOriginalPre();
-					} else if (!combinationPre.contains(r.getOriginalPre())) {
-						combinationPre = combinationPre + " & " + r.getOriginalPre();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationPre.isEmpty()) {
-						combinationPre = r.getOriginalPre();
-					} else if (!combinationPre.contains(r.getOriginalPre())) {
-						combinationPre = combinationPre + " & " + r.getOriginalPre();
-					}
+				String[] methodStrings = getMethodName(methods, classString);
+				String methode = methodStrings[0];
+				Record r = recordMap.get(methodStrings[1]).get(methode);
+				if (r == null) {
+					methode = methodStrings[0] + "_" + method.getRootFeature();
+					r = recordMap.get(methodStrings[1]).get(methode);
+				}
+				
+				if(!r.isPrepared()) {
+					changeRecord(methodStrings[1], methode);
+				}
+				if (combinationPre.isEmpty()) {
+					combinationPre = r.getOriginalPre();
+				} else if (!combinationPre.contains(r.getOriginalPre())) {
+					combinationPre = combinationPre + " & " + r.getOriginalPre();
 				}
 			}
 		}
@@ -762,41 +947,30 @@ public class Non_Rigid extends KeyHandler {
 
 	private String getOtherOriginalPostString(Record record, String classString, String methodName) {
 		String combinationPost = "";
-		Record originalRecord = recordMap.get(classString).get(record.getOriginalMethod());
 		Method method = methodMap.get(classString).get(methodName);
 		if (method == null) {
 			method = methodMap.get(classString).get(methodName.split("_")[0]);
 		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationPost = originalRecord.getOriginalPost();
-		}
+		combinationPost = getOriginalMethodsProps(combinationPost, classString, record.getOriginalMethod(), "post");
 
 		List<String> calledMethods = method.getCalledMethod();
 		if (!calledMethods.get(0).isEmpty()) {
 			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combinationPost.isEmpty()) {
-						combinationPost = r.getOriginalPost();
-					} else if (!combinationPost.contains(r.getOriginalPost())) {
-						combinationPost = combinationPost + " & " + r.getOriginalPost();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationPost.isEmpty()) {
-						combinationPost = r.getOriginalPost();
-					} else if (!combinationPost.contains(r.getOriginalPost())) {
-						combinationPost = combinationPost + " & " + r.getOriginalPost();
-					}
+				String[] methodStrings = getMethodName(methods, classString);
+				String methode = methodStrings[0];
+				Record r = recordMap.get(methodStrings[1]).get(methode);
+				if (r == null) {
+					methode = methodStrings[0] + "_" + method.getRootFeature();
+					r = recordMap.get(methodStrings[1]).get(methode);
+				}
+				
+				if(!r.isPrepared()) {
+					changeRecord(methodStrings[1], methode);
+				}
+				if (combinationPost.isEmpty()) {
+					combinationPost = r.getOriginalPost();
+				} else if (!combinationPost.contains(r.getOriginalPost())) {
+					combinationPost = combinationPost + " & " + r.getOriginalPost();
 				}
 			}
 		}
@@ -810,36 +984,26 @@ public class Non_Rigid extends KeyHandler {
 		if (method == null) {
 			method = methodMap.get(classString).get(methodName.split("_")[0]);
 		}
-		if (originalRecord != null) {
-			if (!originalRecord.isPrepared()) {
-				changeRecord(classString, record.getOriginalMethod());
-			}
-			combinationFrame = originalRecord.getOriginalFrame();
-		}
+		combinationFrame = getOriginalMethodsProps(combinationFrame, classString, record.getOriginalMethod(), "frame");
 
 		List<String> calledMethods = method.getCalledMethod();
 		if (!calledMethods.get(0).isEmpty()) {
 			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combinationFrame.isEmpty()) {
-						combinationFrame = r.getOriginalFrame();
-					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
-						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combinationFrame.isEmpty()) {
-						combinationFrame = r.getOriginalFrame();
-					} else if (!combinationFrame.contains(r.getOriginalFrame())) {
-						combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
-					}
+				String[] methodStrings = getMethodName(methods, classString);
+				String methode = methodStrings[0];
+				Record r = recordMap.get(methodStrings[1]).get(methode);
+				if (r == null) {
+					methode = methodStrings[0] + "_" + method.getRootFeature();
+					r = recordMap.get(methodStrings[1]).get(methode);
+				}
+				
+				if(!r.isPrepared()) {
+					changeRecord(methodStrings[1], methode);
+				}
+				if (combinationFrame.isEmpty()) {
+					combinationFrame = r.getOriginalFrame();
+				} else if (!combinationFrame.contains(r.getOriginalFrame())) {
+					combinationFrame = combinationFrame + " & " + r.getOriginalFrame();
 				}
 			}
 		}
@@ -863,28 +1027,24 @@ public class Non_Rigid extends KeyHandler {
 		List<String> calledMethods = method.getCalledMethod();
 		if (!calledMethods.get(0).isEmpty()) {
 			for (String methods : calledMethods) {
-				if (methods.contains(".")) {
-					String clazz = methods.split("\\.")[0];
-					clazz = clazz.substring(0, 1).toUpperCase() + clazz.substring(1);
-					String methodString = methods.split("\\.")[1];
-					Record r = recordMap.get(clazz).get(methodString);
-					if (r == null) {
-						r = recordMap.get(clazz).get(methodString + "_" + method.getRootFeature());
-					}
-					if (combination.isEmpty()) {
-						combination = r.getCombination();
-					} else if (!combination.contains(r.getCombination())) {
-						combination = combination + " & " + r.getCombination();
-					}
-				} else {
-					Record r = recordMap.get(classString).get(methods);
-					if (combination.isEmpty()) {
-						combination = r.getCombination();
-					} else if (!combination.contains(r.getCombination())) {
-						combination = combination + " & " + r.getCombination();
-					}
+				String[] methodStrings = getMethodName(methods, classString);
+				String methode = methodStrings[0];
+				Record r = recordMap.get(methodStrings[1]).get(methode);
+				if (r == null) {
+					methode = methodStrings[0] + "_" + method.getRootFeature();
+					r = recordMap.get(methodStrings[1]).get(methode);
+				}
+				
+				if(!r.isPrepared()) {
+					changeRecord(methodStrings[1], methode);
+				}
+				if (combination.isEmpty()) {
+					combination = r.getCombination();
+				} else if (!combination.contains(r.getCombination())) {
+					combination = combination + " & " + r.getCombination();
 				}
 			}
+
 		}
 		return combination;
 	}
@@ -989,4 +1149,5 @@ public class Non_Rigid extends KeyHandler {
 		}
 		return false;
 	}
+
 }

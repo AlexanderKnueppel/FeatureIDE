@@ -362,7 +362,9 @@ public class FeatureStubsGeneratorNonRigid {
 		String tmpText = fileTextSB.substring(0, indexOfBody);
 		int indexOfStartOfContract = tmpText.lastIndexOf("/*@");
 		String contractBody = "";
-		
+		if(featureName.contains("Transaction")) {
+			System.out.println();
+		}
 		int brace = contractBody.indexOf("(");
 		while (!((checkPosition(contractBody, REQUIRES, brace) || checkPosition(contractBody, ENSURES, brace) || 
 				checkPosition(contractBody, ASSIGNABLE, brace)))) {
@@ -381,7 +383,7 @@ public class FeatureStubsGeneratorNonRigid {
 		boolean allowedFeaturesAdded = false;
 		for (int i = 0; i < contracts.length; i++) {			
 			String line = contracts[i].trim();
-			if (line.startsWith("@ " + REQUIRES) || line.startsWith("/*@ " + REQUIRES)) {
+			if (line.startsWith("@ " + REQUIRES) || line.startsWith("/*@ " + REQUIRES) || line.startsWith(REQUIRES)) {
 				line = line.replace("/*@", "@");
 				
 				if(!allowedFeaturesAdded) {
@@ -390,10 +392,10 @@ public class FeatureStubsGeneratorNonRigid {
 					allowedFeaturesAdded = true; 
 				}
 				aggregateClausesNonRigid(requires, line);
-			} else if (line.startsWith("@ " + ENSURES) || line.startsWith("/*@ " + ENSURES)) {
+			} else if (line.startsWith("@ " + ENSURES) || line.startsWith("/*@ " + ENSURES)|| line.startsWith(ENSURES)) {
 				line = line.replace("/*@", "@");
 				aggregateClausesNonRigid(ensures, line);
-			} else if (line.startsWith("@ " + ASSIGNABLE) || line.startsWith("/*@ " + ASSIGNABLE)) {
+			} else if (line.startsWith("@ " + ASSIGNABLE) || line.startsWith("/*@ " + ASSIGNABLE)|| line.startsWith("/*@ " + ASSIGNABLE)) {
 				line = line.replace("/*@", "@");
 				assignable.append(line);
 			}
